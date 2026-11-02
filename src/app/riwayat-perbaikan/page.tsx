@@ -265,16 +265,9 @@ export default function RiwayatPerbaikanGaransiPage() {
     });
     const totalCostThisMonth = thisMonthClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
 
-    // Total Garansi vs Non-Garansi
-    const totalGaransiCost = repairClaims
-      .filter((c) => c.claimType === 'Garansi')
-      .reduce((acc, c) => acc + (c.totalCost || 0), 0);
-
-    const totalNonGaransiCost = repairClaims
-      .filter((c) => c.claimType === 'Non-Garansi')
-      .reduce((acc, c) => acc + (c.totalCost || 0), 0);
-
-    const grandTotalCost = totalGaransiCost + totalNonGaransiCost;
+    // Realisasi Biaya Garansi Showroom HR MOTOR (100% Ditanggung Dealer)
+    const grandTotalCost = repairClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
+    const totalGaransiCost = grandTotalCost;
 
     return {
       totalRecords,
@@ -282,7 +275,6 @@ export default function RiwayatPerbaikanGaransiPage() {
       totalUniqueVehicles,
       totalCostThisMonth,
       totalGaransiCost,
-      totalNonGaransiCost,
       grandTotalCost,
     };
   }, [repairClaims, currentMonthKey]);
@@ -371,7 +363,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       vehicleModel,
       vehicleYear,
       purchaseDate,
-      claimType: warrantyCheck.isWithinWarranty ? 'Garansi' : 'Non-Garansi',
+      claimType: 'Garansi',
     }));
   };
 
@@ -562,7 +554,6 @@ export default function RiwayatPerbaikanGaransiPage() {
         customerPhone: string;
         repairCount: number;
         warrantyCount: number;
-        nonWarrantyCount: number;
         totalCost: number;
         vehicles: Set<string>;
         latestRepairDate: string;
@@ -577,18 +568,13 @@ export default function RiwayatPerbaikanGaransiPage() {
           customerPhone: claim.customerPhone,
           repairCount: 0,
           warrantyCount: 0,
-          nonWarrantyCount: 0,
           totalCost: 0,
           vehicles: new Set(),
           latestRepairDate: claim.claimDate,
         };
       }
       map[key].repairCount += 1;
-      if (claim.claimType === 'Garansi') {
-        map[key].warrantyCount += 1;
-      } else {
-        map[key].nonWarrantyCount += 1;
-      }
+      map[key].warrantyCount += 1;
       map[key].totalCost += claim.totalCost || 0;
       map[key].vehicles.add(`${claim.vehicleBrand} ${claim.vehicleModel}`);
       if (claim.claimDate > map[key].latestRepairDate) {
@@ -615,7 +601,6 @@ export default function RiwayatPerbaikanGaransiPage() {
         year: number;
         repairCount: number;
         warrantyCount: number;
-        nonWarrantyCount: number;
         totalCost: number;
         commonDamage: Record<string, number>;
       }
@@ -631,14 +616,12 @@ export default function RiwayatPerbaikanGaransiPage() {
           year: claim.vehicleYear,
           repairCount: 0,
           warrantyCount: 0,
-          nonWarrantyCount: 0,
           totalCost: 0,
           commonDamage: {},
         };
       }
       map[key].repairCount += 1;
-      if (claim.claimType === 'Garansi') map[key].warrantyCount += 1;
-      else map[key].nonWarrantyCount += 1;
+      map[key].warrantyCount += 1;
       map[key].totalCost += claim.totalCost || 0;
 
       const cat = claim.damageCategory || 'Lainnya';
@@ -668,7 +651,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       }
       counts[cat].count += 1;
       counts[cat].totalCost += c.totalCost || 0;
-      if (c.claimType === 'Garansi') counts[cat].warrantyCount += 1;
+      counts[cat].warrantyCount += 1;
     });
 
     return Object.entries(counts)
@@ -690,8 +673,8 @@ export default function RiwayatPerbaikanGaransiPage() {
         monthKey: string;
         monthLabel: string;
         totalClaims: number;
-        garansiCost: number;
-        nonGaransiCost: number;
+        sparepartCost: number;
+        serviceCost: number;
         totalCost: number;
         uniqueCustomers: Set<string>;
       }
@@ -709,8 +692,8 @@ export default function RiwayatPerbaikanGaransiPage() {
           monthKey: key,
           monthLabel: label,
           totalClaims: 0,
-          garansiCost: 0,
-          nonGaransiCost: 0,
+          sparepartCost: 0,
+          serviceCost: 0,
           totalCost: 0,
           uniqueCustomers: new Set(),
         };
@@ -718,11 +701,8 @@ export default function RiwayatPerbaikanGaransiPage() {
 
       groups[key].totalClaims += 1;
       groups[key].uniqueCustomers.add((claim.customerPhone || claim.customerName).trim().toLowerCase());
-      if (claim.claimType === 'Garansi') {
-        groups[key].garansiCost += claim.totalCost || 0;
-      } else {
-        groups[key].nonGaransiCost += claim.totalCost || 0;
-      }
+      groups[key].sparepartCost += claim.sparepartCost || 0;
+      groups[key].serviceCost += claim.serviceCost || 0;
       groups[key].totalCost += claim.totalCost || 0;
     });
 
@@ -730,9 +710,9 @@ export default function RiwayatPerbaikanGaransiPage() {
       .map((g) => ({
         ...g,
         customerCount: g.uniqueCustomers.size,
-        'Biaya Garansi (Showroom)': g.garansiCost,
-        'Biaya Non-Garansi': g.nonGaransiCost,
-        'Total Pengeluaran': g.totalCost,
+        'Biaya Sparepart Garansi': g.sparepartCost,
+        'Biaya Jasa Servis Garansi': g.serviceCost,
+        'Total Biaya Garansi': g.totalCost,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
   }, [repairClaims]);
@@ -797,7 +777,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     doc.setFontSize(9);
     doc.setTextColor(15, 23, 42);
     doc.text(
-      `Total Riwayat: ${ownerSummary.totalRecords} Unit | Total Konsumen: ${ownerSummary.totalUniqueCustomers} Orang | Biaya Garansi: ${formatRupiah(ownerSummary.totalGaransiCost)} | Biaya Non-Garansi: ${formatRupiah(ownerSummary.totalNonGaransiCost)} | Total Pengeluaran: ${formatRupiah(ownerSummary.grandTotalCost)}`,
+      `Total Riwayat: ${ownerSummary.totalRecords} Unit | Total Konsumen: ${ownerSummary.totalUniqueCustomers} Orang | Total Biaya Garansi: ${formatRupiah(ownerSummary.grandTotalCost)} (100% Ditanggung Showroom HR MOTOR)`,
       14,
       32
     );
@@ -853,7 +833,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     const ticketNo = claim.claimNumber || claim.id;
     const warrantyCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
 
-    const text = `Sampurasun Bapak/Ibu *${claim.customerName}*,\n\nSalam hormat dari *HR MOTOR Garut*.\n\nBerikut konfirmasi rincian riwayat perbaikan mobil Bapak/Ibu yang telah selesai dikerjakan:\n\n• No. Tiket: *${ticketNo}*\n• Unit Mobil: *${carName}*\n• Tanggal Perbaikan: *${formatDate(claim.claimDate)}*\n• Status Garansi: *${warrantyCheck.statusLabel}*\n• Jenis Perbaikan: *${claim.claimType}* (${claim.claimType === 'Garansi' ? '100% Ditanggung HR MOTOR' : 'Dibayar Konsumen'})\n• Keluhan: ${claim.complaintOrDamage || claim.complaint}\n• Tindakan: ${claim.repairActionDescription || claim.actionTaken}\n• Total Biaya: *${formatRupiah(claim.totalCost)}*\n\nUnit mobil siap digunakan kembali dalam kondisi prima. Terima kasih telah mempercayakan pembelian dan perawatan mobil di HR MOTOR Garut.\n\n*HR MOTOR GARUT*`;
+    const text = `Sampurasun Bapak/Ibu *${claim.customerName}*,\n\nSalam hormat dari *HR MOTOR Garut*.\n\nBerikut konfirmasi rincian riwayat perbaikan mobil Bapak/Ibu yang telah selesai dikerjakan:\n\n• No. Tiket: *${ticketNo}*\n• Unit Mobil: *${carName}*\n• Tanggal Perbaikan: *${formatDate(claim.claimDate)}*\n• Status Garansi: *${warrantyCheck.statusLabel}*\n• Jaminan Showroom: *Garansi Resmi Showroom HR MOTOR* (100% Ditanggung Dealer)\n• Keluhan: ${claim.complaintOrDamage || claim.complaint}\n• Tindakan: ${claim.repairActionDescription || claim.actionTaken}\n• Total Biaya: *${formatRupiah(claim.totalCost)}*\n\nUnit mobil siap digunakan kembali dalam kondisi prima. Terima kasih telah mempercayakan pembelian dan perawatan mobil di HR MOTOR Garut.\n\n*HR MOTOR GARUT*`;
 
     return formatWhatsAppLink(claim.customerPhone, text);
   };
@@ -876,7 +856,7 @@ export default function RiwayatPerbaikanGaransiPage() {
               <span>Riwayat Perbaikan & Klaim Garansi</span>
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
-              Pencatatan dan pemantauan menyeluruh riwayat servis armada konsumen yang telah dilaksanakan, baik selama maupun di luar masa garansi resmi 1 bulan HR MOTOR Garut.
+              Pencatatan dan pemantauan menyeluruh riwayat servis armada konsumen yang selalu terlindungi oleh garansi resmi showroom HR MOTOR Garut.
             </p>
           </div>
 
@@ -1000,16 +980,16 @@ export default function RiwayatPerbaikanGaransiPage() {
           <p className="text-[10px] text-gold-800 mt-1 font-semibold">100% Ditanggung HR MOTOR</p>
         </div>
 
-        {/* 6. Total Biaya Non-Garansi */}
+        {/* 6. Jaminan Garansi Showroom */}
         <div className="crm-card p-4">
           <div className="flex items-center justify-between text-charcoal-600 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-600">Biaya Non-Garansi</span>
-            <DollarSign className="w-4 h-4 text-charcoal-400" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-600">Jaminan Showroom</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-base font-black text-charcoal-800 truncate" title={formatRupiah(ownerSummary.totalNonGaransiCost)}>
-            {formatRupiah(ownerSummary.totalNonGaransiCost)}
+          <div className="text-base font-black text-emerald-700 truncate">
+            100% Bergaransi
           </div>
-          <p className="text-[10px] text-charcoal-400 mt-1 font-medium">Dibayar Oleh Konsumen</p>
+          <p className="text-[10px] text-charcoal-500 mt-1 font-medium">Semua Pembelian Mobil Terlindungi</p>
         </div>
       </div>
 
@@ -1092,9 +1072,8 @@ export default function RiwayatPerbaikanGaransiPage() {
                   onChange={(e) => setTypeFilter(e.target.value as any)}
                   className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
-                  <option value="Semua">Semua Jenis</option>
-                  <option value="Garansi">Garansi (Beban Showroom)</option>
-                  <option value="Non-Garansi">Non-Garansi (Bayar Konsumen)</option>
+                  <option value="Semua">Semua Garansi Showroom</option>
+                  <option value="Garansi">Garansi Resmi HR MOTOR (100%)</option>
                 </select>
               </div>
 
@@ -1263,21 +1242,11 @@ export default function RiwayatPerbaikanGaransiPage() {
                             )}
                           </td>
 
-                          {/* 9. Jenis Perbaikan (Garansi / Non-Garansi) */}
+                          {/* 9. Jenis Perbaikan (Garansi Showroom) */}
                           <td className="py-3 px-3 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full ${
-                                claim.claimType === 'Garansi'
-                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                  : 'bg-blue-100 text-blue-800 border border-blue-200'
-                              }`}
-                            >
-                              {claim.claimType === 'Garansi' ? (
-                                <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <DollarSign className="w-3 h-3 text-blue-600" />
-                              )}
-                              {claim.claimType}
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                              Garansi Showroom
                             </span>
                           </td>
 
@@ -1359,10 +1328,10 @@ export default function RiwayatPerbaikanGaransiPage() {
               </div>
               <div className="flex items-center gap-4 text-[11px]">
                 <span>
-                  Beban Garansi HR MOTOR: <strong className="text-amber-800">{formatRupiah(ownerSummary.totalGaransiCost)}</strong>
+                  Total Beban Garansi Showroom: <strong className="text-gold-600 font-bold">{formatRupiah(ownerSummary.grandTotalCost)}</strong>
                 </span>
-                <span>
-                  Dibayar Konsumen: <strong className="text-blue-800">{formatRupiah(ownerSummary.totalNonGaransiCost)}</strong>
+                <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  100% Ditanggung HR MOTOR
                 </span>
               </div>
             </div>
@@ -1417,7 +1386,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                     Grafik Biaya Perbaikan Berdasarkan Bulan & Tahun
                   </h4>
                   <p className="text-xs text-slate-500">
-                    Perbandingan pengeluaran Biaya Garansi (Showroom) vs Biaya Non-Garansi (Konsumen)
+                    Perbandingan pengeluaran Biaya Sparepart Garansi vs Biaya Jasa Servis Garansi (100% Beban HR MOTOR)
                   </p>
                 </div>
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
@@ -1437,8 +1406,8 @@ export default function RiwayatPerbaikanGaransiPage() {
                       labelFormatter={(lbl) => `Periode: ${lbl}`}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="Biaya Garansi (Showroom)" fill="#D99A32" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Biaya Non-Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Biaya Sparepart Garansi" fill="#D99A32" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Biaya Jasa Servis Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1542,10 +1511,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className="text-[10px] text-emerald-700 font-semibold">{c.warrantyCount} Garansi</span>
-                        {c.nonWarrantyCount > 0 && (
-                          <span className="text-[10px] text-blue-700 font-semibold ml-1.5">• {c.nonWarrantyCount} Non-Garansi</span>
-                        )}
+                        <span className="text-[10px] text-emerald-700 font-semibold">{c.warrantyCount}x Garansi Showroom</span>
                       </td>
                       <td className="py-3 px-4 text-right font-extrabold text-slate-900">
                         {formatRupiah(c.totalCost)}
@@ -1612,9 +1578,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center text-[11px]">
-                        <span className="text-emerald-700 font-semibold">{v.warrantyCount} Garansi</span>
-                        <span className="text-slate-400 mx-1">/</span>
-                        <span className="text-blue-700 font-semibold">{v.nonWarrantyCount} Non</span>
+                        <span className="text-emerald-700 font-semibold">{v.warrantyCount}x Garansi Showroom</span>
                       </td>
                       <td className="py-3 px-4 text-right font-extrabold text-slate-900">
                         {formatRupiah(v.totalCost)}
@@ -1635,7 +1599,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                   Rekapitulasi Total Pengeluaran Perbaikan Setiap Bulan
                 </h4>
                 <p className="text-xs text-slate-500">
-                  Rincian biaya garansi yang ditanggung dealer vs biaya non-garansi konsumen per bulan
+                  Rincian biaya sparepart garansi vs biaya jasa servis yang ditanggung dealer HR MOTOR per bulan
                 </p>
               </div>
               <span className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 rounded-md">
@@ -1650,9 +1614,9 @@ export default function RiwayatPerbaikanGaransiPage() {
                     <th className="py-3 px-4">Bulan & Tahun</th>
                     <th className="py-3 px-4 text-center">Total Unit Diservis</th>
                     <th className="py-3 px-4 text-center">Konsumen Unik</th>
-                    <th className="py-3 px-4 text-right text-amber-800">Biaya Garansi (HR MOTOR)</th>
-                    <th className="py-3 px-4 text-right text-blue-800">Biaya Non-Garansi (Konsumen)</th>
-                    <th className="py-3 px-4 text-right font-bold text-slate-900">Total Pengeluaran Bulan</th>
+                    <th className="py-3 px-4 text-right text-amber-800">Biaya Sparepart (Garansi)</th>
+                    <th className="py-3 px-4 text-right text-slate-700">Biaya Jasa Servis (Garansi)</th>
+                    <th className="py-3 px-4 text-right font-bold text-slate-900">Total Pengeluaran Garansi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1668,8 +1632,8 @@ export default function RiwayatPerbaikanGaransiPage() {
                       </td>
                       <td className="py-3 px-4 text-center font-bold text-slate-800">{m.totalClaims} unit</td>
                       <td className="py-3 px-4 text-center text-slate-600">{m.customerCount} orang</td>
-                      <td className="py-3 px-4 text-right font-semibold text-amber-700">{formatRupiah(m.garansiCost)}</td>
-                      <td className="py-3 px-4 text-right font-semibold text-blue-700">{formatRupiah(m.nonGaransiCost)}</td>
+                      <td className="py-3 px-4 text-right font-semibold text-amber-700">{formatRupiah(m.sparepartCost)}</td>
+                      <td className="py-3 px-4 text-right font-semibold text-slate-700">{formatRupiah(m.serviceCost)}</td>
                       <td className="py-3 px-4 text-right font-black text-slate-900">{formatRupiah(m.totalCost)}</td>
                     </tr>
                   ))}
@@ -1863,7 +1827,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                       <span>{addFormWarrantyCheck.notes}</span>
                       {!addFormWarrantyCheck.isWithinWarranty && (
                         <p className="text-[10px] text-amber-700 mt-0.5 font-medium">
-                          ⚠️ Perbaikan di luar masa garansi disarankan ditandai sebagai Non-Garansi.
+                          ✓ Jaminan Showroom HR MOTOR tetap memberikan perlindungan purna jual resmi showroom.
                         </p>
                       )}
                     </div>
@@ -1871,47 +1835,22 @@ export default function RiwayatPerbaikanGaransiPage() {
                 )}
               </div>
 
-              {/* Pilihan Keputusan Jenis Perbaikan */}
+              {/* Status Jaminan Showroom HR MOTOR */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Keputusan Jenis Perbaikan <span className="text-rose-500">*</span>
+                  Status Jaminan Garansi Showroom
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, claimType: 'Garansi' })}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border text-left transition-all ${
-                      formData.claimType === 'Garansi'
-                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Garansi (Ditanggung HR MOTOR)</span>
+                <div className="p-3 rounded-lg border border-gold-500/40 bg-gold-50/50 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-5 h-5 text-gold-600 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold text-charcoal-900">Garansi Resmi Showroom HR MOTOR</p>
+                      <p className="text-[11px] text-charcoal-600">Seluruh unit mobil yang dibeli pasti bergaransi resmi (100% Ditanggung HR MOTOR)</p>
                     </div>
-                    <span className="text-[10px] opacity-90 block mt-0.5">
-                      Beban operasional dealer 100%
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, claimType: 'Non-Garansi' })}
-                    className={`py-2 px-3 text-xs font-semibold rounded-lg border text-left transition-all ${
-                      formData.claimType === 'Non-Garansi'
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                        : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <DollarSign className="w-4 h-4" />
-                      <span>Non-Garansi (Dibayar Konsumen)</span>
-                    </div>
-                    <span className="text-[10px] opacity-90 block mt-0.5">
-                      Ditagihkan langsung ke konsumen
-                    </span>
-                  </button>
+                  </div>
+                  <span className="badge-gold">
+                    100% Beban Dealer
+                  </span>
                 </div>
               </div>
 
@@ -2214,14 +2153,8 @@ export default function RiwayatPerbaikanGaransiPage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
                     Rincian Biaya Perbaikan
                   </span>
-                  <span
-                    className={`text-[11px] font-bold px-2 py-0.5 rounded ${
-                      selectedClaim.claimType === 'Garansi'
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {selectedClaim.claimType === 'Garansi' ? '100% Ditanggung HR MOTOR' : 'Dibayar Konsumen'}
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    100% Ditanggung HR MOTOR
                   </span>
                 </div>
 
@@ -2419,8 +2352,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                     onChange={(e) => setEditFormData({ ...editFormData, claimType: e.target.value as any })}
                     className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg bg-white"
                   >
-                    <option value="Garansi">Garansi (Beban Showroom HR MOTOR)</option>
-                    <option value="Non-Garansi">Non-Garansi (Dibayar Konsumen)</option>
+                    <option value="Garansi">Garansi Resmi Showroom HR MOTOR (100% Ditanggung)</option>
                   </select>
                 </div>
 

@@ -361,7 +361,7 @@ export interface DashboardMetrics {
   totalDealValue: number; // in IDR
 }
 
-export type RepairClaimType = 'Garansi' | 'Non-Garansi';
+export type RepairClaimType = 'Garansi' | 'Garansi Khusus';
 export type RepairStatus = 'Menunggu' | 'Dalam Proses' | 'Selesai' | 'Dibatalkan';
 export type RepairPartCategory =
   | 'Mesin'
@@ -383,7 +383,7 @@ export interface RepairClaim {
   vehicleYear: number;
   purchaseDate?: string;
   claimDate: string; // YYYY-MM-DD
-  claimType: RepairClaimType; // Garansi atau Non-Garansi
+  claimType: RepairClaimType; // Selalu Garansi Resmi Showroom HR MOTOR
   complaint?: string;
   complaintOrDamage?: string; // Keluhan atau kerusakan mobil
   partsToRepair?: string;

@@ -211,8 +211,7 @@ export default function AfterSalesPage() {
   }, [filteredClaims]);
 
   const totalClaimsCount = filteredClaims.length;
-  const warrantyClaimsCount = filteredClaims.filter((c) => c.claimType === 'Garansi').length;
-  const nonWarrantyClaimsCount = filteredClaims.filter((c) => c.claimType === 'Non-Garansi').length;
+  const warrantyClaimsCount = filteredClaims.length;
   const completedClaimsCount = filteredClaims.filter((c) => c.status === 'Selesai').length;
   const inProgressClaimsCount = filteredClaims.filter((c) => c.status === 'Dalam Proses').length;
   const pendingClaimsCount = filteredClaims.filter((c) => c.status === 'Menunggu').length;
@@ -230,18 +229,12 @@ export default function AfterSalesPage() {
     return realizedClaims.reduce((sum, c) => sum + (c.totalCost || 0), 0);
   }, [realizedClaims]);
 
-  const totalWarrantyCost = useMemo(() => {
-    return realizedClaims.filter((c) => c.claimType === 'Garansi').reduce((sum, c) => sum + (c.totalCost || 0), 0);
-  }, [realizedClaims]);
-
-  const totalNonWarrantyCost = useMemo(() => {
-    return realizedClaims.filter((c) => c.claimType === 'Non-Garansi').reduce((sum, c) => sum + (c.totalCost || 0), 0);
-  }, [realizedClaims]);
+  const totalWarrantyCost = totalOverallCost;
 
   // ===================== REPAIR ANALYTICS CALCULATIONS =====================
-  // 1. Monthly Repair Trend (Garansi vs Non-Garansi)
+  // 1. Monthly Repair Trend (Realisasi Garansi Showroom: Sparepart vs Jasa)
   const monthlyExpenseChartData = useMemo(() => {
-    const monthsMap: Record<string, { month: string; garansi: number; nonGaransi: number; total: number }> = {};
+    const monthsMap: Record<string, { month: string; sparepart: number; jasa: number; total: number }> = {};
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
     // Collect all realized claims
@@ -253,14 +246,11 @@ export default function AfterSalesPage() {
         const key = `${monthNames[monthNum - 1]} ${year}`;
 
         if (!monthsMap[key]) {
-          monthsMap[key] = { month: key, garansi: 0, nonGaransi: 0, total: 0 };
+          monthsMap[key] = { month: key, sparepart: 0, jasa: 0, total: 0 };
         }
-        if (claim.claimType === 'Garansi') {
-          monthsMap[key].garansi += claim.totalCost;
-        } else {
-          monthsMap[key].nonGaransi += claim.totalCost;
-        }
-        monthsMap[key].total += claim.totalCost;
+        monthsMap[key].sparepart += claim.sparepartCost || 0;
+        monthsMap[key].jasa += claim.serviceCost || 0;
+        monthsMap[key].total += claim.totalCost || 0;
       }
     });
 
@@ -328,13 +318,13 @@ export default function AfterSalesPage() {
     return Object.values(map).filter((item) => item.count > 0).sort((a, b) => b.count - a.count);
   }, [filteredClaims]);
 
-  // 5. Warranty vs Non-Warranty Cost Comparison
+  // 5. Warranty Cost Breakdown (Sparepart vs Jasa Servis)
   const warrantyVsNonWarrantyData = useMemo(() => {
     return [
-      { name: 'Klaim Garansi (Ditanggung Showroom)', value: totalWarrantyCost, color: '#D99A32' },
-      { name: 'Non-Garansi (Dibayar Konsumen)', value: totalNonWarrantyCost, color: '#202020' },
+      { name: 'Biaya Sparepart Garansi', value: totalSparepartCost, color: '#D99A32' },
+      { name: 'Biaya Jasa Servis Garansi', value: totalServiceCost, color: '#242424' },
     ].filter((item) => item.value > 0);
-  }, [totalWarrantyCost, totalNonWarrantyCost]);
+  }, [totalSparepartCost, totalServiceCost]);
 
   // ===================== REPAIR ACTIONS =====================
   const openAddRepairModal = () => {
@@ -532,16 +522,13 @@ export default function AfterSalesPage() {
       ['Total Konsumen Mengajukan', totalCustomersCount],
       ['Total Pengajuan Perbaikan', totalClaimsCount],
       ['Jumlah Perbaikan Garansi (Showroom)', warrantyClaimsCount],
-      ['Jumlah Perbaikan Non-Garansi (Konsumen)', nonWarrantyClaimsCount],
       ['Jumlah Status Selesai', completedClaimsCount],
       ['Jumlah Status Dalam Proses', inProgressClaimsCount],
       ['Jumlah Status Menunggu', pendingClaimsCount],
       ['Jumlah Status Dibatalkan (Tidak Dihitung Biaya)', cancelledClaimsCount],
-      ['Total Biaya Sparepart (Realisasi)', totalSparepartCost],
-      ['Total Biaya Jasa Perbaikan (Realisasi)', totalServiceCost],
-      ['Total Keseluruhan Pengeluaran Perbaikan', totalOverallCost],
-      ['Beban Biaya Garansi HR MOTOR', totalWarrantyCost],
-      ['Beban Biaya Non-Garansi Konsumen', totalNonWarrantyCost],
+      ['Total Biaya Sparepart Garansi (Realisasi)', totalSparepartCost],
+      ['Total Biaya Jasa Perbaikan Garansi (Realisasi)', totalServiceCost],
+      ['Total Pengeluaran Garansi Showroom HR MOTOR', totalOverallCost],
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan Biaya Bulanan');
@@ -605,8 +592,7 @@ export default function AfterSalesPage() {
         [
           'Total Konsumen',
           'Total Klaim',
-          'Garansi',
-          'Non-Garansi',
+          'Garansi Showroom',
           'Selesai',
           'Proses',
           'Biaya Sparepart',
@@ -618,8 +604,7 @@ export default function AfterSalesPage() {
         [
           `${totalCustomersCount} Org`,
           `${totalClaimsCount} Klaim`,
-          `${warrantyClaimsCount}`,
-          `${nonWarrantyClaimsCount}`,
+          `${warrantyClaimsCount} (100%)`,
           `${completedClaimsCount}`,
           `${inProgressClaimsCount}`,
           formatRupiah(totalSparepartCost),
@@ -938,9 +923,7 @@ export default function AfterSalesPage() {
                 onChange={(e) => setRepairTypeFilter(e.target.value as any)}
                 className="px-2.5 py-1.5 border border-[#EAE8E3] rounded-lg bg-white text-charcoal-800 font-medium focus:outline-none focus:border-gold-500"
               >
-                <option value="ALL">Semua Jenis Pengajuan</option>
-                <option value="Garansi">Garansi Showroom</option>
-                <option value="Non-Garansi">Non-Garansi (Konsumen)</option>
+                <option value="ALL">Garansi Resmi Showroom (100%)</option>
               </select>
 
               <select
@@ -1029,7 +1012,7 @@ export default function AfterSalesPage() {
                   {totalClaimsCount}
                 </span>
                 <span className="text-[10px] text-gold-700 font-semibold">
-                  {warrantyClaimsCount} Garansi • {nonWarrantyClaimsCount} Non
+                  100% Garansi Showroom
                 </span>
               </div>
 
@@ -1076,20 +1059,20 @@ export default function AfterSalesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-charcoal-900">
-                    Tren Pengeluaran Biaya Perbaikan Bulanan
+                    Tren Realisasi Biaya Garansi Showroom Bulanan
                   </h3>
                   <p className="text-xs text-charcoal-500">
-                    Perbandingan realisasi biaya Garansi Showroom vs Non-Garansi Konsumen
+                    Realisasi biaya Garansi Showroom HR MOTOR (Sparepart vs Jasa Servis)
                   </p>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
                     <span className="w-3 h-3 rounded bg-gold-500 inline-block" />
-                    <span className="text-charcoal-700 font-medium">Garansi</span>
+                    <span className="text-charcoal-700 font-medium">Sparepart</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-3 h-3 rounded bg-charcoal-900 inline-block" />
-                    <span className="text-charcoal-700 font-medium">Non-Garansi</span>
+                    <span className="text-charcoal-700 font-medium">Jasa Servis</span>
                   </div>
                 </div>
               </div>
@@ -1112,22 +1095,22 @@ export default function AfterSalesPage() {
                         formatter={(val: any) => [formatRupiah(Number(val) || 0), '']}
                         contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid #EAE8E3', backgroundColor: '#FFFFFF' }}
                       />
-                      <Bar dataKey="garansi" name="Garansi Showroom" fill="#D99A32" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="nonGaransi" name="Non-Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="sparepart" name="Sparepart Garansi" fill="#D99A32" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="jasa" name="Jasa Servis Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </div>
 
-            {/* Analysis: Warranty vs Non-Warranty Proportion */}
+            {/* Analysis: Sparepart vs Service Warranty Proportion */}
             <div className="crm-card p-5 border border-[#EAE8E3] space-y-4 flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-bold text-charcoal-900">
-                  Perbandingan Beban Biaya
+                  Komposisi Biaya Garansi Showroom
                 </h3>
                 <p className="text-xs text-charcoal-500">
-                  Proporsi pengeluaran showroom vs mandiri konsumen
+                  Proporsi biaya sparepart vs jasa servis (100% Ditanggung HR MOTOR)
                 </p>
               </div>
 
@@ -1161,16 +1144,16 @@ export default function AfterSalesPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-gold-500" />
-                    <span className="text-charcoal-700 font-medium">Beban Garansi Showroom</span>
+                    <span className="text-charcoal-700 font-medium">Biaya Sparepart Garansi</span>
                   </div>
-                  <span className="font-bold text-gold-700">{formatRupiah(totalWarrantyCost)}</span>
+                  <span className="font-bold text-gold-700">{formatRupiah(totalSparepartCost)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-charcoal-900" />
-                    <span className="text-charcoal-700 font-medium">Non-Garansi (Konsumen)</span>
+                    <span className="text-charcoal-700 font-medium">Biaya Jasa Servis Garansi</span>
                   </div>
-                  <span className="font-bold text-charcoal-900">{formatRupiah(totalNonWarrantyCost)}</span>
+                  <span className="font-bold text-charcoal-900">{formatRupiah(totalServiceCost)}</span>
                 </div>
               </div>
             </div>
@@ -1878,8 +1861,7 @@ export default function AfterSalesPage() {
                     onChange={(e) => setRepairForm({ ...repairForm, claimType: e.target.value as RepairClaimType })}
                     className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none font-bold text-charcoal-900 bg-white focus:border-gold-500"
                   >
-                    <option value="Garansi">Garansi (Beban Showroom HR MOTOR)</option>
-                    <option value="Non-Garansi">Non-Garansi (Beban Konsumen)</option>
+                    <option value="Garansi">Garansi Resmi Showroom HR MOTOR (100% Ditanggung)</option>
                   </select>
                 </div>
                 <div>

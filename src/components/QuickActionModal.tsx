@@ -66,7 +66,7 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
     customerPhone: '',
     vehicleModel: '',
     vehicleYear: 2021,
-    claimType: 'Garansi' as 'Garansi' | 'Non-Garansi',
+    claimType: 'Garansi' as 'Garansi',
     complaintOrDamage: '',
     sparepartCost: 0,
     serviceCost: 0,
@@ -867,8 +867,7 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
                     onChange={(e) => setRepairForm({ ...repairForm, claimType: e.target.value as any })}
                     className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 bg-white"
                   >
-                    <option value="Garansi">Garansi</option>
-                    <option value="Non-Garansi">Non-Garansi</option>
+                    <option value="Garansi">Garansi Resmi Showroom HR MOTOR</option>
                   </select>
                 </div>
               </div>

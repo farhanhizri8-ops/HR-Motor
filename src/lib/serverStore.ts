@@ -173,6 +173,16 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
     modified = true;
   }
 
+  // Ensure every repair claim is Garansi (HR MOTOR guarantees 100% warranty on every vehicle sold)
+  if (db.repairClaims && Array.isArray(db.repairClaims)) {
+    db.repairClaims.forEach((r) => {
+      if ((r.claimType as string) === 'Non-Garansi') {
+        r.claimType = 'Garansi';
+        modified = true;
+      }
+    });
+  }
+
   return modified;
 }
 
