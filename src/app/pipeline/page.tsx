@@ -614,7 +614,7 @@ export default function SalesPipelinePage() {
                   required
                   value={visitNotes}
                   onChange={(e) => setVisitNotes(e.target.value)}
-                  placeholder="Misal: Konsumen datang ke showroom Jl. Otista bersama keluarga, mengecek kondisi bodi, interior mulus, dan mencoba suara mesin. Respon sangat positif..."
+                  placeholder="Misal: Konsumen datang ke showroom bersama keluarga, mengecek kondisi bodi, interior mulus, dan mencoba suara mesin. Respon sangat positif..."
                   className="w-full text-xs p-3 bg-warm-50 border border-warm-200 rounded-xl outline-none focus:ring-1 focus:ring-gold-500/30 focus:border-gold-500"
                 />
                 <p className="text-[10px] text-charcoal-400 mt-1">

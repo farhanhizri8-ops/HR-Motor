@@ -619,7 +619,7 @@ export default function ReportsAnalyticsPage() {
       doc.rect(0, pageHeight - 12, 210, 12, 'F');
       doc.setFontSize(7.5);
       doc.setTextColor(240, 182, 83);
-      doc.text('HR MOTOR GARUT • Jalan Terusan Pahlawan No. 45, Tarogong Kidul, Garut • Sistem CRM Showroom Resmi', 14, pageHeight - 5);
+      doc.text('HR MOTOR GARUT • Garut, Jawa Barat • Sistem CRM Showroom Resmi', 14, pageHeight - 5);
 
       // Save PDF
       doc.save(`Laporan_Resmi_HR_MOTOR_${datePeriod}_${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -1351,7 +1351,7 @@ export default function ReportsAnalyticsPage() {
             </h2>
           </div>
           <span className="text-[11px] text-[#666666] font-medium hidden sm:inline">
-            Status ketersediaan armada fisik di showroom Tarogong Kidul, Garut
+            Status ketersediaan armada fisik di showroom HR MOTOR Garut
           </span>
         </div>
 

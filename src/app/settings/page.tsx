@@ -45,7 +45,7 @@ export default function SettingsDealerPage() {
 
   // Showroom Profile States
   const [dealerName, setDealerName] = useState('HR MOTOR Garut');
-  const [address, setAddress] = useState('Jl. Otista No. 128, Tarogong Kidul, Garut, Jawa Barat 44151');
+  const [address, setAddress] = useState('Garut, Jawa Barat');
   const [phone, setPhone] = useState('081223450001');
   const [email, setEmail] = useState('info@hrmotor.id');
   const [operatingHours, setOperatingHours] = useState('Senin - Sabtu: 08:00 - 17:00 WIB | Minggu: 09:00 - 15:00 WIB');

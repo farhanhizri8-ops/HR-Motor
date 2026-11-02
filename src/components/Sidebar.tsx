@@ -194,8 +194,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-
-
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
           {filteredNav.map((item) => {

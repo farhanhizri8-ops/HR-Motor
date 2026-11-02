@@ -320,7 +320,7 @@ export const INITIAL_LEADS: Lead[] = [
       {
         stage: 'Cek Unit',
         timestamp: '2026-10-25T14:00:00Z',
-        visitNotes: 'Konsumen datang langsung ke showroom HR MOTOR Jl. Otista, mengecek kondisi cat bodi orisinil dan uji transmisi.',
+        visitNotes: 'Konsumen datang langsung ke showroom HR MOTOR Garut, mengecek kondisi cat bodi orisinil dan uji transmisi.',
         updatedByName: 'Asep Kurniawan',
       },
       {
@@ -368,7 +368,7 @@ export const INITIAL_LEADS: Lead[] = [
       {
         stage: 'Cek Unit',
         timestamp: '2026-11-01T16:00:00Z',
-        visitNotes: 'Konsumen sepakat datang cek langsung unit di showroom HR MOTOR Jl. Otista.',
+        visitNotes: 'Konsumen sepakat datang cek langsung unit di showroom HR MOTOR Garut.',
         updatedByName: 'Rina Sulaeman',
       },
     ],
@@ -855,7 +855,7 @@ export const INITIAL_FOLLOW_UPS: FollowUp[] = [
     priority: 'Tinggi',
     assignedSalesId: 'USR-003',
     assignedSalesName: 'Asep Kurniawan',
-    notes: 'Prioritas tinggi: Unit ready di showroom Jl. Otista Garut. Hubungi segera via WhatsApp.',
+    notes: 'Prioritas tinggi: Unit ready di showroom HR MOTOR Garut. Hubungi segera via WhatsApp.',
     createdAt: '2026-10-28T09:00:00Z',
     updatedAt: '2026-11-02T08:00:00Z',
   },
@@ -1005,7 +1005,7 @@ export const MESSAGE_TEMPLATES: MessageTemplate[] = [
     id: 'TMPL-002',
     title: 'Follow-up Penawaran & Undangan Showroom',
     category: 'Follow-up',
-    content: 'Halo Bapak/Ibu {nama_pelanggan}. Melanjutkan percakapan kita mengenai {mobil_diminati}, kami ingin menginfokan bahwa unit tersebut siap untuk dicek langsung dan ditest drive di showroom kami (Jl. Otista No. 128, Tarogong Kidul, Garut). Apakah hari ini atau akhir pekan ini Bapak/Ibu berkenan mampir?',
+    content: 'Halo Bapak/Ibu {nama_pelanggan}. Melanjutkan percakapan kita mengenai {mobil_diminati}, kami ingin menginfokan bahwa unit tersebut siap untuk dicek langsung dan ditest drive di showroom kami (HR MOTOR Garut). Apakah hari ini atau akhir pekan ini Bapak/Ibu berkenan mampir?',
   },
   {
     id: 'TMPL-003',

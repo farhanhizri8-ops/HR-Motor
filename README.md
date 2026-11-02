@@ -1,6 +1,6 @@
 # HR MOTOR CRM — Aplikasi Customer Relationship Management Showroom Mobil Bekas Garut
 
-Aplikasi web **Customer Relationship Management (CRM)** terpadu, profesional, dan siap produksi yang dibangun khusus untuk **HR MOTOR**, showroom dealer mobil bekas berkualitas di Garut, Jawa Barat, Indonesia (Jl. Otista No. 128, Tarogong Kidul, Garut).
+Aplikasi web **Customer Relationship Management (CRM)** terpadu, profesional, dan siap produksi yang dibangun khusus untuk **HR MOTOR**, showroom dealer mobil bekas berkualitas di Garut, Jawa Barat, Indonesia.
 
 Proyek ini dirancang sebagai implementasi nyata sistem informasi CRM untuk studi kasus perguruan tinggi / proyek universitas, dengan fokus penuh dan murni pada **Customer Relationship Management (CRM)** — mengoptimalkan relasi konsumen, konversi prospek penjualan, follow-up berkala, komunikasi WhatsApp, retensi purna jual (after-sales), serta analitik kinerja penjualan, **BUKAN ERP** (tidak memuat modul akuntansi umum, payroll, bengkel umum, atau absensi karyawan).
 
@@ -11,7 +11,7 @@ Proyek ini dirancang sebagai implementasi nyata sistem informasi CRM untuk studi
 - **Nama Aplikasi:** HR MOTOR CRM
 - **Dealer / Perusahaan:** HR MOTOR Garut
 - **Jenis Usaha:** Showroom Penjualan Mobil Bekas Berkualitas & Bergaransi Resmi
-- **Lokasi Showroom:** Jl. Otista No. 128, Tarogong Kidul, Garut, Jawa Barat
+- **Lokasi Showroom:** Garut, Jawa Barat
 - **Bahasa Antarmuka:** Bahasa Indonesia
 - **Mata Uang:** Rupiah Indonesia (Rp)
 - **Zona Waktu:** Asia/Jakarta (WIB)

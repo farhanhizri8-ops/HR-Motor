@@ -1125,7 +1125,7 @@
     },
     {
       "id": "FLW-2026-003",
-      "notes": "Prioritas tinggi: Unit ready di showroom Jl. Otista Garut. Hubungi segera via WhatsApp.",
+      "notes": "Prioritas tinggi: Unit ready di showroom HR MOTOR Garut. Hubungi segera via WhatsApp.",
       "leadId": "LEAD-2026-004",
       "status": "Belum Dihubungi",
       "channel": "WhatsApp",
@@ -1346,7 +1346,7 @@
     {
       "id": "TMPL-002",
       "title": "Follow-up Penawaran & Undangan Showroom",
-      "content": "Halo Bapak/Ibu {nama_pelanggan}. Melanjutkan percakapan kita mengenai {mobil_diminati}, kami ingin menginfokan bahwa unit tersebut siap untuk dicek langsung dan ditest drive di showroom kami (Jl. Otista No. 128, Tarogong Kidul, Garut). Apakah hari ini atau akhir pekan ini Bapak/Ibu berkenan mampir?",
+      "content": "Halo Bapak/Ibu {nama_pelanggan}. Melanjutkan percakapan kita mengenai {mobil_diminati}, kami ingin menginfokan bahwa unit tersebut siap untuk dicek langsung dan ditest drive di showroom kami (HR MOTOR Garut). Apakah hari ini atau akhir pekan ini Bapak/Ibu berkenan mampir?",
       "category": "Follow-up"
     },
     {

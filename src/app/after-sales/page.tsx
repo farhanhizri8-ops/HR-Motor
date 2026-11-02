@@ -525,7 +525,7 @@ export default function AfterSalesPage() {
     const summaryRows = [
       ['LAPORAN GARANSI & PERBAIKAN MOBIL — HR MOTOR GARUT', ''],
       ['Tanggal Ekspor', new Date().toLocaleDateString('id-ID')],
-      ['Lokasi Showroom', 'Jl. Otista No. 128, Tarogong Kidul, Garut, Jawa Barat'],
+      ['Lokasi Showroom', 'Garut, Jawa Barat'],
       ['Filter Periode', `Bulan: ${repairMonthFilter === 'ALL' ? 'Semua' : repairMonthFilter} | Tahun: ${repairYearFilter === 'ALL' ? 'Semua' : repairYearFilter}`],
       ['', ''],
       ['Indikator Perbaikan & Garansi', 'Jumlah / Nilai'],
@@ -585,7 +585,7 @@ export default function AfterSalesPage() {
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Showroom Pusat: Jl. Otista No. 128, Tarogong Kidul, Garut, Jawa Barat | Telepon: 0812-2233-4455', 14, 22);
+    doc.text('Showroom Pusat: HR MOTOR Garut, Jawa Barat | Telepon: 0812-2233-4455', 14, 22);
     doc.text(
       `Waktu Cetak: ${new Date().toLocaleString('id-ID')} WIB | Periode: ${
         repairMonthFilter === 'ALL' ? 'Semua Bulan' : 'Bulan ' + repairMonthFilter

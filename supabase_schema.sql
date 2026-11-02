@@ -387,7 +387,7 @@ INSERT INTO public.customers (id, full_name, whatsapp, email, address, district,
 ('CUST-2026-001', 'Agus Gunawan', '081221345678', 'agus.gunawan@gmail.com', 'Jl. Cimanuk No. 45, RT 02/05', 'Tarogong Kidul', 'Walk-in', 'Toyota Innova Reborn 2.4 G A/T Diesel 2020', 'MPV', 330000000, 'Sudah Beli', '2026-01-15'),
 ('CUST-2026-002', 'Siti Rahmawati, S.Pd.', '085223456789', 'siti.rahma@yahoo.com', 'Perumahan Jayaraga Indah Blok C-12', 'Tarogong Kidul', 'Instagram', 'Honda HR-V 1.5 E CVT 2019', 'SUV', 245000000, 'Sudah Beli', '2026-01-20'),
 ('CUST-2026-003', 'Dadan Ramdani', '081394567890', 'dadan.ramdani88@gmail.com', 'Kp. Cimuncang RT 01/RW 03, Samarang', 'Samarang', 'WhatsApp', 'Mitsubishi Xpander Ultimate 2021', 'MPV', 225000000, 'Aktif', '2026-02-05'),
-('CUST-2026-004', 'Wawan Hermawan', '085712348899', 'wawan.h@gmail.com', 'Jl. Otista No. 89, Tarogong Kaler', 'Tarogong Kaler', 'Walk-in', 'Toyota Avanza 1.3 G M/T 2019', 'MPV', 165000000, 'Sudah Beli', '2025-11-01'),
+('CUST-2026-004', 'Wawan Hermawan', '085712348899', 'wawan.h@gmail.com', 'Jl. Merdeka No. 89, Tarogong Kaler', 'Tarogong Kaler', 'Walk-in', 'Toyota Avanza 1.3 G M/T 2019', 'MPV', 165000000, 'Sudah Beli', '2025-11-01'),
 ('CUST-2026-005', 'Yudi Karyadi', '087823451122', 'yudi.karyadi@outlook.com', 'Jl. Pembangunan No. 102, Garut Kota', 'Garut Kota', 'Facebook', 'Daihatsu Terios R Deluxe 2020', 'SUV', 195000000, 'Sudah Beli', '2026-08-15'),
 ('CUST-2026-006', 'Hj. Neneng Hasanah', '082119876543', 'hj.neneng@gmail.com', 'Jl. Raya Bayongbong Km 8', 'Bayongbong', 'Walk-in', 'Honda Brio Satya E CVT 2021', 'City Car', 145000000, 'Aktif', '2026-02-18')
 ON CONFLICT (id) DO NOTHING;

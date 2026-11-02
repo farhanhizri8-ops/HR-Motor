@@ -791,7 +791,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139); // slate-500
     doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')} | Showroom Mobil Bekas Berkualitas Garut`, 14, 21);
-    doc.text('Alamat Showroom: Jl. Otista No. 128 Garut • Telp/WA: 0812-2134-5678', 14, 26);
+    doc.text('Showroom: HR MOTOR Garut • Telp/WA: 0812-2134-5678', 14, 26);
 
     // Summary Box
     doc.setFontSize(9);
@@ -853,7 +853,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     const ticketNo = claim.claimNumber || claim.id;
     const warrantyCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
 
-    const text = `Sampurasun Bapak/Ibu *${claim.customerName}*,\n\nSalam hormat dari *HR MOTOR Garut*.\n\nBerikut konfirmasi rincian riwayat perbaikan mobil Bapak/Ibu yang telah selesai dikerjakan:\n\n• No. Tiket: *${ticketNo}*\n• Unit Mobil: *${carName}*\n• Tanggal Perbaikan: *${formatDate(claim.claimDate)}*\n• Status Garansi: *${warrantyCheck.statusLabel}*\n• Jenis Perbaikan: *${claim.claimType}* (${claim.claimType === 'Garansi' ? '100% Ditanggung HR MOTOR' : 'Dibayar Konsumen'})\n• Keluhan: ${claim.complaintOrDamage || claim.complaint}\n• Tindakan: ${claim.repairActionDescription || claim.actionTaken}\n• Total Biaya: *${formatRupiah(claim.totalCost)}*\n\nUnit mobil siap digunakan kembali dalam kondisi prima. Terima kasih telah mempercayakan pembelian dan perawatan mobil di HR MOTOR Garut.\n\n*HR MOTOR GARUT*\nJl. Otista No. 128, Garut`;
+    const text = `Sampurasun Bapak/Ibu *${claim.customerName}*,\n\nSalam hormat dari *HR MOTOR Garut*.\n\nBerikut konfirmasi rincian riwayat perbaikan mobil Bapak/Ibu yang telah selesai dikerjakan:\n\n• No. Tiket: *${ticketNo}*\n• Unit Mobil: *${carName}*\n• Tanggal Perbaikan: *${formatDate(claim.claimDate)}*\n• Status Garansi: *${warrantyCheck.statusLabel}*\n• Jenis Perbaikan: *${claim.claimType}* (${claim.claimType === 'Garansi' ? '100% Ditanggung HR MOTOR' : 'Dibayar Konsumen'})\n• Keluhan: ${claim.complaintOrDamage || claim.complaint}\n• Tindakan: ${claim.repairActionDescription || claim.actionTaken}\n• Total Biaya: *${formatRupiah(claim.totalCost)}*\n\nUnit mobil siap digunakan kembali dalam kondisi prima. Terima kasih telah mempercayakan pembelian dan perawatan mobil di HR MOTOR Garut.\n\n*HR MOTOR GARUT*`;
 
     return formatWhatsAppLink(claim.customerPhone, text);
   };
