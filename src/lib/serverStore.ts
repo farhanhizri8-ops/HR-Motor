@@ -112,6 +112,7 @@ export function readDatabase(): CrmDatabase {
 
     repairDatabaseFollowUps(parsed);
     repairDatabaseUsers(parsed);
+    repairDatabaseStocks(parsed);
 
     return parsed;
   } catch (error) {
@@ -186,6 +187,14 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
   return modified;
 }
 
+export function repairDatabaseStocks(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.stocks) || db.stocks.length < 32 || !db.stocks[0]?.stockNumber) {
+    db.stocks = INITIAL_STOCKS;
+    return true;
+  }
+  return false;
+}
+
 export function repairDatabaseFollowUps(db: CrmDatabase): boolean {
   if (!db || !Array.isArray(db.followUps)) return false;
   let modified = false;
@@ -232,7 +241,8 @@ export async function readDatabaseAsync(): Promise<CrmDatabase> {
         const cloudDb = data.data as CrmDatabase;
         const followUpsRepaired = repairDatabaseFollowUps(cloudDb);
         const usersRepaired = repairDatabaseUsers(cloudDb);
-        if (followUpsRepaired || usersRepaired) {
+        const stocksRepaired = repairDatabaseStocks(cloudDb);
+        if (followUpsRepaired || usersRepaired || stocksRepaired) {
           try {
             await supabase
               .from('crm_snapshots')
