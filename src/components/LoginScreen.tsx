@@ -104,11 +104,6 @@ export const LoginScreen: React.FC = () => {
     }
   };
 
-  const fillQuickPreset = (presetEmail: string, presetPw: string) => {
-    setEmail(presetEmail);
-    setPassword(presetPw);
-    setErrorMsg('');
-  };
 
   return (
     <div className="min-h-screen bg-[#1A1A1A] text-slate-100 flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden font-sans">
@@ -378,72 +373,7 @@ export const LoginScreen: React.FC = () => {
               </form>
             )}
 
-            {/* Quick Presets for Evaluation */}
-            <div className="pt-4 border-t border-[#333333] space-y-2">
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">
-                  Akun Demo Resmi Showroom:
-                </span>
-                <span className="text-[10px] text-gold-400 font-mono">Sandi: Garut2005</span>
-              </div>
-              <div className="space-y-1.5">
-                {/* Owner Preset */}
-                <button
-                  type="button"
-                  onClick={() => fillQuickPreset('farhanhizri8@gmail.com', 'Garut2005')}
-                  className="w-full text-left p-2 rounded-xl bg-[#1C1C1C] hover:bg-[#282828] border border-gold-500/40 hover:border-gold-400 transition-all flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-gold-400" />
-                    <div>
-                      <p className="text-xs font-bold text-gold-300 group-hover:text-gold-200">
-                        Farhan Hizri (Owner)
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-mono">farhanhizri8@gmail.com</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30 font-bold">
-                    Hak Setujui Akun
-                  </span>
-                </button>
 
-                {/* Approved Staff Preset */}
-                <button
-                  type="button"
-                  onClick={() => fillQuickPreset('admin@hrmotor.id', 'Garut2005')}
-                  className="w-full text-left p-2 rounded-xl bg-[#1C1C1C] hover:bg-[#282828] border border-[#333333] hover:border-slate-400 transition-all flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <div>
-                      <p className="text-xs font-bold text-slate-200">Deni Pratama (CRM Admin)</p>
-                      <p className="text-[10px] text-slate-400 font-mono">admin@hrmotor.id</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-                    Disetujui
-                  </span>
-                </button>
-
-                {/* Unapproved Staff Preset to test approval block */}
-                <button
-                  type="button"
-                  onClick={() => fillQuickPreset('sales.budi@hrmotor.id', 'Garut2005')}
-                  className="w-full text-left p-2 rounded-xl bg-[#1C1C1C] hover:bg-[#282828] border border-[#333333] hover:border-rose-400 transition-all flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-rose-400" />
-                    <div>
-                      <p className="text-xs font-bold text-slate-300">Budi Santoso (Sales Baru)</p>
-                      <p className="text-[10px] text-slate-500 font-mono">sales.budi@hrmotor.id</p>
-                    </div>
-                  </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/30">
-                    Belum Diapprove
-                  </span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
