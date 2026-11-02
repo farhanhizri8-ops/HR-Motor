@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { CrmProvider } from '@/context/CrmContext';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
@@ -16,6 +17,14 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
   const [mobileOpen, setMobileOpen] = useState(false);
   const [quickActionOpen, setQuickActionOpen] = useState(false);
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated && pathname === '/login') {
+      router.replace('/');
+    }
+  }, [loading, isAuthenticated, pathname, router]);
 
   if (loading) {
     return (
@@ -33,6 +42,21 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
 
   if (!isAuthenticated) {
     return <LoginScreen />;
+  }
+
+  // If already authenticated and visiting /login, transition cleanly to dashboard
+  if (pathname === '/login') {
+    return (
+      <div className="min-h-screen bg-[#1F1F1F] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png?v=3" alt="HR MOTOR" className="h-14 w-auto object-contain animate-pulse" />
+          <p className="text-xs text-gold-400 font-semibold tracking-wider uppercase">
+            Membuka Dashboard CRM...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

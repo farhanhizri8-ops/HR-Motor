@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Lock,
   Mail,
@@ -20,7 +21,15 @@ import { useCrm } from '@/context/CrmContext';
 import { UserRole } from '@/types/crm';
 
 export const LoginScreen: React.FC = () => {
-  const { login, registerUser } = useCrm();
+  const { isAuthenticated, login, registerUser } = useCrm();
+  const router = useRouter();
+
+  // If already authenticated, redirect to dashboard immediately
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, router]);
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -55,7 +64,12 @@ export const LoginScreen: React.FC = () => {
     const res = await login(email, password);
     setLoading(false);
 
-    if (!res.success) {
+    if (res.success) {
+      router.push('/');
+      if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+        window.location.href = '/';
+      }
+    } else {
       setErrorMsg(res.error || 'Gagal masuk ke sistem.');
     }
   };

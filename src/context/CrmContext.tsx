@@ -432,6 +432,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
       try {
         localStorage.removeItem('hr_motor_session');
       } catch (e) {}
+      window.location.href = '/';
     }
   };
 
