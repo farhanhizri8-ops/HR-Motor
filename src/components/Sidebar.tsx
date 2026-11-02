@@ -142,19 +142,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center overflow-hidden group transition-transform ${
+            className={`flex items-center overflow-hidden group transition-all ${
               collapsed ? 'justify-center w-full' : 'gap-2.5'
             }`}
           >
-            {/* Real Official HR MOTOR 3D Logo */}
-            <div className="relative flex items-center justify-center shrink-0">
+            {/* Real Official HR MOTOR Logo Badge */}
+            <div
+              className={`flex items-center justify-center bg-white rounded-xl border border-gold-500/40 shadow-sm transition-all ${
+                collapsed ? 'p-1 w-12 h-12' : 'px-3 py-1.5 h-12 w-auto'
+              }`}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"
-                alt="Logo Resmi HR MOTOR"
-                className={`object-contain drop-shadow-[0_4px_16px_rgba(217,154,50,0.35)] transition-all ${
-                  collapsed ? 'h-11 w-auto max-w-[58px]' : 'h-13 w-auto max-w-[155px]'
-                }`}
+                alt="Logo HR MOTOR"
+                className="h-full w-auto object-contain max-h-10"
               />
             </div>
           </Link>

@@ -58,12 +58,14 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Logo View */}
         <Link href="/" className="flex lg:hidden items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="HR MOTOR Logo"
-            className="h-9 w-auto object-contain drop-shadow-sm"
-          />
+          <div className="bg-white px-2.5 py-1 rounded-lg border border-gold-500/30 shadow-xs flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="HR MOTOR Logo"
+              className="h-7 w-auto object-contain"
+            />
+          </div>
         </Link>
 
         {/* Desktop Showroom Brand Badge */}
