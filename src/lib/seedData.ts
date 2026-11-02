@@ -1254,7 +1254,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     message: 'Deal Mitsubishi Xpander Ultimate senilai Rp 225.000.000 atas nama Yudi Karyadi berhasil diselesaikan.',
     type: 'deal',
     isRead: true,
-    link: '/after-sales',
+    link: '/riwayat-perbaikan',
     createdAt: '2026-10-27T10:00:00Z',
   },
 ];

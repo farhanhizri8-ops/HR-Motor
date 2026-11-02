@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ShieldCheck,
   Star,
@@ -82,6 +83,12 @@ const CAR_BRANDS = [
 ];
 
 export default function AfterSalesPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/riwayat-perbaikan');
+  }, [router]);
+
   const {
     purchases,
     feedback,

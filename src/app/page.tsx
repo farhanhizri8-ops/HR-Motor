@@ -970,8 +970,8 @@ export default function DashboardPage() {
               <Trophy className="w-4 h-4 text-gold-600" />
               <h3 className="text-xs font-bold text-charcoal-900">Deal Sukses Showroom</h3>
             </div>
-            <Link href="/after-sales" className="text-[11px] font-bold text-gold-700 hover:underline">
-              After Sales
+            <Link href="/riwayat-perbaikan" className="text-[11px] font-bold text-gold-700 hover:underline">
+              Riwayat Garansi
             </Link>
           </div>
 
