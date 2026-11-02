@@ -110,11 +110,30 @@ export function readDatabase(): CrmDatabase {
       parsed.followUps = INITIAL_FOLLOW_UPS;
     }
 
+    repairDatabaseFollowUps(parsed);
+
     return parsed;
   } catch (error) {
     console.error('Error reading CRM store file, using in-memory defaults:', error);
     return getInitialDatabase();
   }
+}
+
+export function repairDatabaseFollowUps(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.followUps)) return false;
+  let modified = false;
+  db.followUps.forEach((f) => {
+    if (!f.customerPhone) {
+      const lead = (db.leads || []).find((l) => l.id === f.leadId);
+      const cust = (db.customers || []).find((c) => c.id === f.customerId || (lead && c.id === lead.customerId));
+      const phone = (lead && (lead.contactNumber || lead.customerPhone)) || (cust && cust.whatsapp) || '';
+      if (phone) {
+        f.customerPhone = phone;
+        modified = true;
+      }
+    }
+  });
+  return modified;
 }
 
 export function writeDatabase(data: CrmDatabase): void {
@@ -144,6 +163,16 @@ export async function readDatabaseAsync(): Promise<CrmDatabase> {
 
       if (!error && data && data.data) {
         const cloudDb = data.data as CrmDatabase;
+        const wasRepaired = repairDatabaseFollowUps(cloudDb);
+        if (wasRepaired) {
+          try {
+            await supabase
+              .from('crm_snapshots')
+              .upsert({ id: 'latest', data: cloudDb, updated_at: new Date().toISOString() });
+          } catch (err) {
+            console.warn('Could not sync repaired followUps to Supabase:', err);
+          }
+        }
         // Cache to local file if possible
         writeDatabase(cloudDb);
         return cloudDb;

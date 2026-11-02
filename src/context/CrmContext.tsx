@@ -128,10 +128,22 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
           const json = await res.json();
           if (json.success && json.data) {
             const d = json.data;
+            const custList = d.customers || [];
+            const leadList = d.leads || [];
+            const sanitizedFollowUps = (d.followUps || []).map((f: FollowUp) => {
+              if (!f.customerPhone) {
+                const lead = leadList.find((l: Lead) => l.id === f.leadId);
+                const cust = custList.find((c: Customer) => c.id === f.customerId || (lead && c.id === lead.customerId));
+                const phone = (lead && (lead.contactNumber || lead.customerPhone)) || (cust && cust.whatsapp) || '';
+                return { ...f, customerPhone: phone };
+              }
+              return f;
+            });
+
             if (d.users) setUsers(d.users);
             if (d.customers) setCustomers(d.customers);
             if (d.leads) setLeads(d.leads);
-            if (d.followUps) setFollowUps(d.followUps);
+            if (d.followUps) setFollowUps(sanitizedFollowUps);
             if (d.communications) setCommunications(d.communications);
             if (d.purchases) setPurchases(d.purchases);
             if (d.feedback) setFeedback(d.feedback);
@@ -166,10 +178,22 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
       const data = await res.json();
       if (data.success && data.data) {
         const d = data.data;
+        const custList = d.customers || customers;
+        const leadList = d.leads || leads;
+        const sanitizedFollowUps = (d.followUps || []).map((f: FollowUp) => {
+          if (!f.customerPhone) {
+            const lead = leadList.find((l: Lead) => l.id === f.leadId);
+            const cust = custList.find((c: Customer) => c.id === f.customerId || (lead && c.id === lead.customerId));
+            const phone = (lead && (lead.contactNumber || lead.customerPhone)) || (cust && cust.whatsapp) || '';
+            return { ...f, customerPhone: phone };
+          }
+          return f;
+        });
+
         if (d.users) setUsers(d.users);
         if (d.customers) setCustomers(d.customers);
         if (d.leads) setLeads(d.leads);
-        if (d.followUps) setFollowUps(d.followUps);
+        if (d.followUps) setFollowUps(sanitizedFollowUps);
         if (d.communications) setCommunications(d.communications);
         if (d.purchases) setPurchases(d.purchases);
         if (d.feedback) setFeedback(d.feedback);
