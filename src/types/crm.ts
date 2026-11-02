@@ -12,6 +12,7 @@ export interface User {
   role: UserRole;
   phone: string;
   avatar?: string;
+  password?: string;
   isApproved: boolean;
   isActive: boolean;
   createdAt: string;

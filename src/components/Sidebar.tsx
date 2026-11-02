@@ -20,6 +20,7 @@ import {
   X,
   Wrench,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -37,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setMobileOpen,
 }) => {
   const pathname = usePathname();
-  const { currentUser } = useCrm();
+  const { currentUser, logout } = useCrm();
 
   const navigationItems = [
     {
@@ -238,16 +239,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="w-9 h-9 rounded-full object-cover border-2 border-gold-500 shadow-xs shrink-0"
             />
             {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-white truncate">
-                  {currentUser.name}
-                </p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
-                  <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
-                    {currentUser.role}
+              <div className="flex-1 min-w-0 flex items-center justify-between gap-1">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white truncate">
+                    {currentUser.name}
                   </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
+                    <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
+                      {currentUser.role}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={logout}
+                  title="Keluar dari akun CRM"
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-[#202020] rounded-lg transition-colors shrink-0"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>

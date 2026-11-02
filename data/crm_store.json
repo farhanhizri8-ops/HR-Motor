@@ -460,15 +460,16 @@
   "users": [
     {
       "id": "USR-001",
-      "name": "H. Rahmat Hidayat",
+      "name": "Farhan Hizri",
       "role": "Owner",
-      "email": "owner@hrmotor.id",
+      "email": "farhanhizri8@gmail.com",
       "phone": "081223450001",
       "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
       "isActive": true,
       "createdAt": "2026-01-01T08:00:00Z",
       "updatedAt": "2026-01-01T08:00:00Z",
-      "isApproved": true
+      "isApproved": true,
+      "password": "Garut2005"
     },
     {
       "id": "USR-002",
@@ -480,7 +481,8 @@
       "isActive": true,
       "createdAt": "2026-01-05T08:00:00Z",
       "updatedAt": "2026-01-05T08:00:00Z",
-      "isApproved": true
+      "isApproved": true,
+      "password": "Garut2005"
     },
     {
       "id": "USR-003",
@@ -492,7 +494,8 @@
       "isActive": true,
       "createdAt": "2026-01-10T08:00:00Z",
       "updatedAt": "2026-01-10T08:00:00Z",
-      "isApproved": true
+      "isApproved": true,
+      "password": "Garut2005"
     },
     {
       "id": "USR-004",
@@ -504,7 +507,8 @@
       "isActive": true,
       "createdAt": "2026-01-15T08:00:00Z",
       "updatedAt": "2026-01-15T08:00:00Z",
-      "isApproved": true
+      "isApproved": true,
+      "password": "Garut2005"
     },
     {
       "id": "USR-005",
@@ -516,7 +520,8 @@
       "isActive": true,
       "createdAt": "2026-01-20T08:00:00Z",
       "updatedAt": "2026-01-20T08:00:00Z",
-      "isApproved": true
+      "isApproved": true,
+      "password": "Garut2005"
     },
     {
       "id": "USR-006",
@@ -528,7 +533,8 @@
       "isActive": true,
       "createdAt": "2026-01-25T08:00:00Z",
       "updatedAt": "2026-01-25T08:00:00Z",
-      "isApproved": true
+      "isApproved": true,
+      "password": "Garut2005"
     },
     {
       "id": "USR-007",
@@ -540,7 +546,8 @@
       "isActive": true,
       "createdAt": "2026-10-30T09:30:00Z",
       "updatedAt": "2026-10-30T09:30:00Z",
-      "isApproved": false
+      "isApproved": false,
+      "password": "Garut2005"
     }
   ],
   "stocks": [

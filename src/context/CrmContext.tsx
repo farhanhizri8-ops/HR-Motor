@@ -56,6 +56,11 @@ interface CrmContextType {
   loading: boolean;
   metrics: DashboardMetrics;
 
+  // Authentication
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+
   // Actions
   addCustomer: (data: Partial<Customer>) => Promise<{ success: boolean; error?: string }>;
   updateCustomer: (data: Partial<Customer> & { id: string }) => Promise<{ success: boolean; error?: string }>;
@@ -88,7 +93,7 @@ interface CrmContextType {
   
   approveUser: (id: string) => Promise<{ success: boolean; error?: string }>;
   changeUserRole: (id: string, role: User['role']) => Promise<{ success: boolean; error?: string }>;
-  registerUser: (data: { name: string; email: string; role: User['role']; phone?: string }) => Promise<{ success: boolean; error?: string }>;
+  registerUser: (data: { name: string; email: string; role: User['role']; phone?: string; password?: string }) => Promise<{ success: boolean; error?: string }>;
   
   resetToDemo: () => Promise<void>;
   markNotificationAsRead: (id: string) => void;
@@ -104,6 +109,7 @@ const CrmContext = createContext<CrmContextType | undefined>(undefined);
 export const CrmProvider = ({ children }: { children: ReactNode }) => {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]); // Default to Owner
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
   const [followUps, setFollowUps] = useState<FollowUp[]>(INITIAL_FOLLOW_UPS);
@@ -119,8 +125,24 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   const [templates] = useState<MessageTemplate[]>(MESSAGE_TEMPLATES);
   const [loading, setLoading] = useState(true);
 
-  // Sync with API on mount
+  // Sync with API on mount & Restore session
   useEffect(() => {
+    // Restore session
+    try {
+      if (typeof window !== 'undefined') {
+        const savedSession = localStorage.getItem('hr_motor_session');
+        if (savedSession) {
+          const parsed = JSON.parse(savedSession) as User;
+          if (parsed && parsed.email) {
+            setCurrentUser(parsed);
+            setIsAuthenticated(true);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Session restoration failed:', e);
+    }
+
     async function loadData() {
       try {
         const res = await fetch('/api/crm');
@@ -140,7 +162,26 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
               return f;
             });
 
-            if (d.users) setUsers(d.users);
+            if (d.users) {
+              setUsers(d.users);
+              // Refresh current user data if session active
+              if (typeof window !== 'undefined') {
+                const saved = localStorage.getItem('hr_motor_session');
+                if (saved) {
+                  const parsed = JSON.parse(saved) as User;
+                  const fresh = d.users.find((u: User) => u.email.toLowerCase() === parsed.email.toLowerCase());
+                  if (fresh) {
+                    if (!fresh.isApproved) {
+                      // Account was revoked/unapproved
+                      setIsAuthenticated(false);
+                      localStorage.removeItem('hr_motor_session');
+                    } else {
+                      setCurrentUser(fresh);
+                    }
+                  }
+                }
+              }
+            }
             if (d.customers) setCustomers(d.customers);
             if (d.leads) setLeads(d.leads);
             if (d.followUps) setFollowUps(sanitizedFollowUps);
@@ -166,6 +207,12 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
 
   const switchUser = (user: User) => {
     setCurrentUser(user);
+    setIsAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('hr_motor_session', JSON.stringify(user));
+      } catch (e) {}
+    }
   };
 
   const executeApiMutation = async (action: string, payload: any) => {
@@ -307,7 +354,94 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('DELETE_REPAIR_CLAIM', { id });
   };
 
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch('/api/crm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'LOGIN_USER',
+          payload: { email, password },
+          currentUser,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const cleanEmail = email.trim().toLowerCase();
+        const isOwner = cleanEmail === 'farhanhizri8@gmail.com' || cleanEmail === 'farhanhizri8gmail.com';
+
+        const currentUsers = data.data?.users || users;
+        let loggedUser: User | undefined;
+        if (isOwner) {
+          loggedUser = currentUsers.find((u: User) => u.email.toLowerCase() === 'farhanhizri8@gmail.com' || u.role === 'Owner') || {
+            id: 'USR-001',
+            name: 'Farhan Hizri',
+            email: 'farhanhizri8@gmail.com',
+            role: 'Owner',
+            phone: '081223450001',
+            password: 'Garut2005',
+            isApproved: true,
+            isActive: true,
+            createdAt: '2026-01-01T08:00:00Z',
+            updatedAt: new Date().toISOString(),
+          };
+        } else {
+          loggedUser = currentUsers.find((u: User) => u.email.toLowerCase() === cleanEmail);
+        }
+
+        if (!loggedUser) {
+          return { success: false, error: 'User tidak ditemukan' };
+        }
+
+        if (!loggedUser.isApproved) {
+          return {
+            success: false,
+            error: 'Akun Anda sedang menunggu persetujuan (approval) dari Owner (farhanhizri8@gmail.com). Silakan hubungi Owner untuk aktivasi akun login.'
+          };
+        }
+
+        setCurrentUser(loggedUser);
+        setIsAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('hr_motor_session', JSON.stringify(loggedUser));
+          } catch (e) {}
+        }
+
+        if (data.data) {
+          const d = data.data;
+          if (d.users) setUsers(d.users);
+          if (d.customers) setCustomers(d.customers);
+          if (d.leads) setLeads(d.leads);
+          if (d.stocks) setStocks(d.stocks);
+          if (d.notifications) setNotifications(d.notifications);
+        }
+
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Email atau kata sandi tidak valid' };
+      }
+    } catch (e) {
+      return { success: false, error: 'Gagal terhubung ke server CRM' };
+    }
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('hr_motor_session');
+      } catch (e) {}
+    }
+  };
+
   const approveUser = async (id: string) => {
+    if (currentUser.role !== 'Owner' && !currentUser.email.toLowerCase().includes('farhanhizri8')) {
+      return {
+        success: false,
+        error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menyetujui akun login karyawan.'
+      };
+    }
     return executeApiMutation('APPROVE_USER', { id });
   };
 
@@ -315,7 +449,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('CHANGE_USER_ROLE', { id, role });
   };
 
-  const registerUser = async (data: { name: string; email: string; role: User['role']; phone?: string }) => {
+  const registerUser = async (data: { name: string; email: string; role: User['role']; phone?: string; password?: string }) => {
     return executeApiMutation('REGISTER_USER', data);
   };
 
@@ -444,6 +578,9 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         templates,
         loading,
         metrics,
+        isAuthenticated,
+        login,
+        logout,
         addCustomer,
         updateCustomer,
         deleteCustomer,

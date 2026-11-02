@@ -14,6 +14,7 @@ import {
   Building2,
   Calendar,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -33,6 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
     switchUser,
     users,
     resetToDemo,
+    logout,
   } = useCrm();
 
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
@@ -172,6 +174,16 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200/80 rounded-xl transition-all shadow-xs"
+          title="Keluar dari sesi CRM"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Keluar</span>
+        </button>
       </div>
     </header>
   );

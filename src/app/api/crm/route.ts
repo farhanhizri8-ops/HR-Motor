@@ -834,18 +834,95 @@ export async function POST(request: Request) {
       }
 
       // USER MANAGEMENT
+      case 'LOGIN_USER': {
+        const email = (payload.email || '').trim().toLowerCase();
+        const password = payload.password || '';
+
+        // Check Owner account
+        const isOwnerEmail = email === 'farhanhizri8@gmail.com' || email === 'farhanhizri8gmail.com';
+        if (isOwnerEmail) {
+          if (password !== 'Garut2005') {
+            return NextResponse.json({ success: false, error: 'Kata sandi akun Owner salah.' }, { status: 401 });
+          }
+          let owner = db.users.find((u) => u.email.toLowerCase() === 'farhanhizri8@gmail.com' || u.role === 'Owner');
+          if (!owner) {
+            owner = {
+              id: 'USR-001',
+              name: 'Farhan Hizri',
+              email: 'farhanhizri8@gmail.com',
+              password: 'Garut2005',
+              role: 'Owner',
+              phone: '081223450001',
+              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
+              isApproved: true,
+              isActive: true,
+              createdAt: '2026-01-01T08:00:00Z',
+              updatedAt: new Date().toISOString(),
+            };
+            db.users.unshift(owner);
+          }
+          owner.isApproved = true;
+          owner.role = 'Owner';
+          logActivity('Owner Login', 'User', owner.id, `Owner Farhan Hizri berhasil login ke sistem CRM`);
+          break;
+        }
+
+        // Check regular user
+        const user = db.users.find((u) => u.email.toLowerCase() === email);
+        if (!user) {
+          return NextResponse.json({ success: false, error: 'Email belum terdaftar di sistem HR MOTOR.' }, { status: 404 });
+        }
+
+        const expectedPw = user.password || 'Garut2005';
+        if (password !== expectedPw) {
+          return NextResponse.json({ success: false, error: 'Kata sandi salah.' }, { status: 401 });
+        }
+
+        if (!user.isApproved) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akun Anda sedang menunggu persetujuan (approval) dari Owner (farhanhizri8@gmail.com). Silakan hubungi Owner untuk aktivasi akun login.'
+          }, { status: 403 });
+        }
+
+        logActivity('User Login', 'User', user.id, `${user.name} (${user.role}) berhasil login ke sistem CRM`);
+        break;
+      }
+
       case 'APPROVE_USER': {
+        const isOwnerRequester =
+          currentUser?.role === 'Owner' ||
+          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+
+        if (!isOwnerRequester) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menyetujui akun login karyawan.'
+          }, { status: 403 });
+        }
+
         const u = db.users.find((user) => user.id === payload.id);
         if (!u) {
           return NextResponse.json({ success: false, error: 'User tidak ditemukan' }, { status: 404 });
         }
         u.isApproved = true;
         u.updatedAt = new Date().toISOString();
-        logActivity('Menyetujui Registrasi Karyawan', 'User', u.id, `Owner menyetujui akun ${u.name} sebagai ${u.role}`);
+        logActivity('Menyetujui Registrasi Karyawan', 'User', u.id, `Owner (Farhan Hizri) menyetujui akun ${u.name} (${u.email}) sebagai ${u.role}`);
         break;
       }
 
       case 'CHANGE_USER_ROLE': {
+        const isOwnerRequester =
+          currentUser?.role === 'Owner' ||
+          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+
+        if (!isOwnerRequester) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak mengubah hak akses.'
+          }, { status: 403 });
+        }
+
         const u = db.users.find((user) => user.id === payload.id);
         if (!u) {
           return NextResponse.json({ success: false, error: 'User tidak ditemukan' }, { status: 404 });
@@ -858,18 +935,20 @@ export async function POST(request: Request) {
       }
 
       case 'REGISTER_USER': {
-        const exists = db.users.find((u) => u.email === payload.email);
+        const cleanEmail = (payload.email || '').trim().toLowerCase();
+        const exists = db.users.find((u) => u.email.toLowerCase() === cleanEmail);
         if (exists) {
           return NextResponse.json({ success: false, error: 'Email sudah terdaftar di sistem' }, { status: 400 });
         }
         const newUser = {
           id: `USR-${String(db.users.length + 1).padStart(3, '0')}`,
-          name: payload.name,
-          email: payload.email,
+          name: payload.name.trim(),
+          email: cleanEmail,
+          password: payload.password || 'Garut2005',
           role: payload.role || 'Sales Representative',
           phone: payload.phone || '',
           avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80`,
-          isApproved: false, // requires owner approval!
+          isApproved: false, // Wajib disetujui Owner (Farhan Hizri)!
           isActive: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -880,15 +959,15 @@ export async function POST(request: Request) {
         db.notifications.unshift({
           id: `NOTIF-${Date.now()}`,
           userId: 'USR-001',
-          title: 'Pendaftaran Akun Baru',
-          message: `${newUser.name} mengajukan akun sebagai ${newUser.role}. Memerlukan persetujuan Owner.`,
+          title: 'Pengajuan Akun Karyawan Baru',
+          message: `${newUser.name} (${newUser.email}) mengajukan akses login (${newUser.role}). Menunggu persetujuan Owner.`,
           type: 'approval',
           isRead: false,
           link: '/users',
           createdAt: new Date().toISOString(),
         });
 
-        logActivity('Registrasi Akun Baru', 'User', newUser.id, `${newUser.name} mendaftar sebagai ${newUser.role}`);
+        logActivity('Pengajuan Akun Baru', 'User', newUser.id, `${newUser.name} mendaftar sebagai ${newUser.role} (Menunggu persetujuan Owner)`);
         break;
       }
 

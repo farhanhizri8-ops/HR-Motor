@@ -111,12 +111,69 @@ export function readDatabase(): CrmDatabase {
     }
 
     repairDatabaseFollowUps(parsed);
+    repairDatabaseUsers(parsed);
 
     return parsed;
   } catch (error) {
     console.error('Error reading CRM store file, using in-memory defaults:', error);
     return getInitialDatabase();
   }
+}
+
+export function repairDatabaseUsers(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.users)) return false;
+  let modified = false;
+
+  // Ensure every user has a password fallback
+  db.users.forEach((u) => {
+    if (!u.password) {
+      u.password = 'Garut2005';
+      modified = true;
+    }
+  });
+
+  // Ensure Farhan Hizri is registered as Owner
+  const owner = db.users.find(
+    (u) =>
+      u.email.toLowerCase() === 'farhanhizri8@gmail.com' ||
+      u.email.toLowerCase() === 'farhanhizri8gmail.com' ||
+      u.role === 'Owner'
+  );
+
+  if (owner) {
+    if (
+      owner.name !== 'Farhan Hizri' ||
+      owner.email !== 'farhanhizri8@gmail.com' ||
+      owner.password !== 'Garut2005' ||
+      owner.role !== 'Owner' ||
+      !owner.isApproved
+    ) {
+      owner.name = 'Farhan Hizri';
+      owner.email = 'farhanhizri8@gmail.com';
+      owner.password = 'Garut2005';
+      owner.role = 'Owner';
+      owner.isApproved = true;
+      owner.isActive = true;
+      modified = true;
+    }
+  } else {
+    db.users.unshift({
+      id: 'USR-001',
+      name: 'Farhan Hizri',
+      email: 'farhanhizri8@gmail.com',
+      password: 'Garut2005',
+      role: 'Owner',
+      phone: '081223450001',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
+      isApproved: true,
+      isActive: true,
+      createdAt: '2026-01-01T08:00:00Z',
+      updatedAt: new Date().toISOString(),
+    });
+    modified = true;
+  }
+
+  return modified;
 }
 
 export function repairDatabaseFollowUps(db: CrmDatabase): boolean {
@@ -163,14 +220,15 @@ export async function readDatabaseAsync(): Promise<CrmDatabase> {
 
       if (!error && data && data.data) {
         const cloudDb = data.data as CrmDatabase;
-        const wasRepaired = repairDatabaseFollowUps(cloudDb);
-        if (wasRepaired) {
+        const followUpsRepaired = repairDatabaseFollowUps(cloudDb);
+        const usersRepaired = repairDatabaseUsers(cloudDb);
+        if (followUpsRepaired || usersRepaired) {
           try {
             await supabase
               .from('crm_snapshots')
               .upsert({ id: 'latest', data: cloudDb, updated_at: new Date().toISOString() });
           } catch (err) {
-            console.warn('Could not sync repaired followUps to Supabase:', err);
+            console.warn('Could not sync repaired data to Supabase:', err);
           }
         }
         // Cache to local file if possible
