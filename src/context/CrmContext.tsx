@@ -95,8 +95,8 @@ interface CrmContextType {
 
   // Utilities
   formatRupiah: (amount: number) => string;
-  formatDate: (dateString: string, includeTime?: boolean) => string;
-  formatWhatsAppLink: (phone: string, message?: string) => string;
+  formatDate: (dateString?: string, includeTime?: boolean) => string;
+  formatWhatsAppLink: (phone?: string, message?: string) => string;
 }
 
 const CrmContext = createContext<CrmContextType | undefined>(undefined);
@@ -334,12 +334,14 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
       }
       return new Intl.DateTimeFormat('id-ID', options).format(date);
     } catch {
-      return dateString;
+      return dateString || '-';
     }
   };
 
-  const formatWhatsAppLink = (phone: string, message?: string): string => {
+  const formatWhatsAppLink = (phone?: string, message?: string): string => {
+    if (!phone || typeof phone !== 'string') return '#';
     let cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (!cleanPhone) return '#';
     if (cleanPhone.startsWith('0')) {
       cleanPhone = '62' + cleanPhone.slice(1);
     } else if (!cleanPhone.startsWith('62')) {

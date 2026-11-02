@@ -969,7 +969,8 @@
       "scheduledDate": "2026-12-02",
       "scheduledTime": "10:00",
       "followUpReason": "Prospek sebelumnya berstatus Lost (Harga tidak cocok, menawar di bawah batas showroom). Menanyakan apakah masih mencari mobil atau tertarik dengan unit stok terbaru di HR MOTOR.",
-      "communicationLogs": []
+      "communicationLogs": [],
+      "customerPhone": "087826112233"
     },
     {
       "id": "FLW-2026-012",
@@ -987,7 +988,8 @@
       "scheduledDate": "2027-11-02",
       "scheduledTime": "10:00",
       "followUpReason": "Pengecekan kepuasan 1 tahun pemakaian unit, kondisi kendaraan, dan penawaran tukar tambah (trade-in) atau penjualan kembali ke HR MOTOR.",
-      "communicationLogs": []
+      "communicationLogs": [],
+      "customerPhone": "081394551122"
     },
     {
       "id": "FLW-2026-011",
@@ -1006,7 +1008,8 @@
       "scheduledTime": "14:00",
       "followUpReason": "Janji temu inspeksi dan test drive Honda Brio di showroom.",
       "vehicleStockId": "STK-2026-009",
-      "communicationLogs": []
+      "communicationLogs": [],
+      "customerPhone": "081288997766"
     },
     {
       "id": "FLW-2026-010",
@@ -1036,7 +1039,8 @@
           "timestamp": "2026-11-02T09:29:07.801Z",
           "nextFollowUpDate": "2026-11-07"
         }
-      ]
+      ],
+      "customerPhone": "081288997766"
     },
     {
       "id": "FLW-2026-009",
@@ -1055,7 +1059,8 @@
       "scheduledTime": "09:00",
       "followUpReason": "Unit yang dicari konsumen (Honda Brio Satya E CVT 2021) baru saja tersedia di showroom HR MOTOR. Segera hubungi sebelum unit terjual.",
       "vehicleStockId": "STK-2026-009",
-      "communicationLogs": []
+      "communicationLogs": [],
+      "customerPhone": "081299887766"
     },
     {
       "id": "FLW-2026-008",
@@ -1075,7 +1080,8 @@
       "scheduledTime": "09:00",
       "followUpReason": "Unit yang dicari konsumen (Honda Brio Satya E CVT 2021) baru saja tersedia di showroom HR MOTOR. Segera hubungi sebelum unit terjual.",
       "vehicleStockId": "STK-2026-009",
-      "communicationLogs": []
+      "communicationLogs": [],
+      "customerPhone": "081394551122"
     },
     {
       "id": "FLW-2026-001",

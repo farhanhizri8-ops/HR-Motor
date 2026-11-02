@@ -76,11 +76,14 @@ function triggerStockMatching(stock: VehicleStock, db: CrmDatabase, userName: st
       );
 
       if (!alreadyExists) {
+        const matchedCust = lead.customerId ? db.customers?.find((c) => c.id === lead.customerId) : null;
+        const phone = lead.contactNumber || lead.customerPhone || matchedCust?.whatsapp || '';
+
         const newFlw: FollowUp = {
           id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
           customerId: lead.customerId,
           customerName: lead.customerName,
-          customerPhone: lead.contactNumber || lead.customerPhone || '',
+          customerPhone: phone,
           leadId: lead.id,
           category: 'Unit yang Dicari Sudah Tersedia',
           scheduledDate: new Date().toISOString().split('T')[0],
@@ -277,12 +280,15 @@ export async function POST(request: Request) {
           lostDateObj.setMonth(lostDateObj.getMonth() + 1);
           const oneMonthDate = lostDateObj.toISOString().split('T')[0];
 
+          const leadCust = lead.customerId ? db.customers?.find((c) => c.id === lead.customerId) : null;
+          const leadPhone = lead.contactNumber || lead.customerPhone || leadCust?.whatsapp || '';
+
           if (!db.followUps) db.followUps = [];
           const oneMonthFollowUp: FollowUp = {
             id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
             customerId: lead.customerId,
             customerName: lead.customerName,
-            customerPhone: lead.contactNumber || lead.customerPhone || '',
+            customerPhone: leadPhone,
             leadId: lead.id,
             category: 'Prospek Tidak Jadi (1 Bulan)',
             scheduledDate: oneMonthDate,
@@ -338,12 +344,15 @@ export async function POST(request: Request) {
           dealDateObj.setFullYear(dealDateObj.getFullYear() + 1);
           const oneYearDate = dealDateObj.toISOString().split('T')[0];
 
+          const dealCust = lead.customerId ? db.customers?.find((c) => c.id === lead.customerId) : null;
+          const dealPhone = lead.contactNumber || lead.customerPhone || dealCust?.whatsapp || '';
+
           if (!db.followUps) db.followUps = [];
           const oneYearFollowUp: FollowUp = {
             id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
             customerId: lead.customerId,
             customerName: lead.customerName,
-            customerPhone: lead.contactNumber || lead.customerPhone || '',
+            customerPhone: dealPhone,
             leadId: lead.id,
             category: 'Pelanggan Lama (1 Tahun)',
             scheduledDate: oneYearDate,
@@ -428,6 +437,13 @@ export async function POST(request: Request) {
         item.lastContactDate = now;
         item.updatedAt = now;
 
+        const itemCust = item.customerId ? db.customers?.find((c) => c.id === item.customerId) : null;
+        const itemLead = item.leadId ? db.leads?.find((l) => l.id === item.leadId) : null;
+        const resolvedPhone = item.customerPhone || itemLead?.contactNumber || itemLead?.customerPhone || itemCust?.whatsapp || '';
+        if (!item.customerPhone && resolvedPhone) {
+          item.customerPhone = resolvedPhone;
+        }
+
         // Determine new follow-up status
         if (outcome === 'Berhasil Transaksi / Deal') {
           item.status = 'Berhasil Transaksi';
@@ -439,7 +455,7 @@ export async function POST(request: Request) {
             id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
             customerId: item.customerId,
             customerName: item.customerName,
-            customerPhone: item.customerPhone,
+            customerPhone: resolvedPhone,
             leadId: item.leadId,
             category: 'Pelanggan Lama (1 Tahun)',
             scheduledDate: oneYearDate,
@@ -464,7 +480,7 @@ export async function POST(request: Request) {
             id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
             customerId: item.customerId,
             customerName: item.customerName,
-            customerPhone: item.customerPhone,
+            customerPhone: resolvedPhone || item.customerPhone || '',
             leadId: item.leadId,
             category: 'Pelanggan Lama (1 Tahun)',
             scheduledDate: oneYearDate,
@@ -493,7 +509,7 @@ export async function POST(request: Request) {
             id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
             customerId: item.customerId,
             customerName: item.customerName,
-            customerPhone: item.customerPhone,
+            customerPhone: resolvedPhone || item.customerPhone || '',
             leadId: item.leadId,
             category: nextCategory || item.category,
             scheduledDate: nextDate,

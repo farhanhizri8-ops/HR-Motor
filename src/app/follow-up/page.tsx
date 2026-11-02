@@ -180,14 +180,15 @@ export default function FollowUpPage() {
   // Filtered Follow-up List
   const filteredFollowUps = useMemo(() => {
     return followUps.filter((item) => {
+      if (!item) return false;
       // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const matchName = item.customerName.toLowerCase().includes(q);
-        const matchPhone = item.customerPhone.includes(q);
-        const matchUnit = item.vehicleInfo?.toLowerCase().includes(q);
-        const matchReason = item.followUpReason?.toLowerCase().includes(q);
-        const matchNotes = item.notes?.toLowerCase().includes(q);
+        const matchName = (item.customerName || '').toLowerCase().includes(q);
+        const matchPhone = (item.customerPhone || '').includes(q);
+        const matchUnit = (item.vehicleInfo || '').toLowerCase().includes(q);
+        const matchReason = (item.followUpReason || '').toLowerCase().includes(q);
+        const matchNotes = (item.notes || '').toLowerCase().includes(q);
         if (!matchName && !matchPhone && !matchUnit && !matchReason && !matchNotes) {
           return false;
         }
@@ -204,23 +205,25 @@ export default function FollowUpPage() {
       }
 
       // Time Tab Filter
+      const sDate = item.scheduledDate || '';
       if (filterTimeTab === 'today') {
         return (
-          item.scheduledDate === todayStr &&
+          sDate === todayStr &&
           item.status !== 'Berhasil Transaksi' &&
           item.status !== 'Tidak Berminat'
         );
       }
       if (filterTimeTab === 'overdue') {
         return (
-          item.scheduledDate < todayStr &&
+          sDate !== '' &&
+          sDate < todayStr &&
           item.status !== 'Berhasil Transaksi' &&
           item.status !== 'Tidak Berminat'
         );
       }
       if (filterTimeTab === 'upcoming') {
         return (
-          item.scheduledDate > todayStr &&
+          sDate > todayStr &&
           item.status !== 'Berhasil Transaksi' &&
           item.status !== 'Tidak Berminat'
         );
@@ -235,18 +238,19 @@ export default function FollowUpPage() {
 
   // Generate Pre-formatted WhatsApp Message according to BAGIAN D & Alur Komunikasi
   const getWhatsAppMessage = (item: FollowUp): string => {
+    const custName = item.customerName || 'Bapak/Ibu';
     const unitName = item.vehicleInfo || 'mobil idaman';
 
     if (item.category === 'Pelanggan Lama (1 Tahun)') {
-      return `Halo Bapak/Ibu ${item.customerName}, salam hangat dari HR MOTOR Garut.\n\nTidak terasa sudah 1 tahun Bapak/Ibu menggunakan unit ${unitName}. Bagaimana kondisi dan performa kendaraannya saat ini? Apakah ada rencana untuk mengganti unit / tukar tambah (trade-in), atau berniat menjual kembali mobil tersebut melalui HR MOTOR Garut?\n\nKami siap memberikan penawaran terbaik untuk Bapak/Ibu. Terima kasih.`;
+      return `Halo Bapak/Ibu ${custName}, salam hangat dari HR MOTOR Garut.\n\nTidak terasa sudah 1 tahun Bapak/Ibu menggunakan unit ${unitName}. Bagaimana kondisi dan performa kendaraannya saat ini? Apakah ada rencana untuk mengganti unit / tukar tambah (trade-in), atau berniat menjual kembali mobil tersebut melalui HR MOTOR Garut?\n\nKami siap memberikan penawaran terbaik untuk Bapak/Ibu. Terima kasih.`;
     }
 
     if (item.category === 'Prospek Tidak Jadi (1 Bulan)') {
-      return `Halo Bapak/Ibu ${item.customerName}, salam dari HR MOTOR Garut.\n\nKami ingin menyapa kembali Bapak/Ibu. Apakah saat ini Bapak/Ibu masih mencari unit mobil idaman? Saat ini di showroom HR MOTOR tersedia beberapa pilihan unit stok baru yang mungkin sesuai dengan kriteria Bapak/Ibu.\n\nSilakan kabari kami jika berkenan mendapatkan informasi unit lebih lengkap. Terima kasih.`;
+      return `Halo Bapak/Ibu ${custName}, salam dari HR MOTOR Garut.\n\nKami ingin menyapa kembali Bapak/Ibu. Apakah saat ini Bapak/Ibu masih mencari unit mobil idaman? Saat ini di showroom HR MOTOR tersedia beberapa pilihan unit stok baru yang mungkin sesuai dengan kriteria Bapak/Ibu.\n\nSilakan kabari kami jika berkenan mendapatkan informasi unit lebih lengkap. Terima kasih.`;
     }
 
     // Unit yang Dicari Sudah Tersedia
-    return `Halo Bapak/Ibu ${item.customerName}, kabar baik dari HR MOTOR Garut!\n\nUnit mobil ${unitName} yang sebelumnya Bapak/Ibu cari/tanyakan baru saja tersedia di showroom kami dengan kondisi istimewa dan siap pakai.\n\nMengingat unit ini banyak peminatnya, silakan hubungi kami segera jika Bapak/Ibu ingin cek unit langsung atau menjadwalkan test drive. Terima kasih.`;
+    return `Halo Bapak/Ibu ${custName}, kabar baik dari HR MOTOR Garut!\n\nUnit mobil ${unitName} yang sebelumnya Bapak/Ibu cari/tanyakan baru saja tersedia di showroom kami dengan kondisi istimewa dan siap pakai.\n\nMengingat unit ini banyak peminatnya, silakan hubungi kami segera jika Bapak/Ibu ingin cek unit langsung atau menjadwalkan test drive. Terima kasih.`;
   };
 
   // Open Log Communication Modal
@@ -604,8 +608,14 @@ export default function FollowUpPage() {
                     item.status !== 'Berhasil Transaksi' &&
                     item.status !== 'Tidak Berminat';
 
+                  const custPhone =
+                    item.customerPhone ||
+                    customers.find((c) => c.id === item.customerId)?.whatsapp ||
+                    leads.find((l) => l.id === item.leadId)?.contactNumber ||
+                    '';
+
                   const waMessage = getWhatsAppMessage(item);
-                  const waLink = formatWhatsAppLink(item.customerPhone, waMessage);
+                  const waLink = custPhone ? formatWhatsAppLink(custPhone, waMessage) : '#';
 
                   // Check if stock unit is sold
                   const linkedStock = stocks.find((s) => s.id === item.vehicleStockId);
@@ -635,15 +645,19 @@ export default function FollowUpPage() {
 
                       {/* Nomor WhatsApp */}
                       <td className="py-3 px-3 font-mono text-xs text-charcoal-800 font-semibold">
-                        <a
-                          href={waLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-gold-700 hover:text-gold-900 hover:underline"
-                        >
-                          <Phone className="w-3 h-3 text-gold-600" />
-                          {item.customerPhone}
-                        </a>
+                        {custPhone ? (
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-gold-700 hover:text-gold-900 hover:underline"
+                          >
+                            <Phone className="w-3 h-3 text-gold-600" />
+                            {custPhone}
+                          </a>
+                        ) : (
+                          <span className="text-charcoal-400 italic font-sans text-xs">Belum ada no.</span>
+                        )}
                       </td>
 
                       {/* Unit yang Dibeli / Dicari */}
@@ -750,10 +764,16 @@ export default function FollowUpPage() {
                           {/* Hubungi via WhatsApp */}
                           <a
                             href={waLink}
-                            target="_blank"
+                            target={waLink !== '#' ? '_blank' : undefined}
                             rel="noopener noreferrer"
-                            title="Buka Chat WhatsApp dengan Draft Pesan Otomatis Showroom"
-                            className="btn-gold inline-flex items-center gap-1.5 py-1.5 px-3 text-xs whitespace-nowrap"
+                            title={custPhone ? 'Buka Chat WhatsApp dengan Draft Pesan Otomatis Showroom' : 'Nomor WhatsApp belum tercatat'}
+                            className={`btn-gold inline-flex items-center gap-1.5 py-1.5 px-3 text-xs whitespace-nowrap ${!custPhone ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={(e) => {
+                              if (!custPhone || waLink === '#') {
+                                e.preventDefault();
+                                alert('Nomor WhatsApp belum tercatat untuk konsumen ini.');
+                              }
+                            }}
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
                             <span>Kirim WhatsApp</span>
@@ -814,7 +834,7 @@ export default function FollowUpPage() {
                     Catat Hasil Komunikasi Follow-up
                   </h3>
                   <p className="text-xs text-charcoal-500">
-                    {selectedItem.customerName} ({selectedItem.customerPhone})
+                    {selectedItem.customerName} {selectedItem.customerPhone ? `(${selectedItem.customerPhone})` : ''}
                   </p>
                 </div>
               </div>
