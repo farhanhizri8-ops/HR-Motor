@@ -70,7 +70,6 @@ export default function StokUnitPage() {
     deleteStock,
     formatRupiah,
     formatDate,
-    formatWhatsAppLink,
   } = useCrm();
 
   // Search, Filter, Sort States
@@ -589,39 +588,6 @@ export default function StokUnitPage() {
     });
 
     doc.save(`Katalog_Stok_HR_MOTOR_${new Date().toISOString().slice(0, 10)}.pdf`);
-  };
-
-  // WhatsApp Message Generator for a Car
-  const generateCarWhatsAppLink = (stock: VehicleStock) => {
-    const title = stock.merkType || `${stock.brand} ${stock.model}`;
-    const dpInfo = stock.creditDp ? formatRupiah(stock.creditDp) : 'Mulai 20% (Bisa disesuaikan)';
-    const ccln35 = stock.installment35x || '-';
-    const ccln47 = stock.installment47x || '-';
-    const ccln59 = stock.installment59x || '-';
-
-    const text =
-      `*HR MOTOR GARUT — PENAWARAN UNIT READY SHOWROOM*\n` +
-      `Salam hangat dari HR MOTOR Garut.\n\n` +
-      `Berikut detail unit kendaraan pilihan:\n` +
-      `🚗 *${title}*\n` +
-      `• Tahun: *${stock.year}*\n` +
-      `• Warna: *${stock.color}*\n` +
-      `• Odometer: *${stock.odometerDisplay || stock.mileage.toLocaleString('id-ID')} km*\n` +
-      `• Plat Nomor: *${stock.licensePlate || '-'}*\n` +
-      `• Transmisi: *${stock.transmission}*\n` +
-      `• Bahan Bakar: *${stock.fuel}*\n\n` +
-      `💵 *Harga Cash:* *${formatRupiah(stock.price)}*\n` +
-      `🛡️ *Garansi:* 100% Bergaransi Resmi Showroom HR MOTOR (Mesin & Transmisi)\n\n` +
-      `📊 *Pilihan Paket Kredit (Simulasi):*\n` +
-      `• Uang Muka (DP): *${dpInfo}*\n` +
-      (ccln35 !== '-' ? `• Angsuran 3 Thn (35x): *Rp ${ccln35}/bln*\n` : '') +
-      (ccln47 !== '-' ? `• Angsuran 4 Thn (47x): *Rp ${ccln47}/bln*\n` : '') +
-      (ccln59 !== '-' ? `• Angsuran 5 Thn (59x): *Rp ${ccln59}/bln*\n` : '') +
-      `• Mitra Pembiayaan: *OTO Multiartha • Mandiri Utama Finance (MUF) • Adira Finance*\n\n` +
-      `Unit dalam kondisi prima, terawat, dan siap test drive di Showroom HR MOTOR Garut.\n` +
-      `Hubungi kami untuk jadwal test drive atau negosiasi terbaik!`;
-
-    return `https://wa.me/?text=${encodeURIComponent(text)}`;
   };
 
   // Calculated Credit for Modal Calculator
@@ -1164,16 +1130,6 @@ export default function StokUnitPage() {
                         {/* 10. AKSI */}
                         <td className="py-3.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1.5">
-                            <a
-                              href={generateCarWhatsAppLink(stock)}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Bagikan Penawaran ke WhatsApp"
-                              className="p-1.5 rounded-md text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-xs"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5" />
-                            </a>
-
                             <button
                               type="button"
                               onClick={() => handleOpenCalculator(stock)}
@@ -1187,7 +1143,7 @@ export default function StokUnitPage() {
                               type="button"
                               onClick={() => handleOpenDetail(stock)}
                               title="Lihat Detail Spesifikasi"
-                              className="p-1.5 rounded-md text-charcoal-600 bg-warm-100 hover:bg-warm-200 transition-colors shadow-xs"
+                              className="p-1.5 rounded-md text-charcoal-700 bg-warm-100 hover:bg-warm-200 transition-colors shadow-xs"
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
@@ -1199,6 +1155,18 @@ export default function StokUnitPage() {
                               className="p-1.5 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors shadow-xs"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedStock(stock);
+                                setShowDeleteModal(true);
+                              }}
+                              title="Hapus Unit"
+                              className="p-1.5 rounded-md text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors shadow-xs"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -1371,32 +1339,31 @@ export default function StokUnitPage() {
 
                       {/* Card Action Buttons */}
                       <div className="flex items-center gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-                        <a
-                          href={generateCarWhatsAppLink(stock)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex-1 py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                        >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>Kirim WA</span>
-                        </a>
-
                         <button
                           type="button"
                           onClick={() => handleOpenCalculator(stock)}
-                          className="py-1.5 px-2.5 rounded-lg border border-gold-300 bg-gold-50 hover:bg-gold-100 text-gold-900 font-bold text-xs transition-colors"
-                          title="Simulasi Kredit"
+                          className="flex-1 py-1.5 px-3 rounded-lg border border-gold-300 bg-gold-50 hover:bg-gold-100 text-gold-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
                         >
                           <Calculator className="w-3.5 h-3.5 text-gold-700" />
+                          <span>Simulasi Kredit</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleOpenDetail(stock)}
-                          className="py-1.5 px-2.5 rounded-lg border border-warm-300 bg-white hover:bg-warm-100 text-charcoal-700 font-bold text-xs transition-colors"
+                          className="py-1.5 px-2.5 rounded-lg border border-warm-300 bg-white hover:bg-warm-100 text-charcoal-700 font-bold text-xs transition-colors shadow-xs"
                           title="Rincian Unit"
                         >
                           <Eye className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(stock)}
+                          className="py-1.5 px-2.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition-colors shadow-xs"
+                          title="Edit Data Unit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -1438,7 +1405,7 @@ export default function StokUnitPage() {
                   <th className="py-3 px-3 text-center font-bold text-charcoal-900">TENOR 35x (3 THN)</th>
                   <th className="py-3 px-3 text-center font-bold text-charcoal-900">TENOR 47x (4 THN)</th>
                   <th className="py-3 px-3 text-center font-bold text-charcoal-900">TENOR 59x (5 THN)</th>
-                  <th className="py-3 px-3 text-center font-bold">AKSI PENAWARAN</th>
+                  <th className="py-3 px-3 text-center font-bold">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-warm-200">
@@ -1491,22 +1458,21 @@ export default function StokUnitPage() {
                       </td>
                       <td className="py-3 px-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <a
-                            href={generateCarWhatsAppLink(stock)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-xs transition-colors"
-                          >
-                            <MessageCircle className="w-3 h-3" />
-                            <span>Kirim WA</span>
-                          </a>
-
                           <button
                             type="button"
                             onClick={() => handleOpenCalculator(stock)}
-                            className="px-2 py-1 rounded border border-warm-300 hover:bg-warm-100 text-charcoal-700 font-semibold text-[11px] transition-colors"
+                            className="px-2.5 py-1.5 rounded-lg bg-gold-600 hover:bg-gold-700 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-xs transition-colors"
                           >
-                            Kalkulator
+                            <Calculator className="w-3.5 h-3.5" />
+                            <span>Simulasi</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDetail(stock)}
+                            className="px-2.5 py-1.5 rounded-lg border border-warm-300 hover:bg-warm-100 text-charcoal-700 font-semibold text-[11px] transition-colors"
+                          >
+                            Detail
                           </button>
                         </div>
                       </td>
@@ -1654,24 +1620,13 @@ export default function StokUnitPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 pt-2">
-                {selectedStock && (
-                  <a
-                    href={generateCarWhatsAppLink(selectedStock)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Kirim Simulasi ke WA</span>
-                  </a>
-                )}
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreditCalculatorModal(false)}
-                  className="px-4 py-2 rounded-lg bg-warm-200 text-charcoal-800 font-bold text-xs hover:bg-warm-300 transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-white font-bold text-xs transition-colors shadow-xs"
                 >
-                  Tutup
+                  Tutup Kalkulator
                 </button>
               </div>
             </div>
@@ -1821,17 +1776,11 @@ export default function StokUnitPage() {
                         <div key={ld.id} className="py-2 flex items-center justify-between">
                           <div>
                             <span className="font-bold text-emerald-950">{clientName}</span>
-                            <span className="text-emerald-700 text-[11px] ml-2">WA: {clientPhone}</span>
+                            <span className="text-emerald-700 text-[11px] ml-2 font-mono">Kontak: {clientPhone || '-'}</span>
                           </div>
-                          <a
-                            href={formatWhatsAppLink(clientPhone, `Halo Bapak/Ibu ${clientName}, unit ${selectedStock.merkType || selectedStock.model} yang Anda cari sudah ready di Showroom HR MOTOR Garut!`)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1"
-                          >
-                            <MessageCircle className="w-3 h-3" />
-                            Hubungi Konsumen
-                          </a>
+                          <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                            Cocok Preferensi
+                          </span>
                         </div>
                       );
                     })}
@@ -1860,15 +1809,17 @@ export default function StokUnitPage() {
                 </button>
 
                 <div className="flex items-center gap-2">
-                  <a
-                    href={generateCarWhatsAppLink(selectedStock)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-gold text-xs flex items-center gap-1.5 py-2 px-3.5"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      handleOpenCalculator(selectedStock);
+                    }}
+                    className="btn-gold text-xs flex items-center gap-1.5 py-2 px-3.5 shadow-xs"
                   >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>Bagikan Penawaran WA</span>
-                  </a>
+                    <Calculator className="w-3.5 h-3.5" />
+                    <span>Simulasi Kredit</span>
+                  </button>
 
                   <button
                     type="button"
@@ -1876,7 +1827,7 @@ export default function StokUnitPage() {
                       setShowDetailModal(false);
                       handleOpenEdit(selectedStock);
                     }}
-                    className="btn-outline-warm text-xs flex items-center gap-1.5 py-2 px-3"
+                    className="btn-outline-warm text-xs flex items-center gap-1.5 py-2 px-3 shadow-xs"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>Edit Unit</span>
