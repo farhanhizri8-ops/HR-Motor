@@ -142,32 +142,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Link
             href="/"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 overflow-hidden group transition-transform ${
-              collapsed ? 'justify-center w-full' : ''
+            className={`flex items-center overflow-hidden group transition-transform ${
+              collapsed ? 'justify-center w-full' : 'gap-2.5'
             }`}
           >
-            {/* Real Logo Emblem */}
+            {/* Real Official HR MOTOR 3D Logo */}
             <div className="relative flex items-center justify-center shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png"
-                alt="Logo HR MOTOR"
-                className={`object-contain drop-shadow-[0_4px_12px_rgba(217,154,50,0.3)] transition-all ${
-                  collapsed ? 'h-10 w-10' : 'h-12 w-12'
+                alt="Logo Resmi HR MOTOR"
+                className={`object-contain drop-shadow-[0_4px_16px_rgba(217,154,50,0.35)] transition-all ${
+                  collapsed ? 'h-11 w-auto max-w-[58px]' : 'h-13 w-auto max-w-[155px]'
                 }`}
               />
             </div>
-
-            {!collapsed && (
-              <div className="flex flex-col min-w-0">
-                <span className="font-black text-sm tracking-widest text-white uppercase flex items-center gap-1.5">
-                  HR MOTOR
-                </span>
-                <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider">
-                  Showroom Garut
-                </span>
-              </div>
-            )}
           </Link>
 
           {/* Desktop Toggle Button */}

@@ -57,16 +57,13 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Mobile Logo View */}
-        <Link href="/" className="flex lg:hidden items-center gap-2">
+        <Link href="/" className="flex lg:hidden items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="HR MOTOR Logo"
-            className="h-8 w-auto object-contain drop-shadow-sm"
+            className="h-9 w-auto object-contain drop-shadow-sm"
           />
-          <span className="font-extrabold text-xs tracking-wider text-charcoal-900 uppercase">
-            HR MOTOR
-          </span>
         </Link>
 
         {/* Desktop Showroom Brand Badge */}
