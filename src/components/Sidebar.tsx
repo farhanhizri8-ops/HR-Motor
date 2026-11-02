@@ -146,17 +146,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               collapsed ? 'justify-center w-full' : 'gap-2.5'
             }`}
           >
-            {/* Real Official HR MOTOR Logo Badge */}
+            {/* Real Official HR MOTOR Logo Badge - Modern Luxury Container */}
             <div
-              className={`flex items-center justify-center bg-white rounded-xl border border-gold-500/40 shadow-md transition-all ${
-                collapsed ? 'p-1.5 w-12 h-12' : 'px-3 py-1.5 h-13 w-auto max-w-[175px]'
+              className={`flex items-center justify-center bg-gradient-to-b from-[#262626] to-[#1A1A1A] rounded-xl border border-gold-500/50 shadow-lg transition-all group-hover:border-gold-400 ${
+                collapsed ? 'p-1.5 w-12 h-12' : 'px-3 py-1.5 h-12 w-auto max-w-[170px]'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.png?v=3"
                 alt="Logo HR MOTOR"
-                className="h-full w-auto object-contain"
+                className="h-full w-auto object-contain drop-shadow"
               />
             </div>
           </Link>
@@ -215,7 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => setMobileOpen(false)}
                 className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-gold-500 to-gold-400 text-charcoal-950 shadow-gold font-bold'
+                    ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold'
                     : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300'
                 } ${collapsed ? 'justify-center px-0' : ''}`}
                 title={collapsed ? item.name : undefined}
@@ -223,7 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Icon
                   className={`w-4.5 h-4.5 shrink-0 transition-colors ${
                     isActive
-                      ? 'text-charcoal-950 stroke-[2.2]'
+                      ? 'text-gold-400 stroke-[2.2]'
                       : 'text-slate-400 group-hover:text-gold-400'
                   }`}
                 />
