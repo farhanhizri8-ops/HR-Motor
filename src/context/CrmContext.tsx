@@ -271,6 +271,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteCustomer = async (id: string) => {
+    setCustomers((prev) => prev.filter((c) => c.id !== id));
     return executeApiMutation('DELETE_CUSTOMER', { id });
   };
 

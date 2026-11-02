@@ -59,6 +59,7 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formError, setFormError] = useState('');
 
   // Form input state
@@ -190,13 +191,15 @@ export default function CustomersPage() {
   };
 
   const handleDelete = async (id: string) => {
+    setIsDeleting(true);
     const res = await deleteCustomer(id);
+    setIsDeleting(false);
     setDeleteConfirmId(null);
     if (selectedCustomer?.id === id) {
       setSelectedCustomer(null);
     }
     if (!res.success) {
-      alert(res.error || 'Gagal menghapus data');
+      alert(res.error || 'Gagal menghapus data pelanggan');
     }
   };
 
@@ -418,16 +421,14 @@ export default function CustomersPage() {
                           <Edit className="w-4 h-4" />
                         </button>
 
-                        {/* Delete with protection */}
-                        {currentUser.role === 'Owner' || currentUser.role === 'CRM Administrator' ? (
-                          <button
-                            onClick={() => setDeleteConfirmId(cust.id)}
-                            className="p-1.5 rounded-lg text-charcoal-400 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200"
-                            title="Hapus Pelanggan"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        ) : null}
+                        {/* Delete */}
+                        <button
+                          onClick={() => setDeleteConfirmId(cust.id)}
+                          className="p-1.5 rounded-lg text-charcoal-400 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200"
+                          title="Hapus Data Pelanggan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -890,13 +891,49 @@ export default function CustomersPage() {
                 )}
               </div>
             </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 bg-warm-50 border-t border-warm-200 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteConfirmId(selectedCustomer.id);
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 transition-colors flex items-center gap-1.5 shadow-xs"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Hapus Data Pelanggan</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const custToEdit = selectedCustomer;
+                    setSelectedCustomer(null);
+                    openEditModal(custToEdit);
+                  }}
+                  className="btn-outline-warm text-xs flex items-center gap-1.5 py-2 px-3 shadow-xs"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Edit Profil</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCustomer(null)}
+                  className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors shadow-xs"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* DELETE CONFIRMATION DIALOG */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="crm-card max-w-sm w-full p-6 space-y-4 shadow-luxury border-rose-200">
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto border border-rose-200">
               <AlertCircle className="w-6 h-6" />
@@ -909,16 +946,18 @@ export default function CustomersPage() {
             </div>
             <div className="flex items-center gap-2 pt-2">
               <button
+                disabled={isDeleting}
                 onClick={() => setDeleteConfirmId(null)}
-                className="btn-outline-warm flex-1 py-2 text-xs"
+                className="btn-outline-warm flex-1 py-2 text-xs disabled:opacity-50"
               >
                 Batal
               </button>
               <button
+                disabled={isDeleting}
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="flex-1 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition-all"
+                className="flex-1 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
               >
-                Ya, Hapus
+                {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
               </button>
             </div>
           </div>
