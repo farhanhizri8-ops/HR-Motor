@@ -352,36 +352,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* After-Sales Warranty Showcase Banner (Charcoal Black Luxury Theme) */}
-      <div className="crm-card-charcoal p-5 relative overflow-hidden shadow-luxury-md">
-        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-gold-500/20 text-gold-400 border border-gold-500/30 flex items-center justify-center shrink-0">
-              <Wrench className="w-6 h-6 stroke-[2]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-gold-400 bg-gold-950/80 border border-gold-700/60 px-2 py-0.5 rounded">
-                  Purna Jual Showroom
-                </span>
-                <span className="text-xs text-slate-300">Layanan Garansi Resmi HR MOTOR Garut</span>
-              </div>
-              <h3 className="text-sm sm:text-base font-bold text-white mt-1">
-                {repairClaims.length} Riwayat Perbaikan Tercatat • {warrantyClaimCount} Ditanggung Garansi HR MOTOR
-              </h3>
-            </div>
-          </div>
-
-          <Link
-            href="/riwayat-perbaikan"
-            className="btn-gold flex items-center justify-center gap-1.5 text-xs whitespace-nowrap self-start sm:self-auto uppercase tracking-wider"
-          >
-            <span>Buka Riwayat Garansi</span>
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
-
       {/* Main Charts Section (Consistent Luxury Palette) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Customer & Lead Growth Area Chart */}
