@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   title: 'HR MOTOR CRM — Dealership Mobil Bekas Garut',
   description: 'Sistem Manajemen Hubungan Pelanggan (CRM) Terpadu HR MOTOR Garut, Jawa Barat.',
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/logo.png?v=3',
+    apple: '/logo.png?v=3',
   },
 };
 

@@ -148,15 +148,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Real Official HR MOTOR Logo Badge */}
             <div
-              className={`flex items-center justify-center bg-white rounded-xl border border-gold-500/40 shadow-sm transition-all ${
-                collapsed ? 'p-1 w-12 h-12' : 'px-3 py-1.5 h-12 w-auto'
+              className={`flex items-center justify-center bg-white rounded-xl border border-gold-500/40 shadow-md transition-all ${
+                collapsed ? 'p-1.5 w-12 h-12' : 'px-3 py-1.5 h-13 w-auto max-w-[175px]'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/logo.png"
+                src="/logo.png?v=3"
                 alt="Logo HR MOTOR"
-                className="h-full w-auto object-contain max-h-10"
+                className="h-full w-auto object-contain"
               />
             </div>
           </Link>

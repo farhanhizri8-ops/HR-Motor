@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="bg-white px-2.5 py-1 rounded-lg border border-gold-500/30 shadow-xs flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.png"
+              src="/logo.png?v=3"
               alt="HR MOTOR Logo"
               className="h-7 w-auto object-contain"
             />
