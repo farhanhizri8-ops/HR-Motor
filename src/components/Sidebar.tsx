@@ -18,8 +18,8 @@ import {
   ChevronRight,
   Car,
   X,
-  AlertCircle,
   Wrench,
+  Sparkles,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -123,57 +123,91 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container: Charcoal Black Theme */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-crm-navy-900 text-white transition-all duration-300 ease-in-out border-r border-crm-navy-700 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#1C1C1C] text-white transition-all duration-300 ease-in-out border-r border-[#2A2A2A] shadow-2xl ${
           collapsed ? 'w-20' : 'w-64'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
-        {/* Brand Header */}
-        <div className="flex items-center justify-between h-16 px-4 bg-crm-navy-800 border-b border-crm-navy-700">
-          <Link href="/" className="flex items-center gap-3 overflow-hidden">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500 text-white shadow-md shadow-emerald-500/20 shrink-0">
-              <Car className="w-6 h-6" />
+        {/* Brand Header with Real HR MOTOR Logo */}
+        <div className="flex items-center justify-between h-20 px-4 bg-[#141414] border-b border-[#2A2A2A] relative">
+          {/* Subtle top gold accent line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600 opacity-80" />
+
+          <Link
+            href="/"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 overflow-hidden group transition-transform ${
+              collapsed ? 'justify-center w-full' : ''
+            }`}
+          >
+            {/* Real Logo Emblem */}
+            <div className="relative flex items-center justify-center shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Logo HR MOTOR"
+                className={`object-contain drop-shadow-[0_4px_12px_rgba(217,154,50,0.3)] transition-all ${
+                  collapsed ? 'h-10 w-10' : 'h-12 w-12'
+                }`}
+              />
             </div>
+
             {!collapsed && (
-              <div className="flex flex-col">
-                <span className="font-extrabold text-base tracking-wider text-white">
+              <div className="flex flex-col min-w-0">
+                <span className="font-black text-sm tracking-widest text-white uppercase flex items-center gap-1.5">
                   HR MOTOR
                 </span>
-                <span className="text-[10px] text-emerald-400 font-medium uppercase tracking-widest">
-                  Garut • CRM Dealership
+                <span className="text-[10px] text-gold-400 font-bold uppercase tracking-wider">
+                  Showroom Garut
                 </span>
               </div>
             )}
           </Link>
 
           {/* Desktop Toggle Button */}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-md bg-crm-navy-700 hover:bg-crm-navy-600 text-slate-300 hover:text-white transition-colors"
-            title={collapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
-          >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-[#242424] hover:bg-[#2D2D2D] text-slate-400 hover:text-gold-400 border border-[#333333] transition-colors"
+              title="Ciutkan Sidebar"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="flex lg:hidden items-center justify-center w-8 h-8 rounded-md text-slate-300 hover:text-white hover:bg-crm-navy-700"
+            className="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-[#292929]"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Location Info Banner */}
+        {/* Collapsed Expand Trigger */}
+        {collapsed && (
+          <div className="hidden lg:flex justify-center py-2 border-b border-[#2A2A2A]">
+            <button
+              onClick={() => setCollapsed(false)}
+              className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#242424] hover:bg-[#2D2D2D] text-slate-400 hover:text-gold-400 border border-[#333333] transition-colors"
+              title="Perluas Sidebar"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Showroom Location Pill */}
         {!collapsed && (
-          <div className="px-4 py-2 bg-crm-navy-800/50 border-b border-crm-navy-700/60 text-[11px] text-slate-300">
-            <span className="truncate">Cabang Garut: Jl. Otista No. 128</span>
+          <div className="px-4 py-2 bg-[#171717] border-b border-[#262626] flex items-center justify-between text-[10px]">
+            <span className="text-slate-400 font-medium truncate">Jl. Otista No. 128, Garut</span>
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
           </div>
         )}
 
@@ -188,44 +222,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30 font-semibold'
-                    : 'text-slate-300 hover:bg-crm-navy-800 hover:text-white'
-                } ${collapsed ? 'justify-center' : ''}`}
+                    ? 'bg-gradient-to-r from-gold-500 to-gold-400 text-charcoal-950 shadow-gold font-bold'
+                    : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300'
+                } ${collapsed ? 'justify-center px-0' : ''}`}
                 title={collapsed ? item.name : undefined}
               >
                 <Icon
-                  className={`w-5 h-5 shrink-0 ${
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400'
+                  className={`w-4.5 h-4.5 shrink-0 transition-colors ${
+                    isActive
+                      ? 'text-charcoal-950 stroke-[2.2]'
+                      : 'text-slate-400 group-hover:text-gold-400'
                   }`}
                 />
 
                 {!collapsed && (
-                  <span className="truncate">{item.name}</span>
+                  <span className="truncate tracking-wide">{item.name}</span>
                 )}
               </Link>
             );
           })}
         </div>
 
-        {/* User Card & Role Status Footer */}
-        <div className="p-3 bg-crm-navy-800 border-t border-crm-navy-700">
+        {/* User Profile Card & Role Footer */}
+        <div className="p-3 bg-[#141414] border-t border-[#2A2A2A]">
           <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'}
               alt={currentUser.name}
-              className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500 shrink-0"
+              className="w-9 h-9 rounded-full object-cover border-2 border-gold-500 shadow-xs shrink-0"
             />
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white truncate">
+                <p className="text-xs font-bold text-white truncate">
                   {currentUser.name}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <p className="text-[10px] text-emerald-300 font-medium truncate">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
+                  <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
                     {currentUser.role}
                   </p>
                 </div>

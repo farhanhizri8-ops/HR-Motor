@@ -14,7 +14,7 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="min-h-screen bg-[#F8F7F4] text-[#202020] flex">
       {/* Sidebar */}
       <Sidebar
         collapsed={collapsed}

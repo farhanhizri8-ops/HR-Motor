@@ -331,8 +331,8 @@ export default function AfterSalesPage() {
   // 5. Warranty vs Non-Warranty Cost Comparison
   const warrantyVsNonWarrantyData = useMemo(() => {
     return [
-      { name: 'Klaim Garansi (Ditanggung Showroom)', value: totalWarrantyCost, color: '#10b981' },
-      { name: 'Non-Garansi (Dibayar Konsumen)', value: totalNonWarrantyCost, color: '#3b82f6' },
+      { name: 'Klaim Garansi (Ditanggung Showroom)', value: totalWarrantyCost, color: '#D99A32' },
+      { name: 'Non-Garansi (Dibayar Konsumen)', value: totalNonWarrantyCost, color: '#202020' },
     ].filter((item) => item.value > 0);
   }, [totalWarrantyCost, totalNonWarrantyCost]);
 
@@ -595,7 +595,7 @@ export default function AfterSalesPage() {
     );
 
     doc.setLineWidth(0.5);
-    doc.setDrawColor(16, 185, 129);
+    doc.setDrawColor(217, 154, 50);
     doc.line(14, 30, 283, 30);
 
     // KPI Summary Table
@@ -628,7 +628,7 @@ export default function AfterSalesPage() {
         ],
       ],
       theme: 'striped',
-      headStyles: { fillColor: [15, 23, 42], fontSize: 8 },
+      headStyles: { fillColor: [32, 32, 32], fontSize: 8 },
       bodyStyles: { fontSize: 8, fontStyle: 'bold' },
     });
 
@@ -669,7 +669,7 @@ export default function AfterSalesPage() {
         ];
       }),
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], fontSize: 7 },
+      headStyles: { fillColor: [217, 154, 50], textColor: [20, 20, 20], fontSize: 7 },
       bodyStyles: { fontSize: 7 },
       styles: { overflow: 'linebreak' },
     });
@@ -773,57 +773,60 @@ export default function AfterSalesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              Retensi & Purna Jual
-            </span>
-            <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500">Loyalitas Pelanggan HR MOTOR</span>
+      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="badge-gold">
+                <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+                Retensi & Layanan Purna Jual
+              </span>
+              <span className="text-xs text-charcoal-400">•</span>
+              <span className="text-xs text-charcoal-500 font-medium">Customer Retention HR MOTOR Garut</span>
+            </div>
+            <h1 className="text-xl lg:text-2xl font-black text-charcoal-900 tracking-tight">
+              After Sales & Customer Retention
+            </h1>
+            <p className="text-xs text-charcoal-500 mt-0.5">
+              Kelola klaim garansi & perbaikan mobil purna jual, kepuasan konsumen, tiket keluhan, dan program referral di Garut.
+            </p>
           </div>
-          <h1 className="text-xl lg:text-2xl font-black text-slate-900 mt-1">
-            After Sales & Customer Retention
-          </h1>
-          <p className="text-xs text-slate-500">
-            Kelola klaim garansi & perbaikan mobil purna jual, kepuasan konsumen, tiket keluhan, dan program referral di Garut.
-          </p>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={openAddRepairModal}
-            className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm shadow-emerald-600/30 transition-all flex items-center gap-1.5"
-          >
-            <Wrench className="w-3.5 h-3.5" />
-            + Ajukan Perbaikan Mobil
-          </button>
-          <button
-            onClick={() => setIsComplaintModalOpen(true)}
-            className="px-3.5 py-2 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors flex items-center gap-1.5"
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            + Buat Tiket Komplain
-          </button>
-          <button
-            onClick={() => setIsFeedbackModalOpen(true)}
-            className="px-3.5 py-2 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors flex items-center gap-1.5"
-          >
-            <Star className="w-3.5 h-3.5" />
-            + Catat Kepuasan
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={openAddRepairModal}
+              className="btn-gold flex items-center gap-1.5"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              + Ajukan Perbaikan Mobil
+            </button>
+            <button
+              onClick={() => setIsComplaintModalOpen(true)}
+              className="btn-outline-warm text-rose-700 hover:bg-rose-50 flex items-center gap-1.5"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+              + Buat Tiket Komplain
+            </button>
+            <button
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="btn-outline-warm flex items-center gap-1.5"
+            >
+              <Star className="w-3.5 h-3.5 text-gold-600" />
+              + Catat Kepuasan
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Main Tabs Navigation */}
-      <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
-        <div className="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200">
+      <div className="crm-card p-2 border border-[#EAE8E3]">
+        <div className="flex flex-wrap gap-1 p-1 bg-[#F8F7F4] rounded-xl border border-[#EAE8E3]">
           <button
             onClick={() => setActiveTab('repairs')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'repairs'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
             <Wrench className="w-3.5 h-3.5" />
@@ -831,10 +834,10 @@ export default function AfterSalesPage() {
           </button>
           <button
             onClick={() => setActiveTab('purchases')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'purchases'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
             <Car className="w-3.5 h-3.5" />
@@ -842,10 +845,10 @@ export default function AfterSalesPage() {
           </button>
           <button
             onClick={() => setActiveTab('feedback')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'feedback'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
             <Star className="w-3.5 h-3.5" />
@@ -853,10 +856,10 @@ export default function AfterSalesPage() {
           </button>
           <button
             onClick={() => setActiveTab('complaints')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'complaints'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -864,10 +867,10 @@ export default function AfterSalesPage() {
           </button>
           <button
             onClick={() => setActiveTab('referrals')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
               activeTab === 'referrals'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
             <Gift className="w-3.5 h-3.5" />
@@ -882,58 +885,58 @@ export default function AfterSalesPage() {
       {activeTab === 'repairs' && (
         <div className="space-y-6">
           {/* Quick Filter & Action Header */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3">
+          <div className="crm-card p-4 border border-[#EAE8E3] space-y-3">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   placeholder="Cari konsumen, no. WA, unit mobil, no. klaim..."
                   value={repairSearch}
                   onChange={(e) => setRepairSearch(e.target.value)}
-                  className="w-full text-xs pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  className="w-full text-xs pl-9 pr-3 py-2 border border-[#EAE8E3] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                 />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleExportRepairsExcel}
-                  className="px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5"
+                  className="btn-outline-warm flex items-center gap-1.5"
                   title="Unduh laporan dalam format Microsoft Excel"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-gold-600" />
                   Ekspor Excel
                 </button>
                 <button
                   onClick={handleExportRepairsPDF}
-                  className="px-3 py-1.5 text-xs font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors flex items-center gap-1.5"
+                  className="btn-outline-warm flex items-center gap-1.5"
                   title="Unduh laporan dalam format dokumen PDF"
                 >
-                  <FileText className="w-3.5 h-3.5 text-rose-600" />
+                  <FileText className="w-3.5 h-3.5 text-charcoal-600" />
                   Unduh PDF
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1.5"
+                  className="btn-outline-warm flex items-center gap-1.5"
                   title="Cetak langsung melalui printer browser"
                 >
-                  <Printer className="w-3.5 h-3.5 text-slate-600" />
+                  <Printer className="w-3.5 h-3.5 text-charcoal-600" />
                   Cetak
                 </button>
               </div>
             </div>
 
             {/* Dropdown Filters */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#EAE8E3] text-xs">
               <div className="flex items-center gap-1.5">
-                <Filter className="w-3.5 h-3.5 text-slate-400" />
-                <span className="font-semibold text-slate-600">Filter:</span>
+                <Filter className="w-3.5 h-3.5 text-gold-600" />
+                <span className="font-semibold text-charcoal-700">Filter:</span>
               </div>
 
               <select
                 value={repairTypeFilter}
                 onChange={(e) => setRepairTypeFilter(e.target.value as any)}
-                className="px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-700 font-medium"
+                className="px-2.5 py-1.5 border border-[#EAE8E3] rounded-lg bg-white text-charcoal-800 font-medium focus:outline-none focus:border-gold-500"
               >
                 <option value="ALL">Semua Jenis Pengajuan</option>
                 <option value="Garansi">Garansi Showroom</option>
@@ -943,7 +946,7 @@ export default function AfterSalesPage() {
               <select
                 value={repairStatusFilter}
                 onChange={(e) => setRepairStatusFilter(e.target.value as any)}
-                className="px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-700 font-medium"
+                className="px-2.5 py-1.5 border border-[#EAE8E3] rounded-lg bg-white text-charcoal-800 font-medium focus:outline-none focus:border-gold-500"
               >
                 <option value="ALL">Semua Status Perbaikan</option>
                 <option value="Menunggu">Menunggu Antrean</option>
@@ -955,7 +958,7 @@ export default function AfterSalesPage() {
               <select
                 value={repairMonthFilter}
                 onChange={(e) => setRepairMonthFilter(e.target.value)}
-                className="px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-700 font-medium"
+                className="px-2.5 py-1.5 border border-[#EAE8E3] rounded-lg bg-white text-charcoal-800 font-medium focus:outline-none focus:border-gold-500"
               >
                 <option value="ALL">Semua Bulan</option>
                 <option value="01">Januari</option>
@@ -975,7 +978,7 @@ export default function AfterSalesPage() {
               <select
                 value={repairYearFilter}
                 onChange={(e) => setRepairYearFilter(e.target.value)}
-                className="px-2.5 py-1.5 border border-slate-300 rounded-lg bg-white text-slate-700 font-medium"
+                className="px-2.5 py-1.5 border border-[#EAE8E3] rounded-lg bg-white text-charcoal-800 font-medium focus:outline-none focus:border-gold-500"
               >
                 <option value="ALL">Semua Tahun</option>
                 <option value="2026">2026</option>
@@ -991,7 +994,7 @@ export default function AfterSalesPage() {
                     setRepairMonthFilter('ALL');
                     setRepairYearFilter('ALL');
                   }}
-                  className="px-2.5 py-1 text-slate-500 hover:text-rose-600 hover:underline font-medium text-[11px]"
+                  className="px-2.5 py-1 text-charcoal-500 hover:text-rose-600 hover:underline font-medium text-[11px]"
                 >
                   Reset Filter
                 </button>
@@ -1002,66 +1005,66 @@ export default function AfterSalesPage() {
           {/* ===================== LAPORAN PERBAIKAN BULANAN (KPI METRIC CARDS) ===================== */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <BarChart3 className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-charcoal-700 flex items-center gap-1.5">
+                <BarChart3 className="w-4 h-4 text-gold-600" />
                 Laporan & Realisasi Pengeluaran Perbaikan Bulanan
               </h2>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-charcoal-400">
                 *Status Dibatalkan otomatis tidak dihitung dalam biaya
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div className="crm-card p-3.5 bg-gradient-to-br from-white to-slate-50 border-slate-200">
-                <span className="text-[11px] font-semibold text-slate-500 block">Total Konsumen</span>
-                <span className="text-xl lg:text-2xl font-black text-slate-900 mt-0.5 block">
+              <div className="crm-card p-3.5 border border-[#EAE8E3]">
+                <span className="text-[11px] font-semibold text-charcoal-500 block">Total Konsumen</span>
+                <span className="text-xl lg:text-2xl font-black text-charcoal-900 mt-0.5 block">
                   {totalCustomersCount}
                 </span>
-                <span className="text-[10px] text-slate-400">Konsumen unik</span>
+                <span className="text-[10px] text-charcoal-400">Konsumen unik</span>
               </div>
 
-              <div className="crm-card p-3.5 bg-gradient-to-br from-white to-slate-50 border-slate-200">
-                <span className="text-[11px] font-semibold text-slate-500 block">Total Klaim</span>
-                <span className="text-xl lg:text-2xl font-black text-slate-900 mt-0.5 block">
+              <div className="crm-card p-3.5 border border-[#EAE8E3]">
+                <span className="text-[11px] font-semibold text-charcoal-500 block">Total Klaim</span>
+                <span className="text-xl lg:text-2xl font-black text-charcoal-900 mt-0.5 block">
                   {totalClaimsCount}
                 </span>
-                <span className="text-[10px] text-emerald-600 font-medium">
+                <span className="text-[10px] text-gold-700 font-semibold">
                   {warrantyClaimsCount} Garansi • {nonWarrantyClaimsCount} Non
                 </span>
               </div>
 
-              <div className="crm-card p-3.5 bg-gradient-to-br from-white to-slate-50 border-slate-200">
-                <span className="text-[11px] font-semibold text-slate-500 block">Penyelesaian</span>
-                <span className="text-xl lg:text-2xl font-black text-emerald-700 mt-0.5 block">
+              <div className="crm-card p-3.5 border border-[#EAE8E3]">
+                <span className="text-[11px] font-semibold text-charcoal-500 block">Penyelesaian</span>
+                <span className="text-xl lg:text-2xl font-black text-gold-600 mt-0.5 block">
                   {completedClaimsCount} Beres
                 </span>
-                <span className="text-[10px] text-amber-600 font-medium">
+                <span className="text-[10px] text-charcoal-500 font-medium">
                   {inProgressClaimsCount} Proses • {pendingClaimsCount} Antre
                 </span>
               </div>
 
-              <div className="crm-card p-3.5 bg-gradient-to-br from-white to-slate-50 border-slate-200">
-                <span className="text-[11px] font-semibold text-slate-500 block">Biaya Sparepart</span>
-                <span className="text-lg lg:text-xl font-black text-slate-800 mt-0.5 block truncate">
+              <div className="crm-card p-3.5 border border-[#EAE8E3]">
+                <span className="text-[11px] font-semibold text-charcoal-500 block">Biaya Sparepart</span>
+                <span className="text-lg lg:text-xl font-black text-charcoal-900 mt-0.5 block truncate">
                   {formatRupiah(totalSparepartCost)}
                 </span>
-                <span className="text-[10px] text-slate-400">Komponen pengganti</span>
+                <span className="text-[10px] text-charcoal-400">Komponen pengganti</span>
               </div>
 
-              <div className="crm-card p-3.5 bg-gradient-to-br from-white to-slate-50 border-slate-200">
-                <span className="text-[11px] font-semibold text-slate-500 block">Biaya Jasa</span>
-                <span className="text-lg lg:text-xl font-black text-slate-800 mt-0.5 block truncate">
+              <div className="crm-card p-3.5 border border-[#EAE8E3]">
+                <span className="text-[11px] font-semibold text-charcoal-500 block">Biaya Jasa</span>
+                <span className="text-lg lg:text-xl font-black text-charcoal-900 mt-0.5 block truncate">
                   {formatRupiah(totalServiceCost)}
                 </span>
-                <span className="text-[10px] text-slate-400">Ongkos teknisi</span>
+                <span className="text-[10px] text-charcoal-400">Ongkos teknisi</span>
               </div>
 
-              <div className="crm-card p-3.5 bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200">
-                <span className="text-[11px] font-semibold text-emerald-800 block">Total Biaya Perbaikan</span>
-                <span className="text-lg lg:text-xl font-black text-emerald-700 mt-0.5 block truncate">
+              <div className="crm-card-charcoal p-3.5 text-white border border-gold-500/30">
+                <span className="text-[11px] font-semibold text-gold-400 block">Total Biaya Perbaikan</span>
+                <span className="text-lg lg:text-xl font-black text-white mt-0.5 block truncate">
                   {formatRupiah(totalOverallCost)}
                 </span>
-                <span className="text-[10px] text-emerald-600 font-bold">Sparepart + Jasa</span>
+                <span className="text-[10px] text-gold-300 font-semibold">Sparepart + Jasa</span>
               </div>
             </div>
           </div>
@@ -1069,48 +1072,48 @@ export default function AfterSalesPage() {
           {/* ===================== GRAFIK & ANALISIS OWNER ===================== */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Chart: Monthly Expenses (Garansi vs Non-Garansi) */}
-            <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            <div className="lg:col-span-2 crm-card p-5 border border-[#EAE8E3] space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-charcoal-900">
                     Tren Pengeluaran Biaya Perbaikan Bulanan
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-charcoal-500">
                     Perbandingan realisasi biaya Garansi Showroom vs Non-Garansi Konsumen
                   </p>
                 </div>
                 <div className="flex items-center gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded bg-emerald-500 inline-block" />
-                    <span className="text-slate-600 font-medium">Garansi</span>
+                    <span className="w-3 h-3 rounded bg-gold-500 inline-block" />
+                    <span className="text-charcoal-700 font-medium">Garansi</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded bg-blue-500 inline-block" />
-                    <span className="text-slate-600 font-medium">Non-Garansi</span>
+                    <span className="w-3 h-3 rounded bg-charcoal-900 inline-block" />
+                    <span className="text-charcoal-700 font-medium">Non-Garansi</span>
                   </div>
                 </div>
               </div>
 
               <div className="h-64 w-full">
                 {monthlyExpenseChartData.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                  <div className="h-full flex items-center justify-center text-xs text-charcoal-400">
                     Tidak ada data pengeluaran perbaikan pada filter yang dipilih.
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthlyExpenseChartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EAE8E3" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#666666' }} />
                       <YAxis
-                        tick={{ fontSize: 10, fill: '#64748b' }}
+                        tick={{ fontSize: 10, fill: '#666666' }}
                         tickFormatter={(v) => `Rp ${(v / 1000000).toFixed(0)}jt`}
                       />
                       <Tooltip
                         formatter={(val: any) => [formatRupiah(Number(val) || 0), '']}
-                        contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                        contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid #EAE8E3', backgroundColor: '#FFFFFF' }}
                       />
-                      <Bar dataKey="garansi" name="Garansi Showroom" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="nonGaransi" name="Non-Garansi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="garansi" name="Garansi Showroom" fill="#D99A32" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="nonGaransi" name="Non-Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -1118,19 +1121,19 @@ export default function AfterSalesPage() {
             </div>
 
             {/* Analysis: Warranty vs Non-Warranty Proportion */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+            <div className="crm-card p-5 border border-[#EAE8E3] space-y-4 flex flex-col justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-charcoal-900">
                   Perbandingan Beban Biaya
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-charcoal-500">
                   Proporsi pengeluaran showroom vs mandiri konsumen
                 </p>
               </div>
 
               <div className="h-44 w-full flex items-center justify-center">
                 {warrantyVsNonWarrantyData.length === 0 ? (
-                  <span className="text-xs text-slate-400">Tidak ada pengeluaran terealisasi</span>
+                  <span className="text-xs text-charcoal-400">Tidak ada pengeluaran terealisasi</span>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1154,20 +1157,20 @@ export default function AfterSalesPage() {
                 )}
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="space-y-2 pt-2 border-t border-[#EAE8E3] text-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                    <span className="text-slate-600 font-medium">Beban Garansi Showroom</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-gold-500" />
+                    <span className="text-charcoal-700 font-medium">Beban Garansi Showroom</span>
                   </div>
-                  <span className="font-bold text-emerald-700">{formatRupiah(totalWarrantyCost)}</span>
+                  <span className="font-bold text-gold-700">{formatRupiah(totalWarrantyCost)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                    <span className="text-slate-600 font-medium">Non-Garansi (Konsumen)</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-charcoal-900" />
+                    <span className="text-charcoal-700 font-medium">Non-Garansi (Konsumen)</span>
                   </div>
-                  <span className="font-bold text-blue-700">{formatRupiah(totalNonWarrantyCost)}</span>
+                  <span className="font-bold text-charcoal-900">{formatRupiah(totalNonWarrantyCost)}</span>
                 </div>
               </div>
             </div>
@@ -1176,31 +1179,31 @@ export default function AfterSalesPage() {
           {/* ===================== WIDGET ANALISIS MENDALAM OWNER ===================== */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Widget 1: Konsumen paling sering meminta perbaikan */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="crm-card p-5 border border-[#EAE8E3] space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-700 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-gold-600" />
                 Konsumen dengan Klaim Perbaikan
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-charcoal-500">
                 Konsumen yang sering mengajukan klaim servis & akumulasi biayanya
               </p>
 
               <div className="space-y-2.5">
                 {topRepairCustomers.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-3 text-center">Belum ada data konsumen</p>
+                  <p className="text-xs text-charcoal-400 py-3 text-center">Belum ada data konsumen</p>
                 ) : (
                   topRepairCustomers.map((cust, idx) => (
-                    <div key={idx} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs space-y-1 transition-colors">
-                      <div className="flex items-center justify-between font-bold text-slate-900">
+                    <div key={idx} className="p-2.5 bg-[#F8F7F4] hover:bg-gold-50/40 border border-[#EAE8E3] rounded-xl text-xs space-y-1 transition-colors">
+                      <div className="flex items-center justify-between font-bold text-charcoal-900">
                         <span>{cust.name}</span>
-                        <span className="text-emerald-700">{cust.count} kali klaim</span>
+                        <span className="text-gold-700 font-bold">{cust.count} kali klaim</span>
                       </div>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-charcoal-500">
                         Unit: {cust.models.join(', ')}
                       </p>
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-400">
+                      <div className="flex items-center justify-between pt-1 border-t border-[#EAE8E3] text-[10px] text-charcoal-400">
                         <span>Kontak: {cust.phone}</span>
-                        <span className="font-bold text-slate-800">Total Biaya: {formatRupiah(cust.totalCost)}</span>
+                        <span className="font-bold text-charcoal-800">Total Biaya: {formatRupiah(cust.totalCost)}</span>
                       </div>
                     </div>
                   ))
@@ -1209,28 +1212,28 @@ export default function AfterSalesPage() {
             </div>
 
             {/* Widget 2: Mobil Paling Sering Diperbaiki */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <Car className="w-3.5 h-3.5 text-blue-600" />
+            <div className="crm-card p-5 border border-[#EAE8E3] space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-700 flex items-center gap-1.5">
+                <Car className="w-3.5 h-3.5 text-gold-600" />
                 Mobil Paling Sering Diperbaiki
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-charcoal-500">
                 Model kendaraan yang paling sering mengalami kendala teknis
               </p>
 
               <div className="space-y-2.5">
                 {topRepairedCars.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-3 text-center">Belum ada data kendaraan</p>
+                  <p className="text-xs text-charcoal-400 py-3 text-center">Belum ada data kendaraan</p>
                 ) : (
                   topRepairedCars.map((car, idx) => (
-                    <div key={idx} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs space-y-1 transition-colors">
-                      <div className="flex items-center justify-between font-bold text-slate-900">
+                    <div key={idx} className="p-2.5 bg-[#F8F7F4] hover:bg-gold-50/40 border border-[#EAE8E3] rounded-xl text-xs space-y-1 transition-colors">
+                      <div className="flex items-center justify-between font-bold text-charcoal-900">
                         <span>{car.model}</span>
-                        <span className="text-blue-700">{car.count} kali masuk</span>
+                        <span className="text-gold-700 font-bold">{car.count} kali masuk</span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <div className="flex items-center justify-between text-[11px] text-charcoal-500">
                         <span>Akumulasi Pengeluaran:</span>
-                        <span className="font-bold text-slate-800">{formatRupiah(car.totalCost)}</span>
+                        <span className="font-bold text-charcoal-800">{formatRupiah(car.totalCost)}</span>
                       </div>
                     </div>
                   ))
@@ -1239,28 +1242,28 @@ export default function AfterSalesPage() {
             </div>
 
             {/* Widget 3: Kategori Kerusakan Paling Sering Terjadi */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+            <div className="crm-card p-5 border border-[#EAE8E3] space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-charcoal-700 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-gold-600" />
                 Kategori Kerusakan Terbanyak
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-charcoal-500">
                 Penyebaran bagian mobil yang diperbaiki untuk evaluasi QC inspeksi
               </p>
 
               <div className="space-y-2">
                 {topDamageCategories.length === 0 ? (
-                  <p className="text-xs text-slate-400 py-3 text-center">Belum ada data kerusakan</p>
+                  <p className="text-xs text-charcoal-400 py-3 text-center">Belum ada data kerusakan</p>
                 ) : (
                   topDamageCategories.map((item, idx) => (
                     <div key={idx} className="space-y-1 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-700">{item.category}</span>
-                        <span className="font-bold text-slate-900">{item.count} kasus ({formatRupiah(item.totalCost)})</span>
+                        <span className="font-semibold text-charcoal-700">{item.category}</span>
+                        <span className="font-bold text-charcoal-900">{item.count} kasus ({formatRupiah(item.totalCost)})</span>
                       </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-[#EAE8E3] h-2 rounded-full overflow-hidden">
                         <div
-                          className="bg-emerald-500 h-full rounded-full"
+                          className="bg-gold-500 h-full rounded-full"
                           style={{
                             width: `${Math.min(100, (item.count / Math.max(1, totalClaimsCount)) * 100)}%`,
                           }}
@@ -1274,19 +1277,19 @@ export default function AfterSalesPage() {
           </div>
 
           {/* ===================== TABEL DAFTAR KONSUMEN YANG MEMINTA PERBAIKAN ===================== */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="crm-card border border-[#EAE8E3] overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#EAE8E3] bg-[#FCFBF9] flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-charcoal-900">
                   Daftar Konsumen yang Meminta Perbaikan
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-charcoal-500">
                   Menampilkan {filteredClaims.length} catatan pengajuan garansi & perbaikan
                 </p>
               </div>
               <button
                 onClick={openAddRepairModal}
-                className="px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors flex items-center gap-1.5"
+                className="btn-gold flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Tambah Pengajuan
@@ -1294,10 +1297,10 @@ export default function AfterSalesPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="crm-table w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                    <th className="py-3 px-4 w-12 text-center">No.</th>
+                  <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
+                    <th className="py-3 px-4 w-12 text-center text-charcoal-400">No.</th>
                     <th className="py-3 px-4">Nama Konsumen</th>
                     <th className="py-3 px-4">Mobil yang Dimiliki</th>
                     <th className="py-3 px-4">Tgl Pengajuan</th>
@@ -1309,21 +1312,21 @@ export default function AfterSalesPage() {
                     <th className="py-3 px-4 text-center">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#EAE8E3]">
                   {filteredClaims.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-8 text-center text-slate-400">
+                      <td colSpan={10} className="py-8 text-center text-charcoal-400">
                         Tidak ada catatan pengajuan perbaikan yang cocok dengan kriteria pencarian / filter.
                       </td>
                     </tr>
                   ) : (
                     filteredClaims.map((claim, index) => (
-                      <tr key={claim.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3.5 px-4 text-center font-semibold text-slate-400">
+                      <tr key={claim.id} className="hover:bg-gold-50/30 transition-colors">
+                        <td className="py-3.5 px-4 text-center font-semibold text-charcoal-400">
                           {index + 1}
                         </td>
                         <td className="py-3.5 px-4">
-                          <p className="font-bold text-slate-900">{claim.customerName}</p>
+                          <p className="font-bold text-charcoal-900">{claim.customerName}</p>
                           <a
                             href={formatWhatsAppLink(
                               claim.customerPhone,
@@ -1331,51 +1334,51 @@ export default function AfterSalesPage() {
                             )}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-700 text-[11px] font-medium hover:underline flex items-center gap-1 mt-0.5"
+                            className="text-gold-700 text-[11px] font-semibold hover:underline flex items-center gap-1 mt-0.5"
                           >
-                            <Phone className="w-3 h-3" />
+                            <Phone className="w-3 h-3 text-gold-600" />
                             {claim.customerPhone}
                           </a>
                         </td>
                         <td className="py-3.5 px-4">
-                          <p className="font-bold text-slate-800">
+                          <p className="font-bold text-charcoal-900">
                             {claim.vehicleBrand} {claim.vehicleModel}
                           </p>
-                          <p className="text-[11px] text-slate-500">
+                          <p className="text-[11px] text-charcoal-500">
                             Tahun {claim.vehicleYear} {claim.purchaseDate ? `• Beli: ${formatDate(claim.purchaseDate)}` : ''}
                           </p>
                         </td>
-                        <td className="py-3.5 px-4 text-slate-600 font-medium">
+                        <td className="py-3.5 px-4 text-charcoal-700 font-medium">
                           {formatDate(claim.claimDate)}
                         </td>
                         <td className="py-3.5 px-4">
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               claim.claimType === 'Garansi'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                ? 'badge-gold'
+                                : 'bg-charcoal-100 text-charcoal-800 border border-charcoal-200'
                             }`}
                           >
                             {claim.claimType}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 max-w-xs">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 mr-1.5 border border-slate-200">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-charcoal-100 text-charcoal-800 mr-1.5 border border-[#EAE8E3]">
                             {claim.damageCategory}
                           </span>
-                          <span className="font-medium text-slate-800">{claim.complaint || claim.complaintOrDamage}</span>
+                          <span className="font-medium text-charcoal-800">{claim.complaint || claim.complaintOrDamage}</span>
                           {(claim.damagedParts || claim.partsToRepair) && (
-                            <p className="text-[11px] text-slate-500 mt-0.5">
+                            <p className="text-[11px] text-charcoal-500 mt-0.5">
                               Bagian: {claim.damagedParts || claim.partsToRepair}
                             </p>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-[11px] text-slate-600">
+                        <td className="py-3.5 px-4 text-[11px] text-charcoal-600">
                           <div>Sparepart: {formatRupiah(claim.sparepartCost)}</div>
                           <div>Jasa: {formatRupiah(claim.serviceCost)}</div>
                         </td>
-                        <td className="py-3.5 px-4 font-black text-slate-900">
-                          <span className={claim.status === 'Dibatalkan' ? 'line-through text-slate-400' : 'text-emerald-700'}>
+                        <td className="py-3.5 px-4 font-black">
+                          <span className={claim.status === 'Dibatalkan' ? 'line-through text-charcoal-400' : 'text-gold-700'}>
                             {formatRupiah(claim.totalCost)}
                           </span>
                         </td>
@@ -1383,12 +1386,12 @@ export default function AfterSalesPage() {
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               claim.status === 'Selesai'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-gold-100 text-gold-900 border border-gold-300'
                                 : claim.status === 'Dalam Proses'
-                                ? 'bg-amber-100 text-amber-800'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
                                 : claim.status === 'Dibatalkan'
-                                ? 'bg-slate-200 text-slate-600'
-                                : 'bg-blue-100 text-blue-800'
+                                ? 'bg-[#EAE8E3] text-charcoal-600'
+                                : 'bg-charcoal-100 text-charcoal-800'
                             }`}
                           >
                             {claim.status}
@@ -1398,21 +1401,21 @@ export default function AfterSalesPage() {
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               onClick={() => setDetailRepair(claim)}
-                              className="p-1.5 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                              className="p-1.5 text-charcoal-600 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-colors"
                               title="Lihat Detail Klaim"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => openEditRepairModal(claim)}
-                              className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 text-charcoal-600 hover:text-charcoal-900 hover:bg-[#EAE8E3] rounded-lg transition-colors"
                               title="Edit Pengajuan Perbaikan"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setDeleteConfirmRepairId(claim.id)}
-                              className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              className="p-1.5 text-charcoal-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                               title="Hapus Data Klaim"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1432,12 +1435,15 @@ export default function AfterSalesPage() {
       {/* ========================================================================= */}
       {/* TAB 2: KENDARAAN TERJUAL (PURCHASES) */}
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
+      {/* TAB 2: KENDARAAN TERJUAL (PURCHASES) */}
+      {/* ========================================================================= */}
       {activeTab === 'purchases' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="crm-card border border-[#EAE8E3] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="crm-table w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
                   <th className="py-3 px-4">Pembeli Mobil</th>
                   <th className="py-3 px-4">Unit Mobil Bekas</th>
                   <th className="py-3 px-4">No. Polisi (Plat Z)</th>
@@ -1448,36 +1454,36 @@ export default function AfterSalesPage() {
                   <th className="py-3 px-4">Tanggal Pembelian</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#EAE8E3]">
                 {purchases.map((pur) => (
-                  <tr key={pur.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={pur.id} className="hover:bg-gold-50/30 transition-colors">
                     <td className="py-3 px-4">
-                      <p className="font-bold text-slate-900">{pur.customerName}</p>
-                      <p className="text-[11px] text-slate-500">ID: {pur.customerId}</p>
+                      <p className="font-bold text-charcoal-900">{pur.customerName}</p>
+                      <p className="text-[11px] text-charcoal-500">ID: {pur.customerId}</p>
                     </td>
                     <td className="py-3 px-4">
-                      <p className="font-bold text-slate-800">{pur.vehicleModel}</p>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="font-bold text-charcoal-800">{pur.vehicleModel}</p>
+                      <p className="text-[11px] text-charcoal-500">
                         Tahun {pur.vehicleYear} • {pur.color} • {pur.mileageKm.toLocaleString()} KM
                       </p>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 font-bold text-slate-800 border border-slate-200">
+                      <span className="px-2 py-0.5 rounded bg-charcoal-100 font-bold text-charcoal-800 border border-[#EAE8E3]">
                         {pur.plateNumber}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-black text-emerald-700">
+                    <td className="py-3 px-4 font-black text-gold-700">
                       {formatRupiah(pur.purchasePrice)}
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-700">{pur.paymentMethod}</td>
+                    <td className="py-3 px-4 font-medium text-charcoal-700">{pur.paymentMethod}</td>
                     <td className="py-3 px-4">
-                      <span className="text-emerald-700 font-semibold block">
+                      <span className="text-gold-700 font-semibold block">
                         s/d {formatDate(pur.warrantyUntil)}
                       </span>
-                      <span className="text-[10px] text-slate-400">Garansi Mesin & Transmisi</span>
+                      <span className="text-[10px] text-charcoal-400">Garansi Mesin & Transmisi</span>
                     </td>
-                    <td className="py-3 px-4 text-slate-700">{pur.salesName}</td>
-                    <td className="py-3 px-4 text-slate-500">{formatDate(pur.purchaseDate)}</td>
+                    <td className="py-3 px-4 text-charcoal-700">{pur.salesName}</td>
+                    <td className="py-3 px-4 text-charcoal-500">{formatDate(pur.purchaseDate)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1492,28 +1498,28 @@ export default function AfterSalesPage() {
       {activeTab === 'feedback' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {feedback.map((fdb) => (
-            <div key={fdb.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-3 text-xs">
+            <div key={fdb.id} className="crm-card p-5 border border-[#EAE8E3] space-y-3 text-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">{fdb.customerName}</h3>
-                  <p className="text-[11px] text-slate-500">{fdb.vehicleInfo}</p>
+                  <h3 className="font-bold text-charcoal-900 text-sm">{fdb.customerName}</h3>
+                  <p className="text-[11px] text-charcoal-500">{fdb.vehicleInfo}</p>
                 </div>
-                <div className="flex text-amber-400">
+                <div className="flex text-gold-500">
                   {[...Array(fdb.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400" />
+                    <Star key={i} className="w-4 h-4 fill-gold-500 text-gold-500" />
                   ))}
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 italic text-slate-700 leading-relaxed">
+              <div className="p-3 bg-[#F8F7F4] rounded-xl border border-[#EAE8E3] italic text-charcoal-700 leading-relaxed">
                 &ldquo;{fdb.comment}&rdquo;
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100">
-                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+              <div className="flex items-center justify-between text-[11px] text-charcoal-400 pt-1 border-t border-[#EAE8E3]">
+                <span className="badge-gold">
                   Kategori: {fdb.category}
                 </span>
-                <span>NPS: {fdb.npsScore}/10 • {formatDate(fdb.createdAt)}</span>
+                <span className="font-medium text-charcoal-500">NPS: {fdb.npsScore}/10 • {formatDate(fdb.createdAt)}</span>
               </div>
             </div>
           ))}
@@ -1525,11 +1531,11 @@ export default function AfterSalesPage() {
       {/* ========================================================================= */}
       {activeTab === 'complaints' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="crm-card border border-[#EAE8E3] overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="crm-table w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                  <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
                     <th className="py-3 px-4">No. Tiket</th>
                     <th className="py-3 px-4">Pelanggan & Kontak</th>
                     <th className="py-3 px-4">Judul & Kategori Keluhan</th>
@@ -1540,25 +1546,25 @@ export default function AfterSalesPage() {
                     <th className="py-3 px-4 text-center">Tindakan</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#EAE8E3]">
                   {complaints.map((cmp) => (
-                    <tr key={cmp.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3 px-4 font-bold text-slate-900">{cmp.ticketNumber}</td>
+                    <tr key={cmp.id} className="hover:bg-gold-50/30 transition-colors">
+                      <td className="py-3 px-4 font-bold text-charcoal-900 font-mono">{cmp.ticketNumber}</td>
                       <td className="py-3 px-4">
-                        <p className="font-bold text-slate-900">{cmp.customerName}</p>
+                        <p className="font-bold text-charcoal-900">{cmp.customerName}</p>
                         <a
                           href={formatWhatsAppLink(cmp.customerPhone)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-emerald-700 text-[11px] hover:underline"
+                          className="text-gold-700 text-[11px] font-semibold hover:underline"
                         >
                           {cmp.customerPhone}
                         </a>
                       </td>
                       <td className="py-3 px-4 max-w-xs">
-                        <p className="font-bold text-slate-800">{cmp.title}</p>
-                        <p className="text-[11px] text-slate-500 line-clamp-2">{cmp.description}</p>
-                        <span className="text-[10px] text-slate-400 block mt-0.5">
+                        <p className="font-bold text-charcoal-800">{cmp.title}</p>
+                        <p className="text-[11px] text-charcoal-500 line-clamp-2">{cmp.description}</p>
+                        <span className="text-[10px] text-charcoal-400 block mt-0.5">
                           Kategori: {cmp.category}
                         </span>
                       </td>
@@ -1566,8 +1572,8 @@ export default function AfterSalesPage() {
                         <span
                           className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
                             cmp.priority === 'Darurat' || cmp.priority === 'Tinggi'
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-amber-100 text-amber-700'
+                              ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
                           }`}
                         >
                           {cmp.priority}
@@ -1577,19 +1583,19 @@ export default function AfterSalesPage() {
                         <span
                           className={`font-bold px-2 py-0.5 rounded-full text-[10px] ${
                             cmp.status === 'Selesai'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-gold-100 text-gold-900 border border-gold-300'
+                              : 'bg-charcoal-100 text-charcoal-800 border border-charcoal-200'
                           }`}
                         >
                           {cmp.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-medium text-slate-700">{cmp.assignedToName}</td>
-                      <td className="py-3 px-4 text-[11px] text-slate-600 max-w-xs">
+                      <td className="py-3 px-4 font-medium text-charcoal-700">{cmp.assignedToName}</td>
+                      <td className="py-3 px-4 text-[11px] text-charcoal-600 max-w-xs">
                         {cmp.resolutionNotes ? (
-                          <span className="text-emerald-800 font-medium">{cmp.resolutionNotes}</span>
+                          <span className="text-charcoal-900 font-medium">{cmp.resolutionNotes}</span>
                         ) : (
-                          <span className="text-slate-400 italic">Sedang dalam proses investigasi teknis</span>
+                          <span className="text-charcoal-400 italic">Sedang dalam proses investigasi teknis</span>
                         )}
                       </td>
                       <td className="py-3 px-4 text-center">
@@ -1599,12 +1605,12 @@ export default function AfterSalesPage() {
                               setResolvingComplaint(cmp);
                               setResolutionNotes('');
                             }}
-                            className="px-2.5 py-1 text-[11px] font-bold text-white bg-slate-900 hover:bg-emerald-600 rounded-lg transition-colors shadow-xs"
+                            className="btn-charcoal text-[11px] px-2.5 py-1"
                           >
                             Selesaikan
                           </button>
                         ) : (
-                          <span className="text-[11px] text-emerald-600 font-bold flex items-center justify-center gap-1">
+                          <span className="text-[11px] text-gold-600 font-bold flex items-center justify-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Beres
                           </span>
                         )}
@@ -1622,11 +1628,11 @@ export default function AfterSalesPage() {
       {/* TAB 5: REFERRALS */}
       {/* ========================================================================= */}
       {activeTab === 'referrals' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="crm-card border border-[#EAE8E3] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="crm-table w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
                   <th className="py-3 px-4">Pelanggan Pemberi Rekomendasi</th>
                   <th className="py-3 px-4">Calon Pembeli Direferensikan</th>
                   <th className="py-3 px-4">Kontak Prospek</th>
@@ -1637,36 +1643,36 @@ export default function AfterSalesPage() {
                   <th className="py-3 px-4">Tanggal Masuk</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#EAE8E3]">
                 {referrals.map((ref) => (
-                  <tr key={ref.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4 font-bold text-slate-900">{ref.referrerCustomerName}</td>
-                    <td className="py-3 px-4 font-bold text-slate-800">{ref.referredName}</td>
+                  <tr key={ref.id} className="hover:bg-gold-50/30 transition-colors">
+                    <td className="py-3 px-4 font-bold text-charcoal-900">{ref.referrerCustomerName}</td>
+                    <td className="py-3 px-4 font-bold text-charcoal-800">{ref.referredName}</td>
                     <td className="py-3 px-4">
                       <a
                         href={formatWhatsAppLink(ref.referredPhone)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-700 font-semibold hover:underline"
+                        className="text-gold-700 font-semibold hover:underline"
                       >
                         {ref.referredPhone}
                       </a>
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-800">{ref.interestedVehicle}</td>
+                    <td className="py-3 px-4 font-medium text-charcoal-800">{ref.interestedVehicle}</td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                      <span className="badge-gold">
                         {ref.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-bold text-emerald-700">
+                    <td className="py-3 px-4 font-bold text-gold-700">
                       {formatRupiah(ref.rewardAmount)}
                     </td>
                     <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gold-50 text-gold-800 border border-gold-200">
                         {ref.rewardStatus}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-500">{formatDate(ref.createdAt)}</td>
+                    <td className="py-3 px-4 text-charcoal-500">{formatDate(ref.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1679,21 +1685,21 @@ export default function AfterSalesPage() {
       {/* MODAL 1: TAMBAH / EDIT PENGAJUAN PERBAIKAN */}
       {/* ========================================================================= */}
       {isRepairModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
               <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Wrench className="w-4 h-4 text-emerald-600" />
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-gold-400" />
                   {editingRepair ? 'Edit Pengajuan Perbaikan' : 'Formulir Pengajuan Perbaikan Mobil'}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-charcoal-400 mt-0.5">
                   Layanan garansi showroom & perbaikan purna jual konsumen HR MOTOR Garut
                 </p>
               </div>
               <button
                 onClick={() => setIsRepairModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1702,8 +1708,8 @@ export default function AfterSalesPage() {
             <form onSubmit={handleSaveRepair} className="p-6 space-y-4 overflow-y-auto text-xs flex-1">
               {/* Opsi Pilih dari Database Pelanggan vs Input Baru */}
               {!editingRepair && (
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                  <span className="text-[11px] font-bold text-slate-700 block">
+                <div className="p-3 bg-[#F8F7F4] rounded-xl border border-[#EAE8E3] space-y-2">
+                  <span className="text-[11px] font-bold text-charcoal-800 block">
                     Metode Pemilihan Konsumen:
                   </span>
                   <div className="flex items-center gap-4">
@@ -1713,9 +1719,9 @@ export default function AfterSalesPage() {
                         name="custPick"
                         checked={customerPickMode === 'EXISTING'}
                         onChange={() => setCustomerPickMode('EXISTING')}
-                        className="text-emerald-600"
+                        className="accent-gold-500"
                       />
-                      <span className="font-semibold text-slate-800">Pilih dari Database Pelanggan</span>
+                      <span className="font-semibold text-charcoal-800">Pilih dari Database Pelanggan</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -1723,21 +1729,21 @@ export default function AfterSalesPage() {
                         name="custPick"
                         checked={customerPickMode === 'NEW'}
                         onChange={() => setCustomerPickMode('NEW')}
-                        className="text-emerald-600"
+                        className="accent-gold-500"
                       />
-                      <span className="font-semibold text-slate-800">Input Konsumen Baru</span>
+                      <span className="font-semibold text-charcoal-800">Input Konsumen Baru</span>
                     </label>
                   </div>
 
                   {customerPickMode === 'EXISTING' && (
                     <div className="pt-2">
-                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      <label className="block text-[11px] font-semibold text-charcoal-600 mb-1">
                         Cari & Pilih Pelanggan Terdaftar:
                       </label>
                       <select
                         value={repairForm.customerId}
                         onChange={(e) => handleSelectCustomer(e.target.value)}
-                        className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none bg-white font-medium"
+                        className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none bg-white font-medium focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                       >
                         <option value="">-- Pilih dari Database Pelanggan HR MOTOR --</option>
                         {customers.map((c) => (
@@ -1746,7 +1752,7 @@ export default function AfterSalesPage() {
                           </option>
                         ))}
                       </select>
-                      <p className="text-[10px] text-slate-400 mt-1">
+                      <p className="text-[10px] text-charcoal-400 mt-1">
                         *Data mobil dan nomor WhatsApp akan terisi otomatis saat pelanggan dipilih.
                       </p>
                     </div>
@@ -1754,12 +1760,12 @@ export default function AfterSalesPage() {
 
                   {customerPickMode === 'NEW' && (
                     <div className="pt-1">
-                      <label className="flex items-center gap-2 cursor-pointer text-[11px] text-emerald-800 font-semibold">
+                      <label className="flex items-center gap-2 cursor-pointer text-[11px] text-gold-800 font-semibold">
                         <input
                           type="checkbox"
                           checked={saveToCustomerDb}
                           onChange={(e) => setSaveToCustomerDb(e.target.checked)}
-                          className="rounded text-emerald-600"
+                          className="rounded accent-gold-500"
                         />
                         Simpan juga data konsumen ini ke Database Pelanggan HR MOTOR
                       </label>
@@ -1771,7 +1777,7 @@ export default function AfterSalesPage() {
               {/* Data Konsumen */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-charcoal-700 mb-1">
                     Nama Konsumen <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -1780,11 +1786,11 @@ export default function AfterSalesPage() {
                     value={repairForm.customerName}
                     onChange={(e) => setRepairForm({ ...repairForm, customerName: e.target.value })}
                     placeholder="Contoh: Pak Herman Suherman"
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-charcoal-700 mb-1">
                     Nomor WhatsApp Konsumen <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -1793,7 +1799,7 @@ export default function AfterSalesPage() {
                     value={repairForm.customerPhone}
                     onChange={(e) => setRepairForm({ ...repairForm, customerPhone: e.target.value })}
                     placeholder="08123456789"
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                   />
                 </div>
               </div>
@@ -1801,11 +1807,11 @@ export default function AfterSalesPage() {
               {/* Data Mobil */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Merek Mobil</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Merek Mobil</label>
                   <select
                     value={repairForm.vehicleBrand}
                     onChange={(e) => setRepairForm({ ...repairForm, vehicleBrand: e.target.value })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                   >
                     {CAR_BRANDS.map((brand) => (
                       <option key={brand} value={brand}>{brand}</option>
@@ -1813,25 +1819,25 @@ export default function AfterSalesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tipe Mobil</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Tipe Mobil</label>
                   <input
                     type="text"
                     required
                     value={repairForm.vehicleModel}
                     onChange={(e) => setRepairForm({ ...repairForm, vehicleModel: e.target.value })}
                     placeholder="Innova Reborn 2.4 V AT"
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tahun Mobil</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Tahun Mobil</label>
                   <input
                     type="number"
                     min={2000}
                     max={2030}
                     value={repairForm.vehicleYear}
                     onChange={(e) => setRepairForm({ ...repairForm, vehicleYear: Number(e.target.value) })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                   />
                 </div>
               </div>
@@ -1839,16 +1845,16 @@ export default function AfterSalesPage() {
               {/* Tanggal Beli & Tanggal Pengajuan */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tanggal Pembelian Mobil</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Tanggal Pembelian Mobil</label>
                   <input
                     type="date"
                     value={repairForm.purchaseDate}
                     onChange={(e) => setRepairForm({ ...repairForm, purchaseDate: e.target.value })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-charcoal-700 mb-1">
                     Tanggal Pengajuan Perbaikan <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -1856,7 +1862,7 @@ export default function AfterSalesPage() {
                     required
                     value={repairForm.claimDate}
                     onChange={(e) => setRepairForm({ ...repairForm, claimDate: e.target.value })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none font-bold"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none font-bold bg-white focus:border-gold-500"
                   />
                 </div>
               </div>
@@ -1864,24 +1870,24 @@ export default function AfterSalesPage() {
               {/* Jenis Pengajuan & Kategori Kerusakan */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
+                  <label className="block font-semibold text-charcoal-700 mb-1">
                     Jenis Pengajuan <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={repairForm.claimType}
                     onChange={(e) => setRepairForm({ ...repairForm, claimType: e.target.value as RepairClaimType })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none font-bold text-slate-900"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none font-bold text-charcoal-900 bg-white focus:border-gold-500"
                   >
                     <option value="Garansi">Garansi (Beban Showroom HR MOTOR)</option>
                     <option value="Non-Garansi">Non-Garansi (Beban Konsumen)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Kategori Kerusakan</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Kategori Kerusakan</label>
                   <select
                     value={repairForm.damageCategory}
                     onChange={(e) => setRepairForm({ ...repairForm, damageCategory: e.target.value as RepairPartCategory })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                   >
                     {REPAIR_CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -1892,7 +1898,7 @@ export default function AfterSalesPage() {
 
               {/* Keluhan & Bagian Mobil */}
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-charcoal-700 mb-1">
                   Keluhan atau Kerusakan Mobil <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -1901,27 +1907,27 @@ export default function AfterSalesPage() {
                   value={repairForm.complaint}
                   onChange={(e) => setRepairForm({ ...repairForm, complaint: e.target.value })}
                   placeholder="Contoh: AC kurang dingin saat siang hari dan ada bunyi mendecit dari fan belt..."
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Bagian Mobil yang Perlu Diperbaiki</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Bagian Mobil yang Perlu Diperbaiki</label>
                   <input
                     type="text"
                     value={repairForm.damagedParts}
                     onChange={(e) => setRepairForm({ ...repairForm, damagedParts: e.target.value })}
                     placeholder="Contoh: Kompresor AC & Fan Belt"
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Status Perbaikan</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Status Perbaikan</label>
                   <select
                     value={repairForm.status}
                     onChange={(e) => setRepairForm({ ...repairForm, status: e.target.value as RepairStatus })}
-                    className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none font-bold"
+                    className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none font-bold bg-white focus:border-gold-500"
                   >
                     <option value="Menunggu">Menunggu Antrean</option>
                     <option value="Dalam Proses">Dalam Proses Pengerjaan</option>
@@ -1932,80 +1938,80 @@ export default function AfterSalesPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Deskripsi Tindakan Perbaikan</label>
+                <label className="block font-semibold text-charcoal-700 mb-1">Deskripsi Tindakan Perbaikan</label>
                 <textarea
                   rows={2}
                   value={repairForm.actionTaken}
                   onChange={(e) => setRepairForm({ ...repairForm, actionTaken: e.target.value })}
                   placeholder="Contoh: Pengisian ulang freon R134a dan penggantian fan belt original di bengkel rekanan..."
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                 />
               </div>
 
               {/* Rincian Biaya: Sparepart + Jasa = Total Otomatis */}
-              <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-3">
-                <span className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider block">
+              <div className="p-4 bg-gold-50/60 rounded-xl border border-gold-200 space-y-3">
+                <span className="text-[11px] font-bold text-gold-900 uppercase tracking-wider block">
                   Perhitungan Biaya Perbaikan (Rupiah)
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Biaya Sparepart (Rp)</label>
+                    <label className="block font-semibold text-charcoal-700 mb-1">Biaya Sparepart (Rp)</label>
                     <input
                       type="number"
                       min={0}
                       value={repairForm.sparepartCost}
                       onChange={(e) => setRepairForm({ ...repairForm, sparepartCost: Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none font-bold text-slate-900 bg-white"
+                      className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none font-bold text-charcoal-900 bg-white focus:border-gold-500"
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Biaya Jasa Perbaikan (Rp)</label>
+                    <label className="block font-semibold text-charcoal-700 mb-1">Biaya Jasa Perbaikan (Rp)</label>
                     <input
                       type="number"
                       min={0}
                       value={repairForm.serviceCost}
                       onChange={(e) => setRepairForm({ ...repairForm, serviceCost: Number(e.target.value) })}
                       placeholder="0"
-                      className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none font-bold text-slate-900 bg-white"
+                      className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none font-bold text-charcoal-900 bg-white focus:border-gold-500"
                     />
                   </div>
                   <div>
-                    <label className="block font-semibold text-emerald-900 mb-1">
+                    <label className="block font-semibold text-gold-900 mb-1">
                       Total Biaya Perbaikan (Otomatis)
                     </label>
-                    <div className="w-full text-xs p-2.5 bg-emerald-100 border border-emerald-300 rounded-lg font-black text-emerald-800">
+                    <div className="w-full text-xs p-2.5 bg-gold-100 border border-gold-300 rounded-lg font-black text-gold-900">
                       {formatRupiah((Number(repairForm.sparepartCost) || 0) + (Number(repairForm.serviceCost) || 0))}
                     </div>
                   </div>
                 </div>
-                <p className="text-[10px] text-emerald-700">
+                <p className="text-[10px] text-gold-800">
                   *Total biaya otomatis dihitung dari penjumlahan biaya sparepart dan jasa perbaikan.
                 </p>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Catatan Tambahan</label>
+                <label className="block font-semibold text-charcoal-700 mb-1">Catatan Tambahan</label>
                 <input
                   type="text"
                   value={repairForm.notes}
                   onChange={(e) => setRepairForm({ ...repairForm, notes: e.target.value })}
                   placeholder="Catatan garansi part, teknisi bengkel rekanan, dll..."
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setIsRepairModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="btn-outline-warm"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30 transition-all"
+                  className="btn-gold"
                 >
                   {editingRepair ? 'Perbarui Data Perbaikan' : 'Simpan Pengajuan Perbaikan'}
                 </button>
@@ -2019,122 +2025,122 @@ export default function AfterSalesPage() {
       {/* MODAL 2: DETAIL PENGAJUAN PERBAIKAN */}
       {/* ========================================================================= */}
       {detailRepair && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
               <div className="flex items-center gap-2">
                 <span
                   className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                     detailRepair.claimType === 'Garansi'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-blue-100 text-blue-800'
+                      ? 'badge-gold'
+                      : 'bg-charcoal-800 text-gold-400 border border-gold-500/30'
                   }`}
                 >
                   {detailRepair.claimType}
                 </span>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-white">
                   Detail Klaim: {detailRepair.claimNumber}
                 </h3>
               </div>
               <button
                 onClick={() => setDetailRepair(null)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-6 space-y-4 text-xs overflow-y-auto">
-              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="grid grid-cols-2 gap-3 p-3 bg-[#F8F7F4] rounded-xl border border-[#EAE8E3]">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Konsumen</span>
-                  <span className="font-bold text-slate-900 text-sm">{detailRepair.customerName}</span>
+                  <span className="text-charcoal-400 block text-[10px]">Konsumen</span>
+                  <span className="font-bold text-charcoal-900 text-sm">{detailRepair.customerName}</span>
                   <a
                     href={formatWhatsAppLink(detailRepair.customerPhone)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-emerald-700 text-[11px] font-medium hover:underline flex items-center gap-1 mt-0.5"
+                    className="text-gold-700 text-[11px] font-semibold hover:underline flex items-center gap-1 mt-0.5"
                   >
-                    <Phone className="w-3 h-3" />
+                    <Phone className="w-3 h-3 text-gold-600" />
                     {detailRepair.customerPhone}
                   </a>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Unit Kendaraan</span>
-                  <span className="font-bold text-slate-900 text-sm">
+                  <span className="text-charcoal-400 block text-[10px]">Unit Kendaraan</span>
+                  <span className="font-bold text-charcoal-900 text-sm">
                     {detailRepair.vehicleBrand} {detailRepair.vehicleModel}
                   </span>
-                  <span className="text-[11px] text-slate-500 block">Tahun {detailRepair.vehicleYear}</span>
+                  <span className="text-[11px] text-charcoal-500 block">Tahun {detailRepair.vehicleYear}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-slate-700">
+              <div className="grid grid-cols-2 gap-3 text-charcoal-700">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Tanggal Pengajuan</span>
+                  <span className="text-charcoal-400 block text-[10px]">Tanggal Pengajuan</span>
                   <span className="font-semibold">{formatDate(detailRepair.claimDate)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Tanggal Pembelian Unit</span>
+                  <span className="text-charcoal-400 block text-[10px]">Tanggal Pembelian Unit</span>
                   <span className="font-semibold">{detailRepair.purchaseDate ? formatDate(detailRepair.purchaseDate) : '-'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Kategori Kerusakan</span>
-                  <span className="font-semibold text-emerald-800">{detailRepair.damageCategory}</span>
+                  <span className="text-charcoal-400 block text-[10px]">Kategori Kerusakan</span>
+                  <span className="font-semibold text-gold-800">{detailRepair.damageCategory}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Status Saat Ini</span>
-                  <span className="font-bold text-slate-900">{detailRepair.status}</span>
+                  <span className="text-charcoal-400 block text-[10px]">Status Saat Ini</span>
+                  <span className="font-bold text-charcoal-900">{detailRepair.status}</span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-400 block text-[10px]">Keluhan Konsumen</span>
-                <p className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-slate-800 font-medium leading-relaxed">
+                <span className="text-charcoal-400 block text-[10px]">Keluhan Konsumen</span>
+                <p className="p-2.5 bg-[#F8F7F4] rounded-lg border border-[#EAE8E3] text-charcoal-800 font-medium leading-relaxed">
                   {detailRepair.complaint || detailRepair.complaintOrDamage}
                 </p>
               </div>
 
               {(detailRepair.damagedParts || detailRepair.partsToRepair) && (
                 <div className="space-y-1">
-                  <span className="text-slate-400 block text-[10px]">Bagian yang Diperbaiki</span>
-                  <p className="text-slate-700 font-semibold">{detailRepair.damagedParts || detailRepair.partsToRepair}</p>
+                  <span className="text-charcoal-400 block text-[10px]">Bagian yang Diperbaiki</span>
+                  <p className="text-charcoal-700 font-semibold">{detailRepair.damagedParts || detailRepair.partsToRepair}</p>
                 </div>
               )}
 
               {(detailRepair.actionTaken || detailRepair.repairActionDescription) && (
                 <div className="space-y-1">
-                  <span className="text-slate-400 block text-[10px]">Tindakan Perbaikan yang Dilakukan</span>
-                  <p className="p-2.5 bg-emerald-50/50 rounded-lg border border-emerald-100 text-slate-800">
+                  <span className="text-charcoal-400 block text-[10px]">Tindakan Perbaikan yang Dilakukan</span>
+                  <p className="p-2.5 bg-gold-50/50 rounded-lg border border-gold-200 text-charcoal-800">
                     {detailRepair.actionTaken || detailRepair.repairActionDescription}
                   </p>
                 </div>
               )}
 
               {/* Rincian Biaya */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+              <div className="p-3 bg-[#F8F7F4] rounded-xl border border-[#EAE8E3] space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal-500 block">
                   Rincian Biaya Perbaikan
                 </span>
-                <div className="flex items-center justify-between text-slate-600">
+                <div className="flex items-center justify-between text-charcoal-600">
                   <span>Biaya Sparepart:</span>
                   <span className="font-semibold">{formatRupiah(detailRepair.sparepartCost)}</span>
                 </div>
-                <div className="flex items-center justify-between text-slate-600">
+                <div className="flex items-center justify-between text-charcoal-600">
                   <span>Biaya Jasa:</span>
                   <span className="font-semibold">{formatRupiah(detailRepair.serviceCost)}</span>
                 </div>
-                <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 font-bold text-sm text-slate-900">
+                <div className="flex items-center justify-between pt-1.5 border-t border-[#EAE8E3] font-bold text-sm text-charcoal-900">
                   <span>Total Keseluruhan:</span>
-                  <span className="text-emerald-700">{formatRupiah(detailRepair.totalCost)}</span>
+                  <span className="text-gold-700">{formatRupiah(detailRepair.totalCost)}</span>
                 </div>
               </div>
 
               {detailRepair.notes && (
-                <p className="text-[11px] text-slate-400 italic">Catatan: {detailRepair.notes}</p>
+                <p className="text-[11px] text-charcoal-400 italic">Catatan: {detailRepair.notes}</p>
               )}
             </div>
 
-            <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 bg-slate-50">
+            <div className="flex items-center justify-between px-6 py-3 border-t border-[#EAE8E3] bg-[#FCFBF9]">
               <a
                 href={formatWhatsAppLink(
                   detailRepair.customerPhone,
@@ -2142,7 +2148,7 @@ export default function AfterSalesPage() {
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-lg flex items-center gap-1.5"
+                className="btn-gold flex items-center gap-1.5"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 Hubungi via WhatsApp
@@ -2154,13 +2160,13 @@ export default function AfterSalesPage() {
                     setDetailRepair(null);
                     openEditRepairModal(detailRepair);
                   }}
-                  className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg"
+                  className="btn-outline-warm"
                 >
                   Edit Klaim
                 </button>
                 <button
                   onClick={() => setDetailRepair(null)}
-                  className="px-4 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-lg"
+                  className="btn-outline-warm"
                 >
                   Tutup
                 </button>
@@ -2174,21 +2180,21 @@ export default function AfterSalesPage() {
       {/* MODAL 3: DELETE CONFIRMATION REPAIR */}
       {/* ========================================================================= */}
       {deleteConfirmRepairId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-5 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] max-w-sm w-full p-5 space-y-4">
             <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
               <AlertCircle className="w-6 h-6" />
             </div>
             <div className="text-center">
-              <h3 className="text-sm font-bold text-slate-900">Hapus Data Pengajuan Perbaikan</h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <h3 className="text-sm font-bold text-charcoal-900">Hapus Data Pengajuan Perbaikan</h3>
+              <p className="text-xs text-charcoal-500 mt-1">
                 Apakah Anda yakin ingin menghapus data klaim perbaikan ini? Tindakan ini akan dicatat dalam riwayat audit CRM HR MOTOR.
               </p>
             </div>
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setDeleteConfirmRepairId(null)}
-                className="flex-1 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                className="btn-outline-warm flex-1"
               >
                 Batal
               </button>
@@ -2207,16 +2213,16 @@ export default function AfterSalesPage() {
       {/* MODAL: ADD FEEDBACK */}
       {/* ========================================================================= */}
       {isFeedbackModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-md overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Catat Ulasan & Kepuasan Pelanggan</h3>
-                <p className="text-xs text-slate-500">Dokumentasikan testimoni pembeli HR MOTOR Garut</p>
+                <h3 className="text-sm font-bold text-white">Catat Ulasan & Kepuasan Pelanggan</h3>
+                <p className="text-xs text-charcoal-400 mt-0.5">Dokumentasikan testimoni pembeli HR MOTOR Garut</p>
               </div>
               <button
                 onClick={() => setIsFeedbackModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2224,14 +2230,14 @@ export default function AfterSalesPage() {
 
             <form onSubmit={handleSaveFeedback} className="p-5 space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-charcoal-700 mb-1">
                   Pilih Pelanggan <span className="text-rose-500">*</span>
                 </label>
                 <select
                   required
                   value={feedbackForm.customerId}
                   onChange={(e) => setFeedbackForm({ ...feedbackForm, customerId: e.target.value })}
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                 >
                   <option value="">-- Pilih dari Pelanggan --</option>
                   {customers.map((c) => (
@@ -2244,11 +2250,11 @@ export default function AfterSalesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Rating (Bintang)</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Rating (Bintang)</label>
                   <select
                     value={feedbackForm.rating}
                     onChange={(e) => setFeedbackForm({ ...feedbackForm, rating: Number(e.target.value) })}
-                    className="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none font-bold text-amber-600"
+                    className="w-full text-xs p-2 border border-[#EAE8E3] rounded-lg outline-none font-bold text-gold-600 bg-white"
                   >
                     <option value={5}>★★★★★ 5 Bintang (Sangat Puas)</option>
                     <option value={4}>★★★★☆ 4 Bintang (Puas)</option>
@@ -2259,11 +2265,11 @@ export default function AfterSalesPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Kategori Kepuasan</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Kategori Kepuasan</label>
                   <select
                     value={feedbackForm.category}
                     onChange={(e) => setFeedbackForm({ ...feedbackForm, category: e.target.value as any })}
-                    className="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                   >
                     <option value="Kepuasan Kendaraan">Kepuasan Kendaraan</option>
                     <option value="Pelayanan Sales">Pelayanan Sales</option>
@@ -2274,28 +2280,28 @@ export default function AfterSalesPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Testimoni / Ulasan Konsumen</label>
+                <label className="block font-semibold text-charcoal-700 mb-1">Testimoni / Ulasan Konsumen</label>
                 <textarea
                   rows={3}
                   required
                   value={feedbackForm.comment}
                   onChange={(e) => setFeedbackForm({ ...feedbackForm, comment: e.target.value })}
                   placeholder="Kutipan kepuasan konsumen terhadap unit dan pelayanan..."
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setIsFeedbackModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="btn-outline-warm"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30"
+                  className="btn-gold"
                 >
                   Simpan Ulasan
                 </button>
@@ -2309,16 +2315,16 @@ export default function AfterSalesPage() {
       {/* MODAL: ADD COMPLAINT */}
       {/* ========================================================================= */}
       {isComplaintModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-md overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Buka Tiket Komplain Baru</h3>
-                <p className="text-xs text-slate-500">Penanganan kendala purna jual unit konsumen</p>
+                <h3 className="text-sm font-bold text-white">Buka Tiket Komplain Baru</h3>
+                <p className="text-xs text-charcoal-400 mt-0.5">Penanganan kendala purna jual unit konsumen</p>
               </div>
               <button
                 onClick={() => setIsComplaintModalOpen(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2326,14 +2332,14 @@ export default function AfterSalesPage() {
 
             <form onSubmit={handleSaveComplaint} className="p-5 space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-charcoal-700 mb-1">
                   Pilih Pelanggan <span className="text-rose-500">*</span>
                 </label>
                 <select
                   required
                   value={complaintForm.customerId}
                   onChange={(e) => setComplaintForm({ ...complaintForm, customerId: e.target.value })}
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                 >
                   <option value="">-- Pilih dari Pelanggan --</option>
                   {customers.map((c) => (
@@ -2345,7 +2351,7 @@ export default function AfterSalesPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-charcoal-700 mb-1">
                   Judul Komplain <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -2354,17 +2360,17 @@ export default function AfterSalesPage() {
                   value={complaintForm.title}
                   onChange={(e) => setComplaintForm({ ...complaintForm, title: e.target.value })}
                   placeholder="Misal: AC Mobil Kurang Dingin Saat Cuaca Panas"
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Kategori Kendala</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Kategori Kendala</label>
                   <select
                     value={complaintForm.category}
                     onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value as any })}
-                    className="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none"
+                    className="w-full text-xs p-2 border border-[#EAE8E3] rounded-lg outline-none bg-white focus:border-gold-500"
                   >
                     <option value="Mesin & Transmisi">Mesin & Transmisi</option>
                     <option value="Kelistrikan & AC">Kelistrikan & AC</option>
@@ -2375,11 +2381,11 @@ export default function AfterSalesPage() {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Prioritas</label>
+                  <label className="block font-semibold text-charcoal-700 mb-1">Prioritas</label>
                   <select
                     value={complaintForm.priority}
                     onChange={(e) => setComplaintForm({ ...complaintForm, priority: e.target.value as any })}
-                    className="w-full text-xs p-2 border border-slate-300 rounded-lg outline-none font-bold"
+                    className="w-full text-xs p-2 border border-[#EAE8E3] rounded-lg outline-none font-bold bg-white focus:border-gold-500"
                   >
                     <option value="Rendah">Rendah</option>
                     <option value="Sedang">Sedang</option>
@@ -2390,7 +2396,7 @@ export default function AfterSalesPage() {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-charcoal-700 mb-1">
                   Deskripsi Lengkap Masalah <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -2399,21 +2405,21 @@ export default function AfterSalesPage() {
                   value={complaintForm.description}
                   onChange={(e) => setComplaintForm({ ...complaintForm, description: e.target.value })}
                   placeholder="Jelaskan detail kendala teknis atau administrasi..."
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setIsComplaintModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="btn-outline-warm"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm shadow-rose-600/30"
+                  className="btn-gold"
                 >
                   Buka Tiket
                 </button>
@@ -2427,16 +2433,16 @@ export default function AfterSalesPage() {
       {/* MODAL: RESOLVE COMPLAINT */}
       {/* ========================================================================= */}
       {resolvingComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-md overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Selesaikan Tiket Komplain</h3>
-                <p className="text-xs text-slate-500">Tiket: {resolvingComplaint.ticketNumber}</p>
+                <h3 className="text-sm font-bold text-white">Selesaikan Tiket Komplain</h3>
+                <p className="text-xs text-charcoal-400 mt-0.5">Tiket: {resolvingComplaint.ticketNumber}</p>
               </div>
               <button
                 onClick={() => setResolvingComplaint(null)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2444,12 +2450,12 @@ export default function AfterSalesPage() {
 
             <div className="p-5 space-y-4 text-xs">
               <div>
-                <p className="font-bold text-slate-800">{resolvingComplaint.title}</p>
-                <p className="text-slate-500 text-[11px] mt-0.5">{resolvingComplaint.description}</p>
+                <p className="font-bold text-charcoal-900">{resolvingComplaint.title}</p>
+                <p className="text-charcoal-500 text-[11px] mt-0.5">{resolvingComplaint.description}</p>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-semibold text-charcoal-700 mb-1">
                   Catatan Solusi / Tindakan Perbaikan <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -2458,16 +2464,16 @@ export default function AfterSalesPage() {
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
                   placeholder="Misal: Sudah diganti freon dan sensor AC di bengkel rekanan resmi HR MOTOR Garut..."
-                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full text-xs p-2.5 border border-[#EAE8E3] rounded-lg outline-none focus:ring-2 focus:ring-gold-500/20 focus:border-gold-500"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-slate-100 bg-slate-50">
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[#EAE8E3] bg-[#FCFBF9]">
               <button
                 type="button"
                 onClick={() => setResolvingComplaint(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg"
+                className="btn-outline-warm"
               >
                 Batal
               </button>
@@ -2475,7 +2481,7 @@ export default function AfterSalesPage() {
                 type="button"
                 disabled={!resolutionNotes.trim()}
                 onClick={handleFinishResolution}
-                className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30 disabled:opacity-50"
+                className="btn-gold disabled:opacity-50"
               >
                 Tutup Tiket Selesai
               </button>

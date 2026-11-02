@@ -100,7 +100,7 @@ const MONTH_NAMES = [
   'Desember',
 ];
 
-const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'];
+const PIE_COLORS = ['#D99A32', '#F0AD45', '#B87D20', '#202020', '#2E2E2E', '#4A4A4A', '#7A7A7A'];
 
 // Helper to check 1-month warranty status based on purchaseDate and repairDate
 function checkWarrantyStatus(purchaseDateStr?: string, repairDateStr?: string): {
@@ -861,70 +861,73 @@ export default function RiwayatPerbaikanGaransiPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 rounded">
-              Layanan Purna Jual HR MOTOR
-            </span>
-            <span className="text-xs text-slate-500 font-medium">Garut, Jawa Barat</span>
+      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="badge-gold">
+                Layanan Purna Jual Showroom
+              </span>
+              <span className="text-xs text-charcoal-300">•</span>
+              <span className="text-xs text-charcoal-400 font-medium tracking-wide">Garansi 1 Bulan HR MOTOR Garut</span>
+            </div>
+            <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight flex items-center gap-2.5">
+              <Wrench className="w-6 h-6 text-gold-600" />
+              <span>Riwayat Perbaikan & Klaim Garansi</span>
+            </h1>
+            <p className="text-xs text-charcoal-500 mt-0.5">
+              Pencatatan dan pemantauan menyeluruh riwayat servis armada konsumen yang telah dilaksanakan, baik selama maupun di luar masa garansi resmi 1 bulan HR MOTOR Garut.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2 mt-1">
-            <Wrench className="w-6 h-6 text-emerald-600" />
-            Riwayat Perbaikan Garansi
-          </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
-            Pencatatan dan pemantauan seluruh perbaikan mobil konsumen yang telah dilaksanakan selama maupun di luar masa garansi 1 bulan HR MOTOR Garut.
-          </p>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm shadow-emerald-600/30 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah Riwayat Perbaikan</span>
-          </button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="btn-gold flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Riwayat Perbaikan</span>
+            </button>
 
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
-            title="Ekspor ke Excel"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span className="hidden sm:inline">Excel</span>
-          </button>
+            <button
+              onClick={handleExportExcel}
+              className="btn-outline-warm flex items-center gap-1.5 text-xs py-2"
+              title="Ekspor ke Excel"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-gold-600" />
+              <span className="hidden sm:inline">Excel</span>
+            </button>
 
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors"
-            title="Ekspor ke PDF"
-          >
-            <Download className="w-4 h-4 text-rose-600" />
-            <span className="hidden sm:inline">PDF</span>
-          </button>
+            <button
+              onClick={handleExportPDF}
+              className="btn-outline-warm flex items-center gap-1.5 text-xs py-2"
+              title="Ekspor ke PDF"
+            >
+              <Download className="w-4 h-4 text-charcoal-600" />
+              <span className="hidden sm:inline">PDF</span>
+            </button>
 
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition-colors"
-            title="Cetak Laporan"
-          >
-            <Printer className="w-4 h-4 text-slate-500" />
-            <span className="hidden md:inline">Cetak</span>
-          </button>
+            <button
+              onClick={() => window.print()}
+              className="btn-outline-warm flex items-center gap-1.5 text-xs py-2"
+              title="Cetak Laporan"
+            >
+              <Printer className="w-4 h-4 text-charcoal-600" />
+              <span className="hidden md:inline">Cetak</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Success Notification Banner */}
       {actionSuccess && (
-        <div className="flex items-center justify-between p-3 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg animate-in fade-in duration-200">
+        <div className="flex items-center justify-between p-3.5 text-xs text-gold-900 bg-gold-50/80 border border-gold-300 rounded-xl animate-in fade-in duration-200">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="font-medium">{actionSuccess}</span>
+            <CheckCircle2 className="w-4 h-4 text-gold-600 shrink-0" />
+            <span className="font-semibold">{actionSuccess}</span>
           </div>
-          <button onClick={() => setActionSuccess(null)} className="text-emerald-700 hover:text-emerald-900">
+          <button onClick={() => setActionSuccess(null)} className="text-gold-700 hover:text-gold-900">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -933,92 +936,92 @@ export default function RiwayatPerbaikanGaransiPage() {
       {/* 6 RINGKASAN METRIK UNTUK OWNER */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         {/* 1. Total Konsumen yang Melakukan Perbaikan */}
-        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Total Konsumen</span>
-            <Users className="w-4 h-4 text-emerald-600" />
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-400 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">Total Konsumen</span>
+            <Users className="w-4 h-4 text-gold-600" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-bold text-slate-900">{ownerSummary.totalUniqueCustomers}</span>
-            <span className="text-[11px] text-slate-500">orang</span>
+            <span className="text-xl font-black text-charcoal-900">{ownerSummary.totalUniqueCustomers}</span>
+            <span className="text-[11px] text-charcoal-400 font-medium">orang</span>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1">Konsumen unik yang diservis</p>
+          <p className="text-[10px] text-charcoal-400 mt-1">Konsumen unik diservis</p>
         </div>
 
         {/* 2. Total Kendaraan yang Diperbaiki */}
-        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Total Kendaraan</span>
-            <Car className="w-4 h-4 text-blue-600" />
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-400 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">Total Kendaraan</span>
+            <Car className="w-4 h-4 text-charcoal-700" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-bold text-slate-900">{ownerSummary.totalUniqueVehicles}</span>
-            <span className="text-[11px] text-slate-500">unit mobil</span>
+            <span className="text-xl font-black text-charcoal-900">{ownerSummary.totalUniqueVehicles}</span>
+            <span className="text-[11px] text-charcoal-400 font-medium">unit mobil</span>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1">Unit mobil yang pernah diperbaiki</p>
+          <p className="text-[10px] text-charcoal-400 mt-1">Armada pernah diperbaiki</p>
         </div>
 
         {/* 3. Total Riwayat Perbaikan */}
-        <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Riwayat Perbaikan</span>
-            <FileText className="w-4 h-4 text-indigo-600" />
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-400 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">Riwayat Perbaikan</span>
+            <FileText className="w-4 h-4 text-charcoal-700" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-bold text-slate-900">{ownerSummary.totalRecords}</span>
-            <span className="text-[11px] text-slate-500">transaksi</span>
+            <span className="text-xl font-black text-charcoal-900">{ownerSummary.totalRecords}</span>
+            <span className="text-[11px] text-charcoal-400 font-medium">tindakan</span>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1">Total seluruh tindakan perbaikan</p>
+          <p className="text-[10px] text-charcoal-400 mt-1">Total seluruh penanganan</p>
         </div>
 
         {/* 4. Total Biaya Perbaikan Bulan Ini */}
-        <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-emerald-900 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Biaya Bulan Ini</span>
-            <DollarSign className="w-4 h-4 text-emerald-700" />
+        <div className="crm-card p-4 bg-[#FAF9F5] border-gold-500/30">
+          <div className="flex items-center justify-between text-charcoal-600 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700">Biaya Bulan Ini</span>
+            <DollarSign className="w-4 h-4 text-gold-600" />
           </div>
-          <div className="text-base font-extrabold text-emerald-800 truncate" title={formatRupiah(ownerSummary.totalCostThisMonth)}>
+          <div className="text-base font-black text-charcoal-900 truncate" title={formatRupiah(ownerSummary.totalCostThisMonth)}>
             {formatRupiah(ownerSummary.totalCostThisMonth)}
           </div>
-          <p className="text-[10px] text-emerald-700 mt-1 font-medium">
+          <p className="text-[10px] text-charcoal-500 mt-1 font-medium">
             Bulan {MONTH_NAMES[new Date().getMonth()]} {new Date().getFullYear()}
           </p>
         </div>
 
         {/* 5. Total Biaya Garansi */}
-        <div className="p-3.5 bg-amber-50/70 border border-amber-200 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-amber-900 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Biaya Garansi</span>
-            <ShieldCheck className="w-4 h-4 text-amber-700" />
+        <div className="crm-card p-4 bg-[#FAF9F5] border-gold-500/50">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-black uppercase tracking-wider text-gold-700">Garansi Showroom</span>
+            <ShieldCheck className="w-4 h-4 text-gold-600" />
           </div>
-          <div className="text-base font-extrabold text-amber-900 truncate" title={formatRupiah(ownerSummary.totalGaransiCost)}>
+          <div className="text-base font-black text-gold-600 truncate" title={formatRupiah(ownerSummary.totalGaransiCost)}>
             {formatRupiah(ownerSummary.totalGaransiCost)}
           </div>
-          <p className="text-[10px] text-amber-800 mt-1 font-medium">Beban Ditanggung HR MOTOR 100%</p>
+          <p className="text-[10px] text-gold-800 mt-1 font-semibold">100% Ditanggung HR MOTOR</p>
         </div>
 
         {/* 6. Total Biaya Non-Garansi */}
-        <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-blue-900 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Biaya Non-Garansi</span>
-            <DollarSign className="w-4 h-4 text-blue-700" />
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-600 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-600">Biaya Non-Garansi</span>
+            <DollarSign className="w-4 h-4 text-charcoal-400" />
           </div>
-          <div className="text-base font-extrabold text-blue-900 truncate" title={formatRupiah(ownerSummary.totalNonGaransiCost)}>
+          <div className="text-base font-black text-charcoal-800 truncate" title={formatRupiah(ownerSummary.totalNonGaransiCost)}>
             {formatRupiah(ownerSummary.totalNonGaransiCost)}
           </div>
-          <p className="text-[10px] text-blue-800 mt-1 font-medium">Dibayar Oleh Konsumen</p>
+          <p className="text-[10px] text-charcoal-400 mt-1 font-medium">Dibayar Oleh Konsumen</p>
         </div>
       </div>
 
       {/* Sub-Tab Navigasi Halaman */}
-      <div className="flex items-center justify-between border-b border-slate-200">
+      <div className="flex items-center justify-between border-b border-[#EAE8E3]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveTab('list')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-semibold border-b-2 transition-colors ${
+            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors ${
               activeTab === 'list'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -1027,10 +1030,10 @@ export default function RiwayatPerbaikanGaransiPage() {
 
           <button
             onClick={() => setActiveTab('reports')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-semibold border-b-2 transition-colors ${
+            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors ${
               activeTab === 'reports'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -1039,11 +1042,11 @@ export default function RiwayatPerbaikanGaransiPage() {
         </div>
 
         {customerFilter !== 'Semua' && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-center gap-1.5 px-3 py-1 text-xs text-gold-800 bg-gold-50/80 border border-gold-300 rounded-lg">
             <span>Filter Konsumen: <strong>{customerFilter}</strong></span>
             <button
               onClick={() => setCustomerFilter('Semua')}
-              className="ml-1 text-emerald-600 hover:text-emerald-900"
+              className="ml-1 text-gold-700 hover:text-gold-900"
               title="Hapus filter konsumen"
             >
               <X className="w-3.5 h-3.5" />
@@ -1434,8 +1437,8 @@ export default function RiwayatPerbaikanGaransiPage() {
                       labelFormatter={(lbl) => `Periode: ${lbl}`}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="Biaya Garansi (Showroom)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Biaya Non-Garansi" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Biaya Garansi (Showroom)" fill="#D99A32" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Biaya Non-Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

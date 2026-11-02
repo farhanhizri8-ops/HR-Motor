@@ -144,7 +144,7 @@ export default function ReportsAnalyticsPage() {
       .filter((item) => item.count > 0);
   }, [leads]);
 
-  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#06b6d4'];
+  const COLORS = ['#D99A32', '#F0AD45', '#B87D20', '#202020', '#2F2F2F', '#484848', '#6F6F6F'];
 
   // EXPORT TO EXCEL
   const handleExportExcel = () => {
@@ -321,80 +321,82 @@ export default function ReportsAnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-              Laporan Eksekutif CRM
-            </span>
-            <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500">Analitik & Evaluasi</span>
+      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="badge-gold">
+                Laporan Eksekutif CRM
+              </span>
+              <span className="text-xs text-charcoal-300">•</span>
+              <span className="text-xs text-charcoal-400 font-medium tracking-wide">Analitik & Evaluasi Showroom</span>
+            </div>
+            <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+              Reports & Performance Analytics
+            </h1>
+            <p className="text-xs text-charcoal-500 mt-0.5">
+              Analisis pertumbuhan konsumen, efektivitas saluran pemasaran armada, leaderboard penjualan tim sales, dan ekspor dokumen laporan resmi.
+            </p>
           </div>
-          <h1 className="text-xl lg:text-2xl font-black text-slate-900 mt-1">
-            Reports & Analytics (Laporan Kinerja CRM)
-          </h1>
-          <p className="text-xs text-slate-500">
-            Analisis pertumbuhan pelanggan, efektivitas saluran prospek, leaderboard sales, dan ekspor dokumen Excel & PDF.
-          </p>
-        </div>
 
-        {/* Export Buttons */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-colors shadow-xs"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            Ekspor Excel (.xlsx)
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-emerald-600 rounded-xl transition-colors shadow-xs"
-          >
-            <FileText className="w-4 h-4 text-white" />
-            Ekspor PDF Resmi
-          </button>
+          {/* Export Buttons */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleExportExcel}
+              className="btn-outline-warm flex items-center gap-2 text-xs py-2"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-gold-600" />
+              <span>Ekspor Excel (.xlsx)</span>
+            </button>
+            <button
+              onClick={handleExportPDF}
+              className="btn-gold flex items-center gap-2 text-xs"
+            >
+              <FileText className="w-4 h-4 text-charcoal-950" />
+              <span>Ekspor PDF Resmi</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex p-1 bg-white rounded-xl border border-slate-200 max-w-xl shadow-xs">
+      <div className="flex p-1 bg-[#FAF9F5] rounded-xl border border-[#EAE8E3] max-w-xl shadow-xs">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all ${
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'overview'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
+              ? 'bg-charcoal-900 text-gold-400 shadow-xs'
+              : 'text-charcoal-600 hover:text-charcoal-900'
           }`}
         >
           Ringkasan & ROI
         </button>
         <button
           onClick={() => setActiveTab('sources')}
-          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all ${
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'sources'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
+              ? 'bg-charcoal-900 text-gold-400 shadow-xs'
+              : 'text-charcoal-600 hover:text-charcoal-900'
           }`}
         >
-          Saluran Prospek
+          Saluran Promosi
         </button>
         <button
           onClick={() => setActiveTab('reps')}
-          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all ${
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'reps'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
+              ? 'bg-charcoal-900 text-gold-400 shadow-xs'
+              : 'text-charcoal-600 hover:text-charcoal-900'
           }`}
         >
           Kinerja Sales Rep
         </button>
         <button
           onClick={() => setActiveTab('lost')}
-          className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-lg transition-all ${
+          className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'lost'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
+              ? 'bg-charcoal-900 text-gold-400 shadow-xs'
+              : 'text-charcoal-600 hover:text-charcoal-900'
           }`}
         >
           Analisis Lost Leads
@@ -407,23 +409,23 @@ export default function ReportsAnalyticsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Sales Pipeline Conversion Funnel */}
             <div className="crm-card p-5">
-              <h2 className="text-sm font-bold text-slate-900 mb-1">
+              <h2 className="text-sm font-black text-charcoal-900 mb-0.5">
                 Kinerja Konversi Saluran (Lead to Deal)
               </h2>
-              <p className="text-xs text-slate-500 mb-4">
-                Tingkat konversi per saluran pemasaran mobil bekas
+              <p className="text-xs text-charcoal-500 mb-4">
+                Tingkat konversi per saluran pemasaran mobil showroom
               </p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={sourcePerformance}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="source" tick={{ fontSize: 11 }} />
-                    <YAxis unit="%" tick={{ fontSize: 11 }} />
+                    <XAxis dataKey="source" tick={{ fontSize: 11, fill: '#666666' }} />
+                    <YAxis unit="%" tick={{ fontSize: 11, fill: '#666666' }} />
                     <Tooltip
                       formatter={(val: any) => [`${val}%`, 'Konversi']}
-                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', fontSize: '12px' }}
+                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #EAE8E3', fontSize: '12px' }}
                     />
-                    <Bar dataKey="conversionRate" fill="#10b981" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="conversionRate" fill="#D99A32" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -431,23 +433,23 @@ export default function ReportsAnalyticsPage() {
 
             {/* Revenue Contribution by Source */}
             <div className="crm-card p-5">
-              <h2 className="text-sm font-bold text-slate-900 mb-1">
+              <h2 className="text-sm font-black text-charcoal-900 mb-0.5">
                 Kontribusi Omset Deal Menurut Sumber (Rp)
               </h2>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-charcoal-500 mb-4">
                 Total nominal penjualan unit berdasarkan asal calon pembeli
               </p>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={sourcePerformance} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis type="number" tickFormatter={(v) => `Rp ${(v / 1000000).toFixed(0)}Jt`} tick={{ fontSize: 10 }} />
-                    <YAxis type="category" dataKey="source" tick={{ fontSize: 11 }} width={80} />
+                    <XAxis type="number" tickFormatter={(v) => `Rp ${(v / 1000000).toFixed(0)}Jt`} tick={{ fontSize: 10, fill: '#666666' }} />
+                    <YAxis type="category" dataKey="source" tick={{ fontSize: 11, fill: '#666666' }} width={80} />
                     <Tooltip
                       formatter={(val: any) => [formatRupiah(val), 'Omset']}
-                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', fontSize: '12px' }}
+                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #EAE8E3', fontSize: '12px' }}
                     />
-                    <Bar dataKey="revenue" fill="#101F42" radius={[0, 6, 6, 0]} />
+                    <Bar dataKey="revenue" fill="#202020" radius={[0, 6, 6, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -458,44 +460,44 @@ export default function ReportsAnalyticsPage() {
 
       {/* TAB 2: SOURCES PERFORMANCE */}
       {activeTab === 'sources' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-900">
+        <div className="crm-card overflow-hidden">
+          <div className="p-5 border-b border-[#EAE8E3]">
+            <h2 className="text-base font-black text-charcoal-900">
               Tabel Analitik Sumber Prospek (Lead Source Performance)
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-charcoal-500 mt-0.5">
               Evaluasi efektivitas biaya dan produktivitas setiap kanal promosi HR MOTOR Garut
             </p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="crm-table w-full text-left">
               <thead>
-                <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="py-3 px-4">Saluran / Media</th>
-                  <th className="py-3 px-4">Total Prospek Masuk</th>
-                  <th className="py-3 px-4">Deal Penjualan Sukses</th>
-                  <th className="py-3 px-4">Tingkat Konversi (%)</th>
-                  <th className="py-3 px-4">Total Omset Transaksi</th>
-                  <th className="py-3 px-4">Status Efektivitas</th>
+                <tr>
+                  <th className="py-3.5 px-4">Saluran / Media</th>
+                  <th className="py-3.5 px-4">Total Prospek Masuk</th>
+                  <th className="py-3.5 px-4">Deal Penjualan Sukses</th>
+                  <th className="py-3.5 px-4">Tingkat Konversi (%)</th>
+                  <th className="py-3.5 px-4">Total Omset Transaksi</th>
+                  <th className="py-3.5 px-4">Status Efektivitas</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#EAE8E3] text-xs">
                 {sourcePerformance.map((s) => (
-                  <tr key={s.source} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4 font-bold text-slate-900">{s.source}</td>
-                    <td className="py-3 px-4 font-semibold text-slate-800">{s.leads} Prospek</td>
-                    <td className="py-3 px-4 font-bold text-emerald-700">{s.deals} Deal</td>
-                    <td className="py-3 px-4">
-                      <span className="font-extrabold text-slate-800">{s.conversionRate}%</span>
+                  <tr key={s.source} className="hover:bg-[#F8F7F4]/80 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-charcoal-900">{s.source}</td>
+                    <td className="py-3.5 px-4 font-semibold text-charcoal-800">{s.leads} Prospek</td>
+                    <td className="py-3.5 px-4 font-bold text-gold-600">{s.deals} Deal</td>
+                    <td className="py-3.5 px-4">
+                      <span className="font-black text-charcoal-900">{s.conversionRate}%</span>
                     </td>
-                    <td className="py-3 px-4 font-black text-slate-900">{formatRupiah(s.revenue)}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4 font-black text-gold-600">{formatRupiah(s.revenue)}</td>
+                    <td className="py-3.5 px-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                           s.conversionRate >= 25
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'bg-gold-50 text-gold-800 border border-gold-300'
+                            : 'bg-charcoal-100 text-charcoal-700 border border-charcoal-200'
                         }`}
                       >
                         {s.conversionRate >= 25 ? 'Sangat Tinggi (ROI Prima)' : 'Stabil'}
@@ -511,61 +513,61 @@ export default function ReportsAnalyticsPage() {
 
       {/* TAB 3: SALES REPRESENTATIVE LEADERBOARD */}
       {activeTab === 'reps' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-amber-500" />
+        <div className="crm-card overflow-hidden">
+          <div className="p-5 border-b border-[#EAE8E3]">
+            <h2 className="text-base font-black text-charcoal-900 flex items-center gap-2">
+              <Award className="w-5 h-5 text-gold-600" />
               Leaderboard Kinerja Tim Sales HR MOTOR Garut
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-charcoal-500 mt-0.5">
               Evaluasi kecepatan respon, rasio penutupan deal, dan kepatuhan tindak lanjut follow-up
             </p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="crm-table w-full text-left">
               <thead>
-                <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                  <th className="py-3 px-4">Peringkat & Nama Sales</th>
-                  <th className="py-3 px-4">Peran</th>
-                  <th className="py-3 px-4">Prospek Ditugaskan</th>
-                  <th className="py-3 px-4">Deal Ditutup</th>
-                  <th className="py-3 px-4">Prospek Lost</th>
-                  <th className="py-3 px-4">Tingkat Konversi</th>
-                  <th className="py-3 px-4">Kepatuhan Follow-up</th>
-                  <th className="py-3 px-4">Total Omset Penjualan</th>
+                <tr>
+                  <th className="py-3.5 px-4">Peringkat & Nama Sales</th>
+                  <th className="py-3.5 px-4">Peran</th>
+                  <th className="py-3.5 px-4">Prospek Ditugaskan</th>
+                  <th className="py-3.5 px-4">Deal Ditutup</th>
+                  <th className="py-3.5 px-4">Prospek Lost</th>
+                  <th className="py-3.5 px-4">Tingkat Konversi</th>
+                  <th className="py-3.5 px-4">Kepatuhan Follow-up</th>
+                  <th className="py-3.5 px-4">Total Omset Penjualan</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#EAE8E3] text-xs">
                 {salesLeaderboard.map((rep, idx) => (
-                  <tr key={rep.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                  <tr key={rep.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2.5">
                         <span
-                          className={`w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] ${
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-xs ${
                             idx === 0
-                              ? 'bg-amber-400 text-amber-950 shadow-xs'
+                              ? 'bg-gold-500 text-charcoal-950 shadow-xs'
                               : idx === 1
-                              ? 'bg-slate-300 text-slate-800'
-                              : 'bg-slate-100 text-slate-600'
+                              ? 'bg-charcoal-200 text-charcoal-900'
+                              : 'bg-warm-100 text-charcoal-600 border border-[#EAE8E3]'
                           }`}
                         >
                           {idx + 1}
                         </span>
-                        <span className="font-bold text-slate-900">{rep.name}</span>
+                        <span className="font-bold text-charcoal-900 text-sm">{rep.name}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-slate-600">{rep.role}</td>
-                    <td className="py-3 px-4 font-semibold text-slate-800">{rep.totalLeads} Prospek</td>
-                    <td className="py-3 px-4 font-bold text-emerald-700">{rep.dealsClosed} Unit</td>
-                    <td className="py-3 px-4 text-rose-600 font-semibold">{rep.lostLeads}</td>
-                    <td className="py-3 px-4 font-extrabold text-slate-900">{rep.conversionRate}%</td>
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-emerald-700">
+                    <td className="py-3.5 px-4 text-charcoal-600">{rep.role}</td>
+                    <td className="py-3.5 px-4 font-semibold text-charcoal-800">{rep.totalLeads} Prospek</td>
+                    <td className="py-3.5 px-4 font-black text-gold-600">{rep.dealsClosed} Unit</td>
+                    <td className="py-3.5 px-4 text-rose-600 font-semibold">{rep.lostLeads}</td>
+                    <td className="py-3.5 px-4 font-black text-charcoal-900">{rep.conversionRate}%</td>
+                    <td className="py-3.5 px-4">
+                      <span className="font-bold text-gold-700 bg-gold-50 px-2 py-0.5 rounded border border-gold-200">
                         {rep.followUpCompletionRate}% Selesai
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-black text-slate-900">
+                    <td className="py-3.5 px-4 font-black text-gold-600 text-sm">
                       {formatRupiah(rep.totalDealValue)}
                     </td>
                   </tr>
@@ -582,10 +584,10 @@ export default function ReportsAnalyticsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Lost Reasons Pie Chart */}
             <div className="crm-card p-5">
-              <h2 className="text-sm font-bold text-slate-900 mb-1">
+              <h2 className="text-sm font-black text-charcoal-900 mb-0.5">
                 Distribusi Alasan Pembatalan (Lost Reasons)
               </h2>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-charcoal-500 mb-4">
                 Penyebab utama prospek tidak berlanjut menjadi transaksi
               </p>
               <div className="h-64 w-full">
@@ -605,7 +607,7 @@ export default function ReportsAnalyticsPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', fontSize: '12px' }}
+                      contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #EAE8E3', fontSize: '12px' }}
                     />
                     <Legend wrapperStyle={{ fontSize: '11px' }} />
                   </PieChart>
@@ -615,28 +617,28 @@ export default function ReportsAnalyticsPage() {
 
             {/* Strategic Recommendations Card */}
             <div className="crm-card p-5 space-y-4">
-              <h2 className="text-sm font-bold text-slate-900">
+              <h2 className="text-sm font-black text-charcoal-900">
                 Rekomendasi Strategis CRM untuk HR MOTOR
               </h2>
-              <div className="space-y-3 text-xs text-slate-600">
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                  <p className="font-bold text-emerald-900">1. Sinergi dengan Multi-Leasing</p>
-                  <p className="text-[11px] text-emerald-800 mt-0.5">
-                    Sebagian besar alasan lost disebabkan oleh penolakan BI checking pada 1 leasing. Menyediakan opsi leasing alternatif (MUF, Adira, OTO) dapat menyelamatkan hingga 30% prospek kredit.
+              <div className="space-y-3 text-xs text-charcoal-700">
+                <div className="p-3.5 bg-[#FAF9F5] border border-gold-500/30 rounded-xl">
+                  <p className="font-bold text-gold-800">1. Sinergi dengan Multi-Leasing</p>
+                  <p className="text-[11px] text-charcoal-600 mt-1">
+                    Sebagian besar alasan lost disebabkan oleh kendala BI checking pada 1 leasing. Menyediakan alternatif pembiayaan (MUF, Adira, OTO, BCA Finance) dapat menyelamatkan hingga 30% prospek kredit.
                   </p>
                 </div>
 
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                  <p className="font-bold text-blue-900">2. Kecepatan Respon WhatsApp Prospek TikTok/IG</p>
-                  <p className="text-[11px] text-blue-800 mt-0.5">
-                    Prospek dari media sosial memiliki rentang perhatian pendek. Menjaga respons &lt; 15 menit menggunakan template percakapan terbukti meningkatkan konversi test drive.
+                <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
+                  <p className="font-bold text-charcoal-900">2. Kecepatan Respon WhatsApp Prospek TikTok / Instagram</p>
+                  <p className="text-[11px] text-charcoal-600 mt-1">
+                    Prospek dari media sosial memiliki rentang perhatian singkat. Respons &lt; 15 menit menggunakan template pesan profesional terbukti melipatgandakan jadwal kunjungan test-drive.
                   </p>
                 </div>
 
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                  <p className="font-bold text-amber-900">3. Optimalisasi Garansi & Layanan Purna Jual</p>
-                  <p className="text-[11px] text-amber-800 mt-0.5">
-                    Garansi mesin 1 tahun resmi HR MOTOR menjadi faktor penentu utama konsumen Garut memilih membeli di showroom lokal daripada ke Bandung.
+                <div className="p-3.5 bg-[#FAF9F5] border border-gold-500/30 rounded-xl">
+                  <p className="font-bold text-gold-800">3. Optimalisasi Garansi 1 Bulan & After Sales</p>
+                  <p className="text-[11px] text-charcoal-600 mt-1">
+                    Garansi mesin resmi 1 bulan HR MOTOR menjadi keunggulan reputasi lokal Garut yang membedakan showroom ini dari kompetitor pasar bebas.
                   </p>
                 </div>
               </div>

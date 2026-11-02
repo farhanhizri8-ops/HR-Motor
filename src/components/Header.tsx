@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   Menu,
   Search,
@@ -12,6 +13,7 @@ import {
   ChevronDown,
   Building2,
   Calendar,
+  Sparkles,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -31,90 +33,101 @@ export const Header: React.FC<HeaderProps> = ({
     switchUser,
     users,
     resetToDemo,
-    formatDate,
   } = useCrm();
 
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
-  const [resetConfirm, setResetConfirm] = useState(false);
 
   const handleReset = async () => {
-    if (window.confirm('Reset data CRM ke data demo awal HR MOTOR Garut? Perubahan yang belum disimpan akan dikembalikan ke default.')) {
+    if (window.confirm('Reset data CRM ke data demo awal HR MOTOR Garut?')) {
       await resetToDemo();
-      alert('Data CRM telah berhasil direset ke dataset demo awal HR MOTOR.');
+      alert('Data CRM telah berhasil direset ke dataset awal.');
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 lg:px-6 bg-white/95 backdrop-blur-md border-b border-slate-200">
-      {/* Left: Mobile hamburger & Location */}
+    <header className="sticky top-0 z-30 flex items-center justify-between h-18 px-4 lg:px-6 bg-[#FCFBF9]/95 backdrop-blur-md border-b border-warm-200 shadow-luxury">
+      {/* Left: Mobile hamburger & Location / Brand */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => setMobileOpen(true)}
-          className="flex lg:hidden items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className="flex lg:hidden items-center justify-center w-9 h-9 rounded-lg text-charcoal-700 hover:text-charcoal-900 hover:bg-warm-200/60 border border-warm-200 transition-colors"
           title="Buka Menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 bg-slate-100/80 px-3 py-1.5 rounded-full border border-slate-200/80">
-          <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-          <span className="font-semibold text-slate-800">HR MOTOR Garut</span>
-          <span className="text-slate-400">|</span>
-          <span className="text-slate-500">Pusat Mobil Bekas Berkualitas</span>
+        {/* Mobile Logo View */}
+        <Link href="/" className="flex lg:hidden items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="HR MOTOR Logo"
+            className="h-8 w-auto object-contain drop-shadow-sm"
+          />
+          <span className="font-extrabold text-xs tracking-wider text-charcoal-900 uppercase">
+            HR MOTOR
+          </span>
+        </Link>
+
+        {/* Desktop Showroom Brand Badge */}
+        <div className="hidden sm:flex items-center gap-2.5 text-xs text-charcoal-600 bg-white px-3.5 py-1.5 rounded-full border border-warm-200 shadow-luxury">
+          <div className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
+          <span className="font-black text-charcoal-900 tracking-wide">HR MOTOR Garut</span>
+          <span className="text-warm-300">|</span>
+          <span className="text-charcoal-500 text-[11px] font-medium">Showroom Mobil Bekas Berkualitas</span>
         </div>
       </div>
 
-      {/* Middle: Search bar button */}
-      <div className="flex-1 max-w-md mx-3">
+      {/* Middle: Luxury Search Bar Trigger */}
+      <div className="flex-1 max-w-md mx-4">
         <button
           onClick={onOpenGlobalSearch}
-          className="w-full flex items-center justify-between px-3.5 py-1.5 text-xs text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors shadow-sm"
+          className="w-full flex items-center justify-between px-3.5 py-2 text-xs text-charcoal-500 bg-white hover:bg-warm-50 border border-warm-200 hover:border-gold-400 rounded-xl transition-all shadow-luxury group"
         >
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-slate-400" />
-            <span>Cari pelanggan, no. WA, prospek, atau mobil...</span>
+          <div className="flex items-center gap-2.5">
+            <Search className="w-4 h-4 text-charcoal-400 group-hover:text-gold-500 transition-colors" />
+            <span className="text-[11px] sm:text-xs">Cari data pelanggan, stok mobil, no. WhatsApp...</span>
           </div>
-          <kbd className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 rounded shadow-xs">
+          <kbd className="hidden md:inline-block px-2 py-0.5 text-[10px] font-bold text-charcoal-500 bg-warm-100 border border-warm-200 rounded-md">
             Ctrl + K
           </kbd>
         </button>
       </div>
 
-      {/* Right: Quick Action, Demo Switcher, User */}
-      <div className="flex items-center gap-2">
-        {/* Quick Action Button */}
+      {/* Right: Quick Action, Role Switcher */}
+      <div className="flex items-center gap-2.5">
+        {/* Quick Action Button (Luxury Gold) */}
         <button
           onClick={onOpenQuickAction}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm shadow-emerald-600/30 transition-all"
+          className="btn-gold flex items-center gap-1.5 text-xs uppercase tracking-wider py-2 px-3.5"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
           <span className="hidden sm:inline">Aksi Cepat</span>
         </button>
 
-        {/* Demo Switcher for University Presentation */}
+        {/* Demo Switcher Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors"
-            title="Ganti Peran Akun untuk Demo Kuliah"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-charcoal-800 bg-white hover:bg-warm-50 border border-warm-200 hover:border-gold-400 rounded-xl transition-all shadow-luxury"
+            title="Ganti Peran Akun untuk Demo"
           >
-            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="hidden md:inline font-semibold">{currentUser.role}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <div className="w-2 h-2 rounded-full bg-gold-500" />
+            <span className="hidden md:inline">{currentUser.name}</span>
+            <span className="text-[10px] text-gold-700 bg-gold-100 border border-gold-200 px-1.5 py-0.5 rounded font-bold uppercase">
+              {currentUser.role}
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 text-charcoal-400" />
           </button>
 
           {showRoleDropdown && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-              <div className="px-3 py-1.5 border-b border-slate-100">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Demo Penguji / Penilai
-                </p>
-                <p className="text-xs text-slate-600">
-                  Pilih peran untuk melihat sudut pandang hak akses:
-                </p>
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-luxury-lg border border-warm-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 border-b border-warm-200 mb-1">
+                <p className="text-[11px] font-bold text-charcoal-900">Pilih Profil Pengguna Showroom</p>
+                <p className="text-[10px] text-charcoal-500">Evaluasi hak akses multi-role HR MOTOR</p>
               </div>
 
-              <div className="py-1 max-h-64 overflow-y-auto">
+              <div className="space-y-0.5">
                 {users.map((u) => (
                   <button
                     key={u.id}
@@ -122,31 +135,39 @@ export const Header: React.FC<HeaderProps> = ({
                       switchUser(u);
                       setShowRoleDropdown(false);
                     }}
-                    className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                      u.id === currentUser.id ? 'bg-emerald-50/70' : ''
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg text-left transition-colors ${
+                      currentUser.id === u.id
+                        ? 'bg-gold-50 text-gold-900 font-bold border border-gold-200'
+                        : 'text-charcoal-700 hover:bg-warm-100'
                     }`}
                   >
-                    <div>
-                      <p className="text-xs font-semibold text-slate-800">{u.name}</p>
-                      <p className="text-[11px] text-slate-500">{u.role}</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={u.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80'}
+                      alt={u.name}
+                      className="w-6 h-6 rounded-full object-cover border border-gold-400"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-xs font-semibold">{u.name}</p>
+                      <p className="text-[10px] text-charcoal-500 truncate">{u.role}</p>
                     </div>
-                    {u.id === currentUser.id && (
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    {currentUser.id === u.id && (
+                      <CheckCircle className="w-3.5 h-3.5 text-gold-600 shrink-0" />
                     )}
                   </button>
                 ))}
               </div>
 
-              <div className="pt-2 px-3 border-t border-slate-100">
+              <div className="mt-2 pt-2 border-t border-warm-200">
                 <button
                   onClick={() => {
-                    setShowRoleDropdown(false);
                     handleReset();
+                    setShowRoleDropdown(false);
                   }}
-                  className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                  className="w-full flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  Reset Data Demo Awal
+                  <RotateCcw className="w-3 h-3" />
+                  Reset Dataset Demo Showroom
                 </button>
               </div>
             </div>

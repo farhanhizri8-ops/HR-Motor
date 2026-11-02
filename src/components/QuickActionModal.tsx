@@ -220,30 +220,31 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gold-500/30 bg-charcoal-900 text-white">
           <div>
-            <h2 className="text-base font-bold text-slate-800">Aksi Cepat CRM</h2>
-            <p className="text-xs text-slate-500">Pilih tindakan cepat untuk HR MOTOR Garut</p>
+            <span className="badge-gold text-[10px] mb-1 inline-block">Shortcut Pintasan</span>
+            <h2 className="text-base font-black text-white">Aksi Cepat Showroom</h2>
+            <p className="text-xs text-charcoal-300">Pilih tindakan cepat operasional HR MOTOR Garut</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-slate-200 px-6 bg-white gap-2 pt-2">
+        <div className="flex border-b border-[#EAE8E3] px-6 bg-[#FAF9F5] gap-2 pt-2">
           <button
             onClick={() => { setActiveTab('customer'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 pb-3 px-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 pb-3 px-3 text-xs font-bold border-b-2 transition-all ${
               activeTab === 'customer'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <UserPlus className="w-4 h-4" />
@@ -251,10 +252,10 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
           </button>
           <button
             onClick={() => { setActiveTab('lead'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 pb-3 px-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 pb-3 px-3 text-xs font-bold border-b-2 transition-all ${
               activeTab === 'lead'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <Target className="w-4 h-4" />
@@ -262,10 +263,10 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
           </button>
           <button
             onClick={() => { setActiveTab('followup'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 pb-3 px-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 pb-3 px-3 text-xs font-bold border-b-2 transition-all ${
               activeTab === 'followup'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <CalendarClock className="w-4 h-4" />
@@ -273,10 +274,10 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
           </button>
           <button
             onClick={() => { setActiveTab('comm'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 pb-3 px-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 pb-3 px-3 text-xs font-bold border-b-2 transition-all ${
               activeTab === 'comm'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -284,10 +285,10 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
           </button>
           <button
             onClick={() => { setActiveTab('repair'); setErrorMessage(''); }}
-            className={`flex items-center gap-2 pb-3 px-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex items-center gap-2 pb-3 px-3 text-xs font-bold border-b-2 transition-all ${
               activeTab === 'repair'
-                ? 'border-emerald-600 text-emerald-700'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
             }`}
           >
             <Wrench className="w-4 h-4" />
