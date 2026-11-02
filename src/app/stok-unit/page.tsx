@@ -975,26 +975,25 @@ export default function StokUnitPage() {
       {viewMode === 'table' && (
         <div className="crm-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="crm-table text-left border-collapse text-xs">
+            <table className="crm-table w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-[#141414] text-white border-b border-[#2A2A2A]">
-                  <th className="py-3 px-3 text-center w-10 text-[11px] font-bold text-gold-400">NO</th>
-                  <th className="py-3 px-3 w-16 text-center text-[11px] font-bold">FOTO</th>
-                  <th className="py-3 px-4 text-[11px] font-bold">MERK / TYPE KENDARAAN</th>
-                  <th className="py-3 px-2.5 text-center text-[11px] font-bold">TAHUN</th>
-                  <th className="py-3 px-3 text-[11px] font-bold">WARNA</th>
-                  <th className="py-3 px-3 text-center text-[11px] font-bold">ODO</th>
-                  <th className="py-3 px-3 text-[11px] font-bold">NO POLISI</th>
-                  <th className="py-3 px-3.5 text-right text-[11px] font-bold text-gold-400">HARGA CASH</th>
-                  <th className="py-3 px-3 text-center text-[11px] font-bold text-amber-300">PAKET KREDIT (DP & TENOR)</th>
-                  <th className="py-3 px-3 text-center text-[11px] font-bold">STATUS</th>
-                  <th className="py-3 px-3 text-center text-[11px] font-bold w-28">AKSI</th>
+                  <th className="py-3.5 px-3 text-center w-12 text-[11px] font-bold text-gold-400">NO</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold">MERK / TYPE KENDARAAN</th>
+                  <th className="py-3.5 px-2.5 text-center text-[11px] font-bold">TAHUN</th>
+                  <th className="py-3.5 px-3.5 text-left text-[11px] font-bold">WARNA</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">ODO</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">NO POLISI</th>
+                  <th className="py-3.5 px-4 text-right text-[11px] font-bold text-gold-400">HARGA CASH</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-bold text-amber-300">PAKET KREDIT (DP & TENOR)</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">STATUS</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold w-28">AKSI</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-warm-200/70">
+              <tbody className="divide-y divide-warm-200/80">
                 {filteredStocks.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center text-charcoal-400">
+                    <td colSpan={10} className="py-12 text-center text-charcoal-400">
                       <Car className="w-10 h-10 mx-auto text-charcoal-300 mb-2 stroke-[1.5]" />
                       <p className="text-sm font-semibold text-charcoal-700">Tidak ada unit kendaraan yang sesuai kriteria</p>
                       <p className="text-xs text-charcoal-400 mt-1">Coba ubah kata kunci pencarian atau sesuaikan filter showroom.</p>
@@ -1009,91 +1008,83 @@ export default function StokUnitPage() {
                       text: 'text-charcoal-700',
                       label: stock.color,
                     };
-                    const thumbnail =
-                      stock.photos && stock.photos.length > 0
-                        ? stock.photos[0]
-                        : 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&auto=format&fit=crop&q=80';
 
                     return (
                       <tr
                         key={stock.id}
                         onClick={() => handleOpenDetail(stock)}
-                        className="hover:bg-warm-100/70 transition-colors group cursor-pointer"
+                        className="hover:bg-amber-50/40 transition-colors group cursor-pointer"
                       >
                         {/* 1. NO */}
-                        <td className="py-3 px-3 text-center font-bold text-charcoal-600 font-mono">
-                          <span className="w-6 h-6 inline-flex items-center justify-center rounded-full bg-warm-200/60 text-charcoal-800 text-[11px]">
+                        <td className="py-3.5 px-3 text-center font-bold font-mono">
+                          <span className="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-warm-100 text-charcoal-800 text-xs font-bold border border-warm-200 shadow-xs">
                             {stock.stockNumber || idx + 1}
                           </span>
                         </td>
 
-                        {/* 2. FOTO */}
-                        <td className="py-2.5 px-3 text-center">
-                          <div className="w-14 h-10 rounded-lg overflow-hidden bg-charcoal-900 border border-warm-200 mx-auto relative group-hover:border-gold-500 transition-colors">
-                            <img
-                              src={thumbnail}
-                              alt={stock.merkType || stock.model}
-                              className="w-full h-full object-cover"
-                            />
-                            {stock.photos && stock.photos.length > 1 && (
-                              <span className="absolute bottom-0 right-0 bg-black/80 text-[8px] text-gold-300 px-1 font-bold rounded-tl">
-                                +{stock.photos.length - 1}
-                              </span>
-                            )}
+                        {/* 2. MERK / TYPE */}
+                        <td className="py-3.5 px-4 font-semibold text-charcoal-900">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-gold-100/90 text-gold-950 border border-gold-300/70 shadow-xs shrink-0">
+                              {stock.brand}
+                            </span>
+                            <span className="font-bold text-xs text-charcoal-950 group-hover:text-gold-700 transition-colors">
+                              {stock.model}
+                            </span>
                           </div>
-                        </td>
-
-                        {/* 3. MERK / TYPE */}
-                        <td className="py-3 px-4 font-semibold text-charcoal-900">
-                          <div className="font-black text-xs text-charcoal-950 flex items-center gap-1.5">
-                            <span className="text-gold-700 font-extrabold uppercase">{stock.brand}</span>
-                            <span>{stock.model}</span>
-                          </div>
-                          <div className="text-[10px] text-charcoal-500 flex items-center gap-2 mt-0.5">
-                            <span className="px-1.5 py-0.2 rounded bg-warm-100 font-semibold text-charcoal-600 border border-warm-200">
+                          <div className="text-[10px] text-charcoal-500 flex items-center flex-wrap gap-1.5 mt-1">
+                            <span className="px-1.5 py-0.2 rounded bg-warm-100 font-semibold text-charcoal-700 border border-warm-200">
                               {stock.transmission}
                             </span>
-                            <span>•</span>
-                            <span className="text-charcoal-500">{stock.fuel}</span>
+                            <span className="text-charcoal-300">•</span>
+                            <span className="text-charcoal-600 font-medium">{stock.fuel}</span>
                             {stock.readinessNotes && stock.readinessNotes.length > 0 && (
                               <>
-                                <span>•</span>
-                                <span className="text-amber-800 font-bold bg-amber-50 px-1.5 rounded border border-amber-200 text-[9px]">
+                                <span className="text-charcoal-300">•</span>
+                                <span className="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 text-[9px]">
                                   {stock.readinessNotes.join(', ')}
+                                </span>
+                              </>
+                            )}
+                            {stock.leasingPartners && stock.leasingPartners.length > 0 && (
+                              <>
+                                <span className="text-charcoal-300">•</span>
+                                <span className="text-gold-800 font-bold bg-gold-50 px-1.5 py-0.2 rounded border border-gold-200 text-[9px]">
+                                  Mitra: {stock.leasingPartners.join(', ')}
                                 </span>
                               </>
                             )}
                           </div>
                         </td>
 
-                        {/* 4. TAHUN */}
-                        <td className="py-3 px-2.5 text-center font-black text-charcoal-900">
-                          <span className="px-2 py-0.5 rounded-md bg-warm-100 font-bold text-charcoal-800 border border-warm-200">
+                        {/* 3. TAHUN */}
+                        <td className="py-3.5 px-2.5 text-center font-black text-charcoal-900">
+                          <span className="px-2.5 py-1 rounded-lg bg-warm-100 font-extrabold text-charcoal-800 border border-warm-200 text-xs shadow-xs">
                             {stock.year}
                           </span>
                         </td>
 
-                        {/* 5. WARNA */}
-                        <td className="py-3 px-3">
+                        {/* 4. WARNA */}
+                        <td className="py-3.5 px-3.5">
                           <span
-                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${colorStyle.bg} ${colorStyle.text}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${colorStyle.bg} ${colorStyle.text} shadow-xs whitespace-nowrap`}
                           >
                             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${colorStyle.dot}`} />
                             <span>{colorStyle.label}</span>
                           </span>
                         </td>
 
-                        {/* 6. ODO */}
-                        <td className="py-3 px-3 text-center">
-                          <span className="font-mono text-xs font-bold text-charcoal-800 bg-warm-50 px-2 py-0.5 rounded border border-warm-200">
+                        {/* 5. ODO */}
+                        <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                          <span className="font-mono text-xs font-bold text-charcoal-800 bg-warm-50 px-2.5 py-1 rounded-lg border border-warm-200 shadow-xs">
                             {stock.odometerDisplay ? `${stock.odometerDisplay} km` : `${stock.mileage.toLocaleString('id-ID')} km`}
                           </span>
                         </td>
 
-                        {/* 7. NO POLISI */}
-                        <td className="py-3 px-3 font-mono text-xs font-bold text-charcoal-800">
+                        {/* 6. NO POLISI */}
+                        <td className="py-3.5 px-3 text-center whitespace-nowrap font-mono text-xs font-bold text-charcoal-800">
                           {stock.licensePlate ? (
-                            <span className="bg-charcoal-900 text-gold-400 px-2 py-0.5 rounded border border-charcoal-700 text-[11px]">
+                            <span className="bg-charcoal-900 text-gold-400 font-bold px-2.5 py-1 rounded-md border border-charcoal-700 text-xs tracking-wider shadow-xs">
                               {stock.licensePlate}
                             </span>
                           ) : (
@@ -1101,34 +1092,35 @@ export default function StokUnitPage() {
                           )}
                         </td>
 
-                        {/* 8. HARGA CASH */}
-                        <td className="py-3 px-3.5 text-right font-black text-sm text-charcoal-900 whitespace-nowrap">
-                          {formatRupiah(stock.price)}
+                        {/* 7. HARGA CASH */}
+                        <td className="py-3.5 px-4 text-right font-black text-sm text-charcoal-900 whitespace-nowrap">
+                          <span className="block font-black text-sm text-charcoal-950">{formatRupiah(stock.price)}</span>
+                          <span className="text-[10px] text-charcoal-400 font-medium">Cash OTR</span>
                         </td>
 
-                        {/* 9. PAKET KREDIT (DP & TENOR) */}
-                        <td className="py-3 px-3 text-center">
+                        {/* 8. PAKET KREDIT (DP & TENOR) */}
+                        <td className="py-3.5 px-4 text-center whitespace-nowrap">
                           {stock.creditDp || stock.installment35x || stock.installment47x || stock.installment59x ? (
                             <div className="inline-flex flex-col items-center gap-1">
                               {stock.creditDp && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gold-50 text-gold-900 border border-gold-200 font-extrabold text-[10px]">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-gold-50 text-gold-900 border border-gold-300 font-extrabold text-[10px] shadow-xs">
                                   DP {formatRupiah(stock.creditDp)}
                                 </span>
                               )}
                               <div className="flex items-center gap-1 text-[10px] text-charcoal-600 font-mono">
                                 {stock.installment59x && (
-                                  <span className="bg-warm-100 px-1.5 py-0.2 rounded border border-warm-200" title="Cicilan 59x (5 Thn)">
-                                    {stock.installment59x}
+                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 59x (5 Thn)">
+                                    <span className="text-charcoal-400 text-[9px]">59x:</span> {stock.installment59x}
                                   </span>
                                 )}
                                 {stock.installment47x && (
-                                  <span className="bg-warm-100 px-1.5 py-0.2 rounded border border-warm-200" title="Cicilan 47x (4 Thn)">
-                                    {stock.installment47x}
+                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 47x (4 Thn)">
+                                    <span className="text-charcoal-400 text-[9px]">47x:</span> {stock.installment47x}
                                   </span>
                                 )}
                                 {stock.installment35x && (
-                                  <span className="bg-warm-100 px-1.5 py-0.2 rounded border border-warm-200" title="Cicilan 35x (3 Thn)">
-                                    {stock.installment35x}
+                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 35x (3 Thn)">
+                                    <span className="text-charcoal-400 text-[9px]">35x:</span> {stock.installment35x}
                                   </span>
                                 )}
                               </div>
@@ -1147,37 +1139,37 @@ export default function StokUnitPage() {
                           )}
                         </td>
 
-                        {/* 10. STATUS */}
-                        <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {/* 9. STATUS */}
+                        <td className="py-3.5 px-3 text-center whitespace-nowrap">
                           {stock.status === 'Tersedia' && (
-                            <span className="badge-gold font-bold">
-                              <span className="w-1.5 h-1.5 rounded-full bg-gold-600 animate-pulse"></span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                               Ready
                             </span>
                           )}
                           {stock.status === 'Booking' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                              <Clock className="w-3 h-3 text-amber-700" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+                              <Clock className="w-3.5 h-3.5 text-amber-700" />
                               Booking
                             </span>
                           )}
                           {stock.status === 'Terjual' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
-                              <CheckCircle2 className="w-3 h-3 text-rose-600" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 shadow-xs">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
                               Sold Out
                             </span>
                           )}
                         </td>
 
-                        {/* 11. AKSI */}
-                        <td className="py-3 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        {/* 10. AKSI */}
+                        <td className="py-3.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1.5">
                             <a
                               href={generateCarWhatsAppLink(stock)}
                               target="_blank"
                               rel="noreferrer"
                               title="Bagikan Penawaran ke WhatsApp"
-                              className="p-1.5 rounded-md text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                              className="p-1.5 rounded-md text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-xs"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
                             </a>
@@ -1186,7 +1178,7 @@ export default function StokUnitPage() {
                               type="button"
                               onClick={() => handleOpenCalculator(stock)}
                               title="Simulasi Kredit"
-                              className="p-1.5 rounded-md text-gold-700 bg-gold-50 hover:bg-gold-100 border border-gold-200 transition-colors"
+                              className="p-1.5 rounded-md text-gold-700 bg-gold-50 hover:bg-gold-100 border border-gold-200 transition-colors shadow-xs"
                             >
                               <Calculator className="w-3.5 h-3.5" />
                             </button>
@@ -1195,7 +1187,7 @@ export default function StokUnitPage() {
                               type="button"
                               onClick={() => handleOpenDetail(stock)}
                               title="Lihat Detail Spesifikasi"
-                              className="p-1.5 rounded-md text-charcoal-600 bg-warm-100 hover:bg-warm-200 transition-colors"
+                              className="p-1.5 rounded-md text-charcoal-600 bg-warm-100 hover:bg-warm-200 transition-colors shadow-xs"
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
@@ -1204,7 +1196,7 @@ export default function StokUnitPage() {
                               type="button"
                               onClick={() => handleOpenEdit(stock)}
                               title="Edit Data Unit"
-                              className="p-1.5 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+                              className="p-1.5 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors shadow-xs"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
