@@ -127,20 +127,23 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
 
   // Sync with API on mount & Restore session
   useEffect(() => {
-    // Restore session
+    // Purge persistent localStorage so user is required to authenticate on new sessions
     try {
       if (typeof window !== 'undefined') {
-        const savedSession = localStorage.getItem('hr_motor_session');
-        if (savedSession) {
-          const parsed = JSON.parse(savedSession) as User;
+        localStorage.removeItem('hr_motor_session');
+        const sessionStr = sessionStorage.getItem('hr_motor_session');
+        if (sessionStr) {
+          const parsed = JSON.parse(sessionStr) as User;
           if (parsed && parsed.email) {
             setCurrentUser(parsed);
             setIsAuthenticated(true);
           }
+        } else {
+          setIsAuthenticated(false);
         }
       }
     } catch (e) {
-      console.warn('Session restoration failed:', e);
+      console.warn('Session check failed:', e);
     }
 
     async function loadData() {
@@ -166,15 +169,15 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
               setUsers(d.users);
               // Refresh current user data if session active
               if (typeof window !== 'undefined') {
-                const saved = localStorage.getItem('hr_motor_session');
-                if (saved) {
-                  const parsed = JSON.parse(saved) as User;
+                const sessionStr = sessionStorage.getItem('hr_motor_session');
+                if (sessionStr) {
+                  const parsed = JSON.parse(sessionStr) as User;
                   const fresh = d.users.find((u: User) => u.email.toLowerCase() === parsed.email.toLowerCase());
                   if (fresh) {
                     if (!fresh.isApproved) {
                       // Account was revoked/unapproved
                       setIsAuthenticated(false);
-                      localStorage.removeItem('hr_motor_session');
+                      sessionStorage.removeItem('hr_motor_session');
                     } else {
                       setCurrentUser(fresh);
                     }
@@ -210,7 +213,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(true);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('hr_motor_session', JSON.stringify(user));
+        sessionStorage.setItem('hr_motor_session', JSON.stringify(user));
       } catch (e) {}
     }
   };
@@ -404,7 +407,8 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(true);
         if (typeof window !== 'undefined') {
           try {
-            localStorage.setItem('hr_motor_session', JSON.stringify(loggedUser));
+            sessionStorage.setItem('hr_motor_session', JSON.stringify(loggedUser));
+            localStorage.removeItem('hr_motor_session');
           } catch (e) {}
         }
 
@@ -430,6 +434,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     if (typeof window !== 'undefined') {
       try {
+        sessionStorage.removeItem('hr_motor_session');
         localStorage.removeItem('hr_motor_session');
       } catch (e) {}
       window.location.href = '/';
