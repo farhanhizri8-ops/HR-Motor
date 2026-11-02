@@ -196,12 +196,14 @@ export interface FollowUp {
   updatedAt: string;
 }
 
-export type VehicleStockStatus = 'Tersedia' | 'Terjual' | 'Tidak Aktif';
+export type VehicleStockStatus = 'Tersedia' | 'Booking' | 'Terjual' | 'Tidak Aktif';
 export type TransmissionType = 'Manual' | 'Otomatis' | 'CVT';
 export type FuelType = 'Bensin' | 'Diesel' | 'Hybrid';
 
 export interface VehicleStock {
   id: string; // e.g. STK-2026-001
+  stockNumber?: number; // No. urut 1 - 32 dari spreadsheet showroom
+  merkType?: string; // e.g. "DAIHATSU SIGRA 1.2 R FACELIFT M/T"
   brand: string;
   model: string;
   year: number;
@@ -211,6 +213,7 @@ export interface VehicleStock {
   fuel: FuelType;
   mileageKm?: number;
   mileage: number;
+  odometerDisplay?: string; // e.g. "26RB", "130RB"
   price: number; // in IDR
   entryDate: string; // YYYY-MM-DD
   images?: string[];
@@ -219,6 +222,13 @@ export interface VehicleStock {
   status: VehicleStockStatus;
   plateNumber?: string;
   licensePlate?: string;
+  // Simulasi Paket Kredit Showroom HR MOTOR (dari Google Sheet)
+  creditDp?: number; // e.g. 15000000
+  installment35x?: string; // e.g. "5.350 (35x)"
+  installment47x?: string; // e.g. "4.335 (47x)"
+  installment59x?: string; // e.g. "4.065 (59x)"
+  leasingPartners?: string[]; // e.g. ["OTO", "MUF", "ADIRA"]
+  readinessNotes?: string[]; // e.g. ["❌ FOTO", "❌ DETAILING", "SOLDOUT", "BOOKING"]
   engineNumber?: string;
   chassisNumber?: string;
   taxValidUntil?: string;

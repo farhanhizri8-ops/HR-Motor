@@ -100,8 +100,8 @@ export function readDatabase(): CrmDatabase {
       parsed.repairClaims = INITIAL_REPAIR_CLAIMS;
     }
 
-    // Ensure stocks is present
-    if (!parsed.stocks || !Array.isArray(parsed.stocks) || parsed.stocks.length === 0) {
+    // Ensure stocks is present and has the full 32 official showroom units
+    if (!parsed.stocks || !Array.isArray(parsed.stocks) || parsed.stocks.length < 20) {
       parsed.stocks = INITIAL_STOCKS;
     }
 
