@@ -194,13 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* Showroom Location Pill */}
-        {!collapsed && (
-          <div className="px-4 py-2 bg-[#171717] border-b border-[#262626] flex items-center justify-between text-[10px]">
-            <span className="text-slate-400 font-medium truncate">Jl. Otista No. 128, Garut</span>
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
-          </div>
-        )}
+
 
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
