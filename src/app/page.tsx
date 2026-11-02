@@ -38,7 +38,35 @@ import {
 } from 'recharts';
 import { useCrm } from '@/context/CrmContext';
 
-type DateFilterType = 'hari_ini' | 'minggu_ini' | 'bulan_ini' | 'kustom';
+type DateFilterType =
+  | 'hari_ini'
+  | 'minggu_ini'
+  | 'bulan_ini'
+  | 'per_bulan'
+  | 'tahun_ini'
+  | 'per_tahun'
+  | 'semua'
+  | 'kustom';
+
+const MONTH_OPTIONS = [
+  { month: 10, year: 2026, label: 'November 2026 (Bulan Ini)' },
+  { month: 9, year: 2026, label: 'Oktober 2026' },
+  { month: 8, year: 2026, label: 'September 2026' },
+  { month: 7, year: 2026, label: 'Agustus 2026' },
+  { month: 6, year: 2026, label: 'Juli 2026' },
+  { month: 5, year: 2026, label: 'Juni 2026' },
+  { month: 4, year: 2026, label: 'Mei 2026' },
+  { month: 3, year: 2026, label: 'April 2026' },
+  { month: 2, year: 2026, label: 'Maret 2026' },
+  { month: 1, year: 2026, label: 'Februari 2026' },
+  { month: 0, year: 2026, label: 'Januari 2026' },
+];
+
+const YEAR_OPTIONS = [
+  { year: 2026, label: 'Tahun 2026 (Tahun Ini)' },
+  { year: 2025, label: 'Tahun 2025' },
+  { year: 2024, label: 'Tahun 2024' },
+];
 
 export default function DashboardPage() {
   const {
@@ -57,46 +85,134 @@ export default function DashboardPage() {
   } = useCrm();
 
   const [dateFilter, setDateFilter] = useState<DateFilterType>('bulan_ini');
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(10); // Nov
+  const [selectedMonthYear, setSelectedMonthYear] = useState<number>(2026);
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [customStartDate, setCustomStartDate] = useState('2026-10-01');
-  const [customEndDate, setCustomEndDate] = useState('2026-11-02');
+  const [customEndDate, setCustomEndDate] = useState('2026-11-03');
 
-  // Filtered data based on selected date filter
-  const filteredData = useMemo(() => {
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-
-    let start = new Date();
-    let end = new Date();
+  // Exact period boundary computation
+  const periodInfo = useMemo(() => {
+    let start = new Date(2026, 0, 1, 0, 0, 0);
+    let end = new Date(2026, 11, 31, 23, 59, 59);
+    let label = 'Tahun 2026';
+    let rangeDesc = '1 Jan 2026 - 31 Des 2026';
 
     if (dateFilter === 'hari_ini') {
-      start = new Date(todayStr + 'T00:00:00');
-      end = new Date(todayStr + 'T23:59:59');
+      const todayStr = '2026-11-02';
+      start = new Date(`${todayStr}T00:00:00`);
+      end = new Date(`${todayStr}T23:59:59`);
+      label = 'Hari Ini';
+      rangeDesc = '2 Nov 2026';
     } else if (dateFilter === 'minggu_ini') {
-      start.setDate(now.getDate() - 7);
+      start = new Date('2026-10-27T00:00:00');
+      end = new Date('2026-11-03T23:59:59');
+      label = 'Minggu Ini';
+      rangeDesc = '27 Okt - 3 Nov 2026';
     } else if (dateFilter === 'bulan_ini') {
-      start.setDate(now.getDate() - 30);
+      start = new Date(2026, 10, 1, 0, 0, 0);
+      end = new Date(2026, 11, 0, 23, 59, 59);
+      label = 'Bulan Ini (November 2026)';
+      rangeDesc = '1 Nov 2026 - 30 Nov 2026';
+    } else if (dateFilter === 'per_bulan') {
+      start = new Date(selectedMonthYear, selectedMonthIndex, 1, 0, 0, 0);
+      end = new Date(selectedMonthYear, selectedMonthIndex + 1, 0, 23, 59, 59);
+      const mNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      label = `Bulan ${mNames[selectedMonthIndex]} ${selectedMonthYear}`;
+      rangeDesc = `1 - ${end.getDate()} ${mNames[selectedMonthIndex]} ${selectedMonthYear}`;
+    } else if (dateFilter === 'tahun_ini') {
+      start = new Date(2026, 0, 1, 0, 0, 0);
+      end = new Date(2026, 11, 31, 23, 59, 59);
+      label = 'Tahun Ini (2026)';
+      rangeDesc = '1 Jan 2026 - 31 Des 2026';
+    } else if (dateFilter === 'per_tahun') {
+      start = new Date(selectedYear, 0, 1, 0, 0, 0);
+      end = new Date(selectedYear, 11, 31, 23, 59, 59);
+      label = `Tahun ${selectedYear}`;
+      rangeDesc = `1 Jan ${selectedYear} - 31 Des ${selectedYear}`;
+    } else if (dateFilter === 'semua') {
+      start = new Date(2020, 0, 1, 0, 0, 0);
+      end = new Date(2030, 11, 31, 23, 59, 59);
+      label = 'Semua Waktu';
+      rangeDesc = 'Seluruh data showroom';
     } else if (dateFilter === 'kustom') {
-      start = new Date(customStartDate + 'T00:00:00');
-      end = new Date(customEndDate + 'T23:59:59');
+      start = new Date(`${customStartDate}T00:00:00`);
+      end = new Date(`${customEndDate}T23:59:59`);
+      label = 'Rentang Kustom';
+      rangeDesc = `${customStartDate} s/d ${customEndDate}`;
     }
 
-    const filteredLeads = leads.filter((l) => {
-      const d = new Date(l.dateReceived || l.createdAt);
-      return d >= start && d <= end;
+    return { start, end, label, rangeDesc };
+  }, [dateFilter, selectedMonthIndex, selectedMonthYear, selectedYear, customStartDate, customEndDate]);
+
+  // Actual filtered data across all entities
+  const filteredLeads = useMemo(() => {
+    if (dateFilter === 'semua') return leads;
+    return leads.filter((l) => {
+      const dStr = l.dateReceived || l.createdAt;
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      return d >= periodInfo.start && d <= periodInfo.end;
     });
+  }, [leads, periodInfo, dateFilter]);
 
-    const filteredPurchases = purchases.filter((p) => {
-      const d = new Date(p.purchaseDate || p.createdAt);
-      return d >= start && d <= end;
+  const filteredPurchases = useMemo(() => {
+    if (dateFilter === 'semua') return purchases;
+    return purchases.filter((p) => {
+      const dStr = p.purchaseDate || p.createdAt;
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      return d >= periodInfo.start && d <= periodInfo.end;
     });
+  }, [purchases, periodInfo, dateFilter]);
 
-    return {
-      filteredLeads,
-      filteredPurchases,
-    };
-  }, [dateFilter, customStartDate, customEndDate, leads, purchases]);
+  const filteredCustomers = useMemo(() => {
+    if (dateFilter === 'semua') return customers;
+    return customers.filter((c) => {
+      const dStr = c.registeredDate;
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      return d >= periodInfo.start && d <= periodInfo.end;
+    });
+  }, [customers, periodInfo, dateFilter]);
 
-  // Lead Source Chart Data
+  const filteredFollowUps = useMemo(() => {
+    if (dateFilter === 'semua') return followUps;
+    return followUps.filter((f) => {
+      const dStr = f.scheduledDate || f.createdAt;
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      return d >= periodInfo.start && d <= periodInfo.end;
+    });
+  }, [followUps, periodInfo, dateFilter]);
+
+  // Dynamic KPI Metrics
+  const periodDealsCount = useMemo(() => {
+    if (filteredPurchases.length > 0) return filteredPurchases.length;
+    return filteredLeads.filter((l) => l.status === 'Deal').length;
+  }, [filteredPurchases, filteredLeads]);
+
+  const periodOmzet = useMemo(() => {
+    const pSum = filteredPurchases.reduce((acc, p) => acc + (p.purchasePrice || 0), 0);
+    if (pSum > 0) return pSum;
+    const dealLeads = filteredLeads.filter((l) => l.status === 'Deal');
+    return dealLeads.reduce((acc, l) => acc + (l.dealValue || l.estimatedBudget || 0), 0);
+  }, [filteredPurchases, filteredLeads]);
+
+  const periodConversionRate = useMemo(() => {
+    const deals = filteredLeads.filter((l) => l.status === 'Deal').length;
+    const lost = filteredLeads.filter((l) => l.status === 'Lost').length;
+    const resolved = deals + lost;
+    if (resolved > 0) {
+      return ((deals / resolved) * 100).toFixed(1);
+    }
+    if (filteredLeads.length > 0 && deals > 0) {
+      return ((deals / filteredLeads.length) * 100).toFixed(1);
+    }
+    return '0.0';
+  }, [filteredLeads]);
+
+  // Lead Source Chart Data (Dynamic based on selected period)
   const leadSourceData = useMemo(() => {
     const counts: Record<string, number> = {
       Facebook: 0,
@@ -107,7 +223,7 @@ export default function DashboardPage() {
       Referral: 0,
       Other: 0,
     };
-    leads.forEach((l) => {
+    filteredLeads.forEach((l) => {
       if (counts[l.leadSource] !== undefined) {
         counts[l.leadSource]++;
       } else {
@@ -119,9 +235,9 @@ export default function DashboardPage() {
       name,
       total,
     }));
-  }, [leads]);
+  }, [filteredLeads]);
 
-  // Pipeline Stage Distribution Chart Data
+  // Pipeline Stage Distribution Chart Data (Dynamic based on selected period)
   const pipelineDistribution = useMemo(() => {
     const stages = [
       'Menanyakan Unit',
@@ -134,20 +250,83 @@ export default function DashboardPage() {
 
     return stages.map((st) => ({
       stage: st,
-      jumlah: leads.filter((l) => l.status === st).length,
+      jumlah: filteredLeads.filter((l) => l.status === st).length,
     }));
-  }, [leads]);
+  }, [filteredLeads]);
 
-  // Customer Growth Trend
-  const growthTrendData = [
-    { bulan: 'Mei', pelanggan: 14, prospek: 28 },
-    { bulan: 'Jun', pelanggan: 18, prospek: 35 },
-    { bulan: 'Jul', pelanggan: 22, prospek: 42 },
-    { bulan: 'Agu', pelanggan: 27, prospek: 49 },
-    { bulan: 'Sep', pelanggan: 34, prospek: 58 },
-    { bulan: 'Okt', pelanggan: 42, prospek: 67 },
-    { bulan: 'Nov (Berjalan)', pelanggan: customers.length, prospek: leads.length },
-  ];
+  // Dynamic Growth Trend Data (Monthly for per-year view, Weekly for per-month view)
+  const growthTrendData = useMemo(() => {
+    // If viewing per month, breakdown by weeks
+    if (dateFilter === 'bulan_ini' || dateFilter === 'per_bulan') {
+      const targetYear = dateFilter === 'bulan_ini' ? 2026 : selectedMonthYear;
+      const targetMonth = dateFilter === 'bulan_ini' ? 10 : selectedMonthIndex;
+      const weeks = [
+        { name: 'Mg 1 (1-7)', startDay: 1, endDay: 7 },
+        { name: 'Mg 2 (8-14)', startDay: 8, endDay: 14 },
+        { name: 'Mg 3 (15-21)', startDay: 15, endDay: 21 },
+        { name: 'Mg 4 (22-28)', startDay: 22, endDay: 28 },
+        { name: 'Mg 5 (29-31)', startDay: 29, endDay: 31 },
+      ];
+
+      return weeks.map((w) => {
+        const pCount = leads.filter((l) => {
+          const dStr = l.dateReceived || l.createdAt;
+          if (!dStr) return false;
+          const d = new Date(dStr);
+          return (
+            d.getFullYear() === targetYear &&
+            d.getMonth() === targetMonth &&
+            d.getDate() >= w.startDay &&
+            d.getDate() <= w.endDay
+          );
+        }).length;
+
+        const cCount = customers.filter((c) => {
+          const dStr = c.registeredDate;
+          if (!dStr) return false;
+          const d = new Date(dStr);
+          return (
+            d.getFullYear() === targetYear &&
+            d.getMonth() === targetMonth &&
+            d.getDate() >= w.startDay &&
+            d.getDate() <= w.endDay
+          );
+        }).length;
+
+        return {
+          bulan: w.name,
+          prospek: pCount,
+          pelanggan: cCount,
+        };
+      });
+    }
+
+    // Default: 12 months view of the selected year
+    const targetYear = dateFilter === 'per_tahun' ? selectedYear : 2026;
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    return monthLabels.map((lbl, idx) => {
+      const pCount = leads.filter((l) => {
+        const dStr = l.dateReceived || l.createdAt;
+        if (!dStr) return false;
+        const d = new Date(dStr);
+        return d.getFullYear() === targetYear && d.getMonth() === idx;
+      }).length;
+
+      const cCount = customers.filter((c) => {
+        const dStr = c.registeredDate;
+        if (!dStr) return false;
+        const d = new Date(dStr);
+        return d.getFullYear() === targetYear && d.getMonth() === idx;
+      }).length;
+
+      return {
+        bulan: lbl,
+        prospek: pCount,
+        pelanggan: cCount,
+      };
+    });
+  }, [dateFilter, selectedMonthIndex, selectedMonthYear, selectedYear, leads, customers]);
 
   // Refined Luxury Showroom Color Palette (Gold & Charcoal tones, NO rainbow)
   const SOURCE_COLORS = [
@@ -164,14 +343,24 @@ export default function DashboardPage() {
     return (stocks || []).filter((s) => s.status === 'Tersedia').length;
   }, [stocks]);
 
-  const upcomingFollowUps = followUps
-    .filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan')
-    .slice(0, 4);
+  const upcomingFollowUps = useMemo(() => {
+    if (filteredFollowUps.length > 0) {
+      return filteredFollowUps.slice(0, 4);
+    }
+    return followUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan').slice(0, 4);
+  }, [filteredFollowUps, followUps]);
 
-  const recentDeals = purchases.slice(0, 4);
-  const recentLeads = leads.slice(0, 4);
+  const recentDeals = useMemo(() => {
+    if (filteredPurchases.length > 0) return filteredPurchases.slice(0, 4);
+    return purchases.slice(0, 4);
+  }, [filteredPurchases, purchases]);
+
+  const recentLeads = useMemo(() => {
+    if (filteredLeads.length > 0) return filteredLeads.slice(0, 4);
+    return leads.slice(0, 4);
+  }, [filteredLeads, leads]);
+
   const recentLogs = activityLogs.slice(0, 5);
-
   const warrantyClaimCount = repairClaims.filter((r) => r.claimType === 'Garansi').length;
 
   return (
@@ -181,7 +370,7 @@ export default function DashboardPage() {
         {/* Subtle decorative gold light accent */}
         <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-gold-50/70 via-gold-50/20 to-transparent pointer-events-none" />
 
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="badge-gold">
@@ -200,30 +389,11 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* Date Filter Controls */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <div className="inline-flex p-1 bg-warm-100 rounded-xl border border-warm-200">
+          {/* Date Filter Controls with Per Tahun & Per Bulan Support */}
+          <div className="flex flex-col gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-warm-100 rounded-xl border border-warm-200">
               <button
-                onClick={() => setDateFilter('hari_ini')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                  dateFilter === 'hari_ini'
-                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
-                    : 'text-charcoal-600 hover:text-charcoal-900'
-                }`}
-              >
-                Hari Ini
-              </button>
-              <button
-                onClick={() => setDateFilter('minggu_ini')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                  dateFilter === 'minggu_ini'
-                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
-                    : 'text-charcoal-600 hover:text-charcoal-900'
-                }`}
-              >
-                Minggu Ini
-              </button>
-              <button
+                type="button"
                 onClick={() => setDateFilter('bulan_ini')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'bulan_ini'
@@ -234,6 +404,73 @@ export default function DashboardPage() {
                 Bulan Ini
               </button>
               <button
+                type="button"
+                onClick={() => setDateFilter('per_bulan')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  dateFilter === 'per_bulan'
+                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
+                    : 'text-charcoal-600 hover:text-charcoal-900'
+                }`}
+              >
+                Per Bulan
+              </button>
+              <button
+                type="button"
+                onClick={() => setDateFilter('tahun_ini')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  dateFilter === 'tahun_ini'
+                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
+                    : 'text-charcoal-600 hover:text-charcoal-900'
+                }`}
+              >
+                Tahun Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setDateFilter('per_tahun')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  dateFilter === 'per_tahun'
+                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
+                    : 'text-charcoal-600 hover:text-charcoal-900'
+                }`}
+              >
+                Per Tahun
+              </button>
+              <button
+                type="button"
+                onClick={() => setDateFilter('minggu_ini')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  dateFilter === 'minggu_ini'
+                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
+                    : 'text-charcoal-600 hover:text-charcoal-900'
+                }`}
+              >
+                Minggu Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setDateFilter('hari_ini')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  dateFilter === 'hari_ini'
+                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
+                    : 'text-charcoal-600 hover:text-charcoal-900'
+                }`}
+              >
+                Hari Ini
+              </button>
+              <button
+                type="button"
+                onClick={() => setDateFilter('semua')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  dateFilter === 'semua'
+                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
+                    : 'text-charcoal-600 hover:text-charcoal-900'
+                }`}
+              >
+                Semua
+              </button>
+              <button
+                type="button"
                 onClick={() => setDateFilter('kustom')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'kustom'
@@ -244,11 +481,91 @@ export default function DashboardPage() {
                 Kustom
               </button>
             </div>
+
+            {/* Sub-selector for Per Bulan */}
+            {dateFilter === 'per_bulan' && (
+              <div className="flex items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs">
+                <span className="font-bold text-charcoal-700">Pilih Bulan:</span>
+                <select
+                  value={`${selectedMonthIndex}-${selectedMonthYear}`}
+                  onChange={(e) => {
+                    const [m, y] = e.target.value.split('-').map(Number);
+                    setSelectedMonthIndex(m);
+                    setSelectedMonthYear(y);
+                  }}
+                  className="bg-white px-3 py-1 rounded-lg border border-warm-200 text-charcoal-900 font-bold focus:outline-none focus:border-gold-500 shadow-xs cursor-pointer"
+                >
+                  {MONTH_OPTIONS.map((opt) => (
+                    <option key={`${opt.month}-${opt.year}`} value={`${opt.month}-${opt.year}`}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Sub-selector for Per Tahun */}
+            {dateFilter === 'per_tahun' && (
+              <div className="flex items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs">
+                <span className="font-bold text-charcoal-700">Pilih Tahun:</span>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  className="bg-white px-3 py-1 rounded-lg border border-warm-200 text-charcoal-900 font-bold focus:outline-none focus:border-gold-500 shadow-xs cursor-pointer"
+                >
+                  {YEAR_OPTIONS.map((opt) => (
+                    <option key={opt.year} value={opt.year}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Sub-selector for Kustom Range */}
+            {dateFilter === 'kustom' && (
+              <div className="flex flex-wrap items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs">
+                <span className="font-bold text-charcoal-700">Dari:</span>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="bg-white px-2 py-1 rounded-lg border border-warm-200 text-charcoal-900 text-xs font-mono"
+                />
+                <span className="font-bold text-charcoal-700">Sampai:</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="bg-white px-2 py-1 rounded-lg border border-warm-200 text-charcoal-900 text-xs font-mono"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Active Period Info Strip */}
+        <div className="mt-4 pt-3 border-t border-warm-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
+            <span className="text-charcoal-500">Filter Aktif:</span>
+            <span className="font-bold text-charcoal-900 bg-gold-50 text-gold-800 px-2.5 py-0.5 rounded-full border border-gold-200">
+              {periodInfo.label} ({periodInfo.rangeDesc})
+            </span>
+          </div>
+          <div className="flex items-center gap-3 sm:gap-4 text-charcoal-600 font-medium text-[11px]">
+            <span>Prospek: <strong className="text-charcoal-900 font-bold">{filteredLeads.length}</strong></span>
+            <span>•</span>
+            <span>Deal: <strong className="text-emerald-700 font-bold">{periodDealsCount}</strong></span>
+            <span>•</span>
+            <span>Omzet: <strong className="text-gold-700 font-bold">{formatRupiah(periodOmzet)}</strong></span>
+            <span>•</span>
+            <span>Konversi: <strong className="text-charcoal-900 font-bold">{periodConversionRate}%</strong></span>
           </div>
         </div>
       </div>
 
-      {/* 6 Key Metric Cards (Luxury Automotive Aesthetics) */}
+      {/* 6 Key Metric Cards (Luxury Automotive Aesthetics - Connected to Filter) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         {/* Metric 1: Total Pelanggan */}
         <div className="crm-card p-4 flex flex-col justify-between">
@@ -259,9 +576,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{customers.length}</div>
-            <div className="text-[11px] text-gold-700 font-semibold mt-0.5">
-              Konsumen Showroom
+            <div className="text-2xl font-black text-charcoal-900">{filteredCustomers.length}</div>
+            <div className="text-[11px] text-gold-700 font-semibold mt-0.5 truncate">
+              {dateFilter === 'semua' ? 'Konsumen Showroom' : 'Konsumen Periode Ini'}
             </div>
           </div>
         </div>
@@ -275,10 +592,10 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{leads.length}</div>
+            <div className="text-2xl font-black text-charcoal-900">{filteredLeads.length}</div>
             <div className="text-[11px] text-charcoal-500 font-medium mt-0.5">
               <span className="font-bold text-charcoal-800">
-                {leads.filter((l) => l.status !== 'Deal' && l.status !== 'Lost').length}
+                {filteredLeads.filter((l) => l.status !== 'Deal' && l.status !== 'Lost').length}
               </span>{' '}
               aktif di pipeline
             </div>
@@ -310,9 +627,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{purchases.length}</div>
-            <div className="text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
-              {formatRupiah(purchases.reduce((acc, p) => acc + (p.purchasePrice || 0), 0))}
+            <div className="text-2xl font-black text-charcoal-900">{periodDealsCount}</div>
+            <div className="text-[11px] text-charcoal-500 font-medium mt-0.5 truncate" title={formatRupiah(periodOmzet)}>
+              {formatRupiah(periodOmzet)}
             </div>
           </div>
         </div>
@@ -326,24 +643,26 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{metrics.conversionRate}%</div>
+            <div className="text-2xl font-black text-charcoal-900">{periodConversionRate}%</div>
             <div className="text-[11px] text-charcoal-500 font-medium mt-0.5">
-              Efektivitas Sales
+              {filteredLeads.filter((l) => l.status === 'Deal' || l.status === 'Lost').length} Prospek Final
             </div>
           </div>
         </div>
 
-        {/* Metric 6: Follow-up Hari Ini */}
+        {/* Metric 6: Follow-up Terjadwal */}
         <div className="crm-card p-4 flex flex-col justify-between bg-gold-50/50 border-gold-200">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-gold-800">Follow-up Hari Ini</span>
+            <span className="text-[11px] font-semibold text-gold-800">
+              {dateFilter === 'hari_ini' ? 'Follow-up Hari Ini' : 'Follow-up Terjadwal'}
+            </span>
             <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-700 border border-gold-300 flex items-center justify-center">
               <CalendarClock className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
             <div className="text-2xl font-black text-gold-900">
-              {followUps.filter((f) => f.scheduledDate === new Date().toISOString().split('T')[0]).length || 3}
+              {filteredFollowUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan').length}
             </div>
             <div className="text-[11px] text-gold-700 font-medium mt-0.5">
               Kontak Konsumen

@@ -72,7 +72,7 @@ const PIE_PALETTE = [
   '#C7C2B8', // Soft warm grey
 ];
 
-type PeriodFilter = 'all' | 'this_month' | 'last_month' | 'this_quarter' | 'this_year';
+type PeriodFilter = 'all' | 'this_month' | 'last_month' | 'sep_2026' | 'this_quarter' | 'this_year' | 'year_2025';
 
 export default function ReportsAnalyticsPage() {
   const {
@@ -114,11 +114,15 @@ export default function ReportsAnalyticsPage() {
         return year === refYear && month === refMonth;
       case 'last_month':
         return year === refYear && month === refMonth - 1;
+      case 'sep_2026':
+        return year === refYear && month === 8; // September
       case 'this_quarter':
         // Q4 = Oct (9), Nov (10), Dec (11)
         return year === refYear && month >= 9 && month <= 11;
       case 'this_year':
         return year === refYear;
+      case 'year_2025':
+        return year === 2025;
       default:
         return true;
     }
@@ -638,10 +642,14 @@ export default function ReportsAnalyticsPage() {
         return 'Bulan Ini (November 2026)';
       case 'last_month':
         return 'Bulan Lalu (Oktober 2026)';
+      case 'sep_2026':
+        return 'Bulan September 2026';
       case 'this_quarter':
         return 'Kuartal Ini (Q4 2026)';
       case 'this_year':
         return 'Tahun Ini (2026)';
+      case 'year_2025':
+        return 'Tahun 2025';
       default:
         return 'Semua Waktu';
     }
@@ -701,11 +709,17 @@ export default function ReportsAnalyticsPage() {
                 onChange={(e) => setDatePeriod(e.target.value as PeriodFilter)}
                 className="bg-transparent text-xs font-bold text-[#242424] outline-none cursor-pointer pr-2"
               >
-                <option value="all">Semua Waktu</option>
-                <option value="this_month">Bulan Ini (November 2026)</option>
-                <option value="last_month">Bulan Lalu (Oktober 2026)</option>
+                <option value="all">Semua Waktu (Seluruh Data)</option>
+                <optgroup label="Data Per Bulan">
+                  <option value="this_month">Bulan Ini (November 2026)</option>
+                  <option value="last_month">Bulan Lalu (Oktober 2026)</option>
+                  <option value="sep_2026">Bulan September 2026</option>
+                </optgroup>
+                <optgroup label="Data Per Tahun">
+                  <option value="this_year">Tahun 2026 (Tahun Ini)</option>
+                  <option value="year_2025">Tahun 2025</option>
+                </optgroup>
                 <option value="this_quarter">Kuartal Ini (Q4 2026)</option>
-                <option value="this_year">Tahun Ini (2026)</option>
               </select>
             </div>
 
