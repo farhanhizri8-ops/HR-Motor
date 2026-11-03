@@ -17,6 +17,7 @@ import {
   Car,
   X,
   Wrench,
+  ShieldCheck,
   Sparkles,
   LogOut,
 } from 'lucide-react';
@@ -70,9 +71,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
     },
     {
-      name: 'Riwayat Perbaikan Garansi',
+      name: 'Garansi Perbaikan',
       href: '/riwayat-perbaikan',
-      icon: Wrench,
+      icon: ShieldCheck,
       roles: ['Owner', 'CRM Administrator', 'WhatsApp Administrator', 'Sales Representative', 'Marketing'],
     },
     {
@@ -179,7 +180,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
           {filteredNav.map((item) => {
-            const isActive = pathname === item.href || (item.href === '/leads' && pathname === '/pipeline');
+            const isActive =
+              pathname === item.href ||
+              (item.href === '/leads' && pathname === '/pipeline') ||
+              (item.href === '/riwayat-perbaikan' && pathname === '/garansi-perbaikan');
             const Icon = item.icon;
 
             return (

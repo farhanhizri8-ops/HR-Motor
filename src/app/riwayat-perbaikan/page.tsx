@@ -30,11 +30,11 @@ import {
   TrendingUp,
   FileSpreadsheet,
   RotateCcw,
-  UserCheck,
-  Award,
-  Layers,
-  ArrowUpRight,
+  Sparkles,
   PieChart as PieChartIcon,
+  Percent,
+  Check,
+  Building2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -48,8 +48,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
 } from 'recharts';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -58,18 +56,26 @@ import { useCrm } from '@/context/CrmContext';
 import {
   RepairClaim,
   RepairClaimType,
-  RepairStatus,
   RepairPartCategory,
+  RepairStatus,
 } from '@/types/crm';
 
 const REPAIR_CATEGORIES: RepairPartCategory[] = [
   'Mesin',
-  'Transmisi',
-  'Kaki-kaki & Suspensi',
   'Kelistrikan & AC',
+  'Kaki-kaki & Suspensi',
   'Sistem Rem',
+  'Transmisi',
   'Bodi & Cat',
   'Lainnya',
+];
+
+const RECOMMENDED_WORKSHOPS = [
+  'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+  'Bengkel Resmi HR MOTOR Garut - Samarang',
+  'Bengkel Garut Otomotif Sentra (Rujukan HR MOTOR)',
+  'Bengkel Mandiri Motor Samarang (Rujukan HR MOTOR)',
+  'Bengkel Mitra Bodi Otomotif Garut (Rujukan HR MOTOR)',
 ];
 
 const CAR_BRANDS = [
@@ -100,49 +106,63 @@ const MONTH_NAMES = [
   'Desember',
 ];
 
-const PIE_COLORS = ['#D99A32', '#F0AD45', '#B87D20', '#202020', '#2E2E2E', '#4A4A4A', '#7A7A7A'];
+const PIE_COLORS = [
+  '#D99A32',
+  '#3B82F6',
+  '#10B981',
+  '#EF4444',
+  '#8B5CF6',
+  '#EC4899',
+  '#64748B',
+];
 
-// Helper to check 1-month warranty status based on purchaseDate and repairDate
-function checkWarrantyStatus(purchaseDateStr?: string, repairDateStr?: string): {
+// Helper to check 30-day warranty status based on purchaseDate and claimDate
+export function checkWarrantyStatus(purchaseDateStr?: string, repairDateStr?: string): {
   isWithinWarranty: boolean;
-  statusLabel: 'Dalam Masa Garansi' | 'Di Luar Masa Garansi';
+  statusLabel: 'Dalam Garansi (Gratis)' | 'Di Luar Garansi';
+  badgeLabel: string;
   daysDiff: number;
+  daysRemaining: number;
   expiryDateStr: string;
   notes: string;
 } {
-  if (!purchaseDateStr || !repairDateStr) {
+  if (!purchaseDateStr) {
     return {
       isWithinWarranty: false,
-      statusLabel: 'Di Luar Masa Garansi',
+      statusLabel: 'Di Luar Garansi',
+      badgeLabel: 'Di Luar Garansi',
       daysDiff: 0,
+      daysRemaining: 0,
       expiryDateStr: '-',
       notes: 'Tanggal pembelian belum tercatat',
     };
   }
 
   const pDate = new Date(purchaseDateStr + 'T00:00:00');
-  const rDate = new Date(repairDateStr + 'T00:00:00');
+  const rDate = repairDateStr ? new Date(repairDateStr + 'T00:00:00') : new Date();
 
-  // 1 month warranty calculation (calendar month)
+  // Exactly 30 calendar days warranty (< 1 Bulan)
   const expiryDate = new Date(pDate);
-  expiryDate.setMonth(expiryDate.getMonth() + 1);
+  expiryDate.setDate(expiryDate.getDate() + 30);
 
   const diffTime = rDate.getTime() - pDate.getTime();
   const daysDiff = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  const isWithin = rDate.getTime() <= expiryDate.getTime() && daysDiff >= 0;
+  const isWithin = daysDiff >= 0 && daysDiff <= 30;
   const expiryDateFormatted = expiryDate.toISOString().split('T')[0];
+  const daysRemaining = Math.max(0, 30 - daysDiff);
 
   return {
     isWithinWarranty: isWithin,
-    statusLabel: isWithin ? 'Dalam Masa Garansi' : 'Di Luar Masa Garansi',
+    statusLabel: isWithin ? 'Dalam Garansi (Gratis)' : 'Di Luar Garansi',
+    badgeLabel: isWithin ? 'Gratis < 1 Bulan' : 'Di Luar Garansi',
     daysDiff,
+    daysRemaining,
     expiryDateStr: expiryDateFormatted,
     notes: isWithin
-      ? `Hari ke-${daysDiff} dari masa garansi 1 bulan (Batas garansi: ${expiryDateFormatted})`
+      ? `Hari ke-${daysDiff} dari 30 hari (Sisa ${daysRemaining} hari garansi gratis showroom ke bengkel rujukan HR MOTOR)`
       : daysDiff < 0
       ? 'Tanggal perbaikan mendahului tanggal pembelian unit'
-      : `Melewati masa garansi ${Math.floor((rDate.getTime() - expiryDate.getTime()) / (1000 * 60 * 60 * 24))} hari`,
+      : `Melewati masa garansi 30 hari (+ ${daysDiff - 30} hari)`,
   };
 }
 
@@ -160,15 +180,24 @@ export default function RiwayatPerbaikanGaransiPage() {
     formatWhatsAppLink,
   } = useCrm();
 
-  // Active sub-tab: 'list' (Tabel Riwayat) | 'reports' (Dashboard & Laporan Analitik Owner)
+  // Active sub-tab: 'list' (Tabel Data Garansi) | 'reports' (Dashboard & Analitik Owner)
   const [activeTab, setActiveTab] = useState<'list' | 'reports'>('list');
+
+  // Month & Year Selector for Metric: Total Uang Perbaikan Selama Satu Bulan
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    String(currentDate.getMonth() + 1).padStart(2, '0')
+  ); // e.g. "11"
+  const [selectedYear, setSelectedYear] = useState<string>(
+    String(currentDate.getFullYear())
+  ); // e.g. "2026"
 
   // Search & Filter state for Table
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'Semua' | RepairClaimType>('Semua');
-  const [warrantyFilter, setWarrantyFilter] = useState<'Semua' | 'Dalam Masa Garansi' | 'Di Luar Masa Garansi'>('Semua');
-  const [selectedYearFilter, setSelectedYearFilter] = useState<string>('Semua');
-  const [selectedMonthFilter, setSelectedMonthFilter] = useState<string>('Semua');
+  const [categoryFilter, setCategoryFilter] = useState<string>('Semua');
+  const [warrantyFilter, setWarrantyFilter] = useState<'Semua' | 'Dalam Garansi (Gratis)' | 'Di Luar Garansi'>('Semua');
+  const [tableYearFilter, setTableYearFilter] = useState<string>('Semua');
+  const [tableMonthFilter, setTableMonthFilter] = useState<string>('Semua');
   const [customerFilter, setCustomerFilter] = useState<string>('Semua');
 
   // Modal states
@@ -179,28 +208,31 @@ export default function RiwayatPerbaikanGaransiPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  // Form State for Adding New Repair Record
+  // Form State for Adding New Warranty Claim
   const [formData, setFormData] = useState({
+    selectedPurchaseKey: '',
+    isManualMode: false,
     customerId: '',
     customerName: '',
     customerPhone: '',
     vehicleBrand: 'Toyota',
     vehicleModel: '',
     vehicleYear: 2021,
+    plateNumber: '',
     purchaseDate: '',
-    claimDate: new Date().toISOString().split('T')[0], // Tanggal Perbaikan
-    claimType: 'Garansi' as RepairClaimType,
+    claimDate: new Date().toISOString().split('T')[0],
+    damageCategory: 'Mesin' as RepairPartCategory,
     complaintOrDamage: '',
     partsToRepair: '',
-    damageCategory: 'Mesin' as RepairPartCategory,
+    workshop: 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+    customWorkshop: '',
+    repairCost: 0,
     repairActionDescription: '',
-    sparepartCost: 0,
-    serviceCost: 0,
     notes: '',
     saveNewCustomer: false,
   });
 
-  // State for Editing Existing Repair Record
+  // State for Editing
   const [editFormData, setEditFormData] = useState<{
     id: string;
     claimNumber: string;
@@ -209,27 +241,90 @@ export default function RiwayatPerbaikanGaransiPage() {
     vehicleBrand: string;
     vehicleModel: string;
     vehicleYear: number;
+    plateNumber: string;
     purchaseDate: string;
     claimDate: string;
     claimType: RepairClaimType;
+    damageCategory: RepairPartCategory;
     complaintOrDamage: string;
     partsToRepair: string;
-    damageCategory: RepairPartCategory;
+    workshop: string;
     repairActionDescription: string;
-    sparepartCost: number;
-    serviceCost: number;
+    repairCost: number;
     notes: string;
   } | null>(null);
-
-  // Monthly Report Filter for Owner
-  const currentMonthKey = new Date().toISOString().slice(0, 7); // e.g. 2026-11
-  const [selectedReportPeriod, setSelectedReportPeriod] = useState<string>('ALL');
-  const [reportTypeFilter, setReportTypeFilter] = useState<'Semua' | RepairClaimType>('Semua');
 
   const triggerSuccess = (msg: string) => {
     setActionSuccess(msg);
     setTimeout(() => setActionSuccess(null), 4000);
   };
+
+  // 1. List of Customers Who Have Purchased Cars (Auto-fill dropdown)
+  const purchaseCustomersList = useMemo(() => {
+    const list: Array<{
+      key: string;
+      customerId: string;
+      customerName: string;
+      customerPhone: string;
+      vehicleBrand: string;
+      vehicleModel: string;
+      vehicleYear: number;
+      plateNumber: string;
+      purchaseDate: string;
+      label: string;
+    }> = [];
+
+    purchases.forEach((p, idx) => {
+      const cust = customers.find(
+        (c) => c.id === p.customerId || c.fullName.toLowerCase() === p.customerName.toLowerCase()
+      );
+      const phone = cust ? cust.whatsapp : '';
+      const brand = p.vehicleBrand || (p.vehicleName ? p.vehicleName.split(' ')[0] : 'Toyota');
+      const model = p.vehicleModel || p.vehicleName || 'Mobil';
+      const plate = p.plateNumber || '-';
+
+      list.push({
+        key: `PURCHASE-${p.id || idx}`,
+        customerId: p.customerId || cust?.id || '',
+        customerName: p.customerName,
+        customerPhone: phone,
+        vehicleBrand: brand,
+        vehicleModel: model,
+        vehicleYear: p.vehicleYear || 2021,
+        plateNumber: plate,
+        purchaseDate: p.purchaseDate || '',
+        label: `${p.customerName} — ${brand} ${model} [${plate}] (Beli: ${p.purchaseDate || '-'})`,
+      });
+    });
+
+    // Also include any customer with status 'Sudah Beli' that might not be in purchases table
+    customers.forEach((c) => {
+      if (c.status === 'Sudah Beli') {
+        const alreadyIn = list.some(
+          (item) => item.customerId === c.id || item.customerName.toLowerCase() === c.fullName.toLowerCase()
+        );
+        if (!alreadyIn) {
+          const brand = c.interestedVehicle ? c.interestedVehicle.split(' ')[0] : 'Toyota';
+          const model = c.interestedVehicle || 'Mobil';
+          const plate = c.plateNumber || '-';
+          list.push({
+            key: `CUST-${c.id}`,
+            customerId: c.id,
+            customerName: c.fullName,
+            customerPhone: c.whatsapp,
+            vehicleBrand: brand,
+            vehicleModel: model,
+            vehicleYear: 2021,
+            plateNumber: plate,
+            purchaseDate: c.receiptDate || c.registeredDate || '',
+            label: `${c.fullName} — ${brand} ${model} [${plate}] • ${c.whatsapp}`,
+          });
+        }
+      }
+    });
+
+    return list;
+  }, [purchases, customers]);
 
   // Real-time warranty status check for Add Form
   const addFormWarrantyCheck = useMemo(() => {
@@ -242,44 +337,190 @@ export default function RiwayatPerbaikanGaransiPage() {
     return checkWarrantyStatus(editFormData.purchaseDate, editFormData.claimDate);
   }, [editFormData]);
 
-  // 1. Dashboard Ringkasan Metrik untuk Owner
-  const ownerSummary = useMemo(() => {
-    const totalRecords = repairClaims.length;
+  // 2. CORE DASHBOARD METRICS FOR GARANSI
+  const warrantyMetrics = useMemo(() => {
+    const totalClaimsCount = repairClaims.length;
 
-    // Unique customers count
+    // A. 💰 Total Uang Perbaikan Selama Satu Bulan
+    const monthKey = selectedMonth === 'ALL' ? '' : `${selectedYear}-${selectedMonth}`;
+    const claimsForSelectedMonth = repairClaims.filter((c) => {
+      const d = c.claimDate || c.createdAt;
+      if (!d) return false;
+      if (selectedMonth === 'ALL') {
+        return selectedYear === 'ALL' || d.startsWith(selectedYear);
+      }
+      return d.startsWith(monthKey);
+    });
+    const totalCostSelectedMonth = claimsForSelectedMonth.reduce(
+      (acc, c) => acc + (c.totalCost || 0),
+      0
+    );
+
+    // Total pengeluaran garansi keseluruhan
+    const grandTotalCost = repairClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
+
+    // B. 👥 Total Pelanggan yang Meminta Perbaikan (Unique customers)
     const uniqueCustomerKeys = new Set(
       repairClaims.map((c) => (c.customerPhone || c.customerName).trim().toLowerCase())
     );
     const totalUniqueCustomers = uniqueCustomerKeys.size;
 
-    // Unique vehicles count (brand + model + year)
-    const uniqueVehicles = new Set(
-      repairClaims.map((c) => `${c.vehicleBrand} ${c.vehicleModel} ${c.vehicleYear}`.trim().toLowerCase())
+    // C. 📊 Persentase Pelanggan Garansi dari Semua Penjualan
+    // Rasio klaim: ((Jumlah Pelanggan Klaim / Total Seluruh Penjualan Mobil) * 100%)
+    const totalCarSales = Math.max(
+      purchases.length,
+      customers.filter((c) => c.status === 'Sudah Beli').length,
+      1
     );
-    const totalUniqueVehicles = uniqueVehicles.size;
+    const claimRatioPercentage = ((totalUniqueCustomers / totalCarSales) * 100).toFixed(1);
 
-    // This month costs
-    const thisMonthClaims = repairClaims.filter((c) => {
-      const d = c.claimDate || c.createdAt;
-      return d && d.startsWith(currentMonthKey);
+    // D. 🚗 Berapa Perbaikan Garansi per Unit
+    // Rata-rata frekuensi klaim per unit mobil (totalKlaim / totalUnitUnik)
+    const unitMap: Record<
+      string,
+      {
+        unitKey: string;
+        brand: string;
+        model: string;
+        year: number;
+        plateNumber: string;
+        claimCount: number;
+        totalCost: number;
+        categories: Record<string, number>;
+      }
+    > = {};
+
+    repairClaims.forEach((c) => {
+      const plate = (c.plateNumber || '').trim().toUpperCase();
+      const carName = `${c.vehicleBrand} ${c.vehicleModel}`.trim();
+      const key = plate ? plate : `${carName}-${c.vehicleYear}`.toLowerCase();
+
+      if (!unitMap[key]) {
+        unitMap[key] = {
+          unitKey: key,
+          brand: c.vehicleBrand,
+          model: c.vehicleModel,
+          year: c.vehicleYear,
+          plateNumber: plate || '-',
+          claimCount: 0,
+          totalCost: 0,
+          categories: {},
+        };
+      }
+      unitMap[key].claimCount += 1;
+      unitMap[key].totalCost += c.totalCost || 0;
+      const cat = c.damageCategory || 'Lainnya';
+      unitMap[key].categories[cat] = (unitMap[key].categories[cat] || 0) + 1;
     });
-    const totalCostThisMonth = thisMonthClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
 
-    // Realisasi Biaya Garansi Showroom HR MOTOR (100% Ditanggung Dealer)
-    const grandTotalCost = repairClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
-    const totalGaransiCost = grandTotalCost;
+    const totalUniqueUnits = Object.keys(unitMap).length;
+    const avgPerbaikanPerUnit =
+      totalUniqueUnits > 0 ? (totalClaimsCount / totalUniqueUnits).toFixed(1) : '0';
+
+    // Daftar unit mobil dengan klaim garansi terbanyak (e.g. Innova Reborn 2x, Xpander 1x)
+    const rankedUnits = Object.values(unitMap)
+      .map((u) => {
+        const topCat = Object.entries(u.categories).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
+        return {
+          ...u,
+          topCategory: topCat,
+        };
+      })
+      .sort((a, b) => b.claimCount - a.claimCount || b.totalCost - a.totalCost);
+
+    // E. 🔧 Perbaikan yang Sering Terjadi di Garansi (Ranking frekuensi kategori)
+    const catMap: Record<string, { count: number; totalCost: number }> = {};
+    REPAIR_CATEGORIES.forEach((cat) => {
+      catMap[cat] = { count: 0, totalCost: 0 };
+    });
+
+    repairClaims.forEach((c) => {
+      const cat = c.damageCategory || 'Lainnya';
+      if (!catMap[cat]) {
+        catMap[cat] = { count: 0, totalCost: 0 };
+      }
+      catMap[cat].count += 1;
+      catMap[cat].totalCost += c.totalCost || 0;
+    });
+
+    const rankedCategories = Object.entries(catMap)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        totalCost: data.totalCost,
+        percentage: totalClaimsCount > 0 ? Math.round((data.count / totalClaimsCount) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count || b.totalCost - a.totalCost);
+
+    const topCategory = rankedCategories[0];
+
+    // Status Garansi Distribution
+    const withinCount = repairClaims.filter(
+      (c) => checkWarrantyStatus(c.purchaseDate, c.claimDate).isWithinWarranty
+    ).length;
+    const outsideCount = totalClaimsCount - withinCount;
 
     return {
-      totalRecords,
-      totalUniqueCustomers,
-      totalUniqueVehicles,
-      totalCostThisMonth,
-      totalGaransiCost,
+      totalClaimsCount,
+      totalCostSelectedMonth,
       grandTotalCost,
+      totalUniqueCustomers,
+      totalCarSales,
+      claimRatioPercentage,
+      totalUniqueUnits,
+      avgPerbaikanPerUnit,
+      rankedUnits,
+      rankedCategories,
+      topCategory,
+      withinCount,
+      outsideCount,
     };
-  }, [repairClaims, currentMonthKey]);
+  }, [repairClaims, purchases, customers, selectedMonth, selectedYear]);
 
-  // 2. Filtered Repairs Table Data
+  // Monthly Timeline Trend Data
+  const monthlyTimelineData = useMemo(() => {
+    const groups: Record<
+      string,
+      {
+        monthKey: string;
+        monthLabel: string;
+        totalClaims: number;
+        totalCost: number;
+        customers: Set<string>;
+      }
+    > = {};
+
+    repairClaims.forEach((claim) => {
+      const d = claim.claimDate || claim.createdAt;
+      const key = d.slice(0, 7); // YYYY-MM
+      const [year, month] = key.split('-');
+      const monthIdx = parseInt(month, 10) - 1;
+      const label = `${MONTH_NAMES[monthIdx] || month} ${year}`;
+
+      if (!groups[key]) {
+        groups[key] = {
+          monthKey: key,
+          monthLabel: label,
+          totalClaims: 0,
+          totalCost: 0,
+          customers: new Set(),
+        };
+      }
+      groups[key].totalClaims += 1;
+      groups[key].totalCost += claim.totalCost || 0;
+      groups[key].customers.add((claim.customerPhone || claim.customerName).trim().toLowerCase());
+    });
+
+    return Object.values(groups)
+      .map((g) => ({
+        ...g,
+        customerCount: g.customers.size,
+        'Biaya Garansi Showroom': g.totalCost,
+      }))
+      .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+  }, [repairClaims]);
+
+  // Filtered Claims for Table
   const filteredClaims = useMemo(() => {
     return repairClaims.filter((claim) => {
       const q = searchQuery.toLowerCase().trim();
@@ -289,81 +530,76 @@ export default function RiwayatPerbaikanGaransiPage() {
         claim.customerPhone.includes(q) ||
         claim.vehicleBrand.toLowerCase().includes(q) ||
         claim.vehicleModel.toLowerCase().includes(q) ||
+        (claim.plateNumber && claim.plateNumber.toLowerCase().includes(q)) ||
         (claim.claimNumber && claim.claimNumber.toLowerCase().includes(q)) ||
         (claim.complaintOrDamage && claim.complaintOrDamage.toLowerCase().includes(q)) ||
-        (claim.repairActionDescription && claim.repairActionDescription.toLowerCase().includes(q));
+        (claim.complaint && claim.complaint.toLowerCase().includes(q)) ||
+        (claim.partsToRepair && claim.partsToRepair.toLowerCase().includes(q)) ||
+        (claim.workshop && claim.workshop.toLowerCase().includes(q));
 
-      const matchType = typeFilter === 'Semua' || claim.claimType === typeFilter;
+      const matchCategory =
+        categoryFilter === 'Semua' || claim.damageCategory === categoryFilter;
 
-      // Check warranty status
       const wStatus = checkWarrantyStatus(claim.purchaseDate, claim.claimDate).statusLabel;
       const matchWarranty = warrantyFilter === 'Semua' || wStatus === warrantyFilter;
 
-      // Year & Month filter
       const claimDate = claim.claimDate || claim.createdAt;
       const claimYear = claimDate.slice(0, 4);
       const claimMonth = claimDate.slice(5, 7);
 
-      const matchYear = selectedYearFilter === 'Semua' || claimYear === selectedYearFilter;
-      const matchMonth = selectedMonthFilter === 'Semua' || claimMonth === selectedMonthFilter;
+      const matchYear = tableYearFilter === 'Semua' || claimYear === tableYearFilter;
+      const matchMonth = tableMonthFilter === 'Semua' || claimMonth === tableMonthFilter;
 
       const matchCustomer =
         customerFilter === 'Semua' ||
         claim.customerPhone === customerFilter ||
         claim.customerName.toLowerCase() === customerFilter.toLowerCase();
 
-      return matchSearch && matchType && matchWarranty && matchYear && matchMonth && matchCustomer;
+      return matchSearch && matchCategory && matchWarranty && matchYear && matchMonth && matchCustomer;
     });
   }, [
     repairClaims,
     searchQuery,
-    typeFilter,
+    categoryFilter,
     warrantyFilter,
-    selectedYearFilter,
-    selectedMonthFilter,
+    tableYearFilter,
+    tableMonthFilter,
     customerFilter,
   ]);
 
-  // Handle Customer Selection in Add Form
-  const handleSelectCustomer = (custId: string) => {
-    if (!custId) {
+  // Handle Customer Selection in Add Form (Auto-fill)
+  const handleSelectCustomerPurchase = (key: string) => {
+    if (!key) {
       setFormData((prev) => ({
         ...prev,
+        selectedPurchaseKey: '',
         customerId: '',
+        customerName: '',
+        customerPhone: '',
+        vehicleBrand: 'Toyota',
+        vehicleModel: '',
+        vehicleYear: 2021,
+        plateNumber: '',
+        purchaseDate: '',
       }));
       return;
     }
 
-    const cust = customers.find((c) => c.id === custId);
-    if (!cust) return;
-
-    // Check if customer has purchase history in purchases
-    const purchase = purchases.find((p) => p.customerId === custId);
-
-    const vehicleBrand = purchase
-      ? purchase.vehicleBrand || (purchase.vehicleName ? purchase.vehicleName.split(' ')[0] : 'Toyota')
-      : cust.interestedVehicle
-      ? cust.interestedVehicle.split(' ')[0]
-      : 'Toyota';
-
-    const vehicleModel = purchase ? (purchase.vehicleModel || purchase.vehicleName || '') : cust.interestedVehicle || '';
-    const vehicleYear = purchase ? purchase.vehicleYear : 2021;
-    const purchaseDate = purchase ? purchase.purchaseDate : '';
-
-    // Auto-determine warranty recommendation
-    const today = new Date().toISOString().split('T')[0];
-    const warrantyCheck = checkWarrantyStatus(purchaseDate, today);
+    const selected = purchaseCustomersList.find((p) => p.key === key);
+    if (!selected) return;
 
     setFormData((prev) => ({
       ...prev,
-      customerId: cust.id,
-      customerName: cust.fullName,
-      customerPhone: cust.whatsapp,
-      vehicleBrand: CAR_BRANDS.includes(vehicleBrand) ? vehicleBrand : 'Toyota',
-      vehicleModel,
-      vehicleYear,
-      purchaseDate,
-      claimType: 'Garansi',
+      selectedPurchaseKey: key,
+      isManualMode: false,
+      customerId: selected.customerId,
+      customerName: selected.customerName,
+      customerPhone: selected.customerPhone || prev.customerPhone,
+      vehicleBrand: selected.vehicleBrand,
+      vehicleModel: selected.vehicleModel,
+      vehicleYear: selected.vehicleYear,
+      plateNumber: selected.plateNumber !== '-' ? selected.plateNumber : '',
+      purchaseDate: selected.purchaseDate,
     }));
   };
 
@@ -372,13 +608,15 @@ export default function RiwayatPerbaikanGaransiPage() {
     e.preventDefault();
 
     if (!formData.customerName.trim() || !formData.customerPhone.trim() || !formData.vehicleModel.trim()) {
-      alert('Mohon lengkapi Nama Konsumen, Nomor WhatsApp, dan Model Kendaraan.');
+      alert('Mohon lengkapi Nama Pelanggan, Nomor WhatsApp, dan Model Unit Kendaraan.');
       return;
     }
 
-    const sparepart = Number(formData.sparepartCost) || 0;
-    const service = Number(formData.serviceCost) || 0;
-    const total = sparepart + service;
+    const cost = Number(formData.repairCost) || 0;
+    const finalWorkshop =
+      formData.workshop === 'Lainnya'
+        ? formData.customWorkshop.trim() || 'Bengkel Rekanan HR MOTOR'
+        : formData.workshop;
 
     const count = repairClaims.length + 1;
     const ticketNo = `GRS-2026-${String(count).padStart(3, '0')}`;
@@ -391,28 +629,33 @@ export default function RiwayatPerbaikanGaransiPage() {
       vehicleBrand: formData.vehicleBrand,
       vehicleModel: formData.vehicleModel.trim(),
       vehicleYear: Number(formData.vehicleYear) || 2021,
+      plateNumber: formData.plateNumber.trim().toUpperCase() || undefined,
+      workshop: finalWorkshop,
       purchaseDate: formData.purchaseDate || undefined,
       claimDate: formData.claimDate || new Date().toISOString().split('T')[0],
-      claimType: formData.claimType,
+      claimType: 'Garansi',
       damageCategory: formData.damageCategory,
       complaintOrDamage: formData.complaintOrDamage.trim(),
       complaint: formData.complaintOrDamage.trim(),
       partsToRepair: formData.partsToRepair.trim(),
       damagedParts: formData.partsToRepair.trim(),
-      repairActionDescription: formData.repairActionDescription.trim(),
-      actionTaken: formData.repairActionDescription.trim(),
-      sparepartCost: sparepart,
-      serviceCost: service,
-      totalCost: total,
-      status: 'Selesai', // Perbaikan yang dicatat adalah yang telah dilaksanakan
-      notes: formData.notes.trim() || undefined,
+      repairActionDescription:
+        formData.repairActionDescription.trim() ||
+        `Perbaikan ${formData.partsToRepair.trim() || formData.damageCategory} garansi gratis showroom HR MOTOR`,
+      actionTaken:
+        formData.repairActionDescription.trim() ||
+        `Perbaikan ${formData.partsToRepair.trim() || formData.damageCategory} garansi gratis showroom HR MOTOR`,
+      sparepartCost: cost,
+      serviceCost: 0,
+      totalCost: cost,
+      status: 'Selesai',
+      notes: formData.notes.trim() || 'Garansi Perbaikan Gratis (< 1 Bulan) HR MOTOR Garut',
       completedDate: formData.claimDate,
     };
 
     const res = await addRepairClaim(newPayload);
 
     if (res.success) {
-      // If user selected to save as new customer in Database Pelanggan
       if (formData.saveNewCustomer && !formData.customerId) {
         await addCustomer({
           fullName: formData.customerName.trim(),
@@ -421,33 +664,38 @@ export default function RiwayatPerbaikanGaransiPage() {
           district: 'Garut Kota',
           source: 'Walk-in',
           interestedVehicle: `${formData.vehicleBrand} ${formData.vehicleModel}`,
+          plateNumber: formData.plateNumber.trim().toUpperCase() || undefined,
           vehicleType: 'MPV',
-          budget: total,
-          status: 'Aktif',
-          notes: `Konsumen Riwayat Perbaikan Garansi (${ticketNo})`,
+          budget: cost,
+          status: 'Sudah Beli',
+          receiptDate: formData.purchaseDate || formData.claimDate,
+          notes: `Konsumen Klaim Garansi Perbaikan (${ticketNo})`,
         });
       }
 
       setIsAddModalOpen(false);
-      triggerSuccess(`Riwayat perbaikan berhasil disimpan dengan nomor tiket: ${ticketNo}`);
+      triggerSuccess(`Klaim garansi perbaikan berhasil dicatat dengan tiket: ${ticketNo}`);
 
       // Reset form
       setFormData({
+        selectedPurchaseKey: '',
+        isManualMode: false,
         customerId: '',
         customerName: '',
         customerPhone: '',
         vehicleBrand: 'Toyota',
         vehicleModel: '',
         vehicleYear: 2021,
+        plateNumber: '',
         purchaseDate: '',
         claimDate: new Date().toISOString().split('T')[0],
-        claimType: 'Garansi',
+        damageCategory: 'Mesin',
         complaintOrDamage: '',
         partsToRepair: '',
-        damageCategory: 'Mesin',
+        workshop: 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+        customWorkshop: '',
+        repairCost: 0,
         repairActionDescription: '',
-        sparepartCost: 0,
-        serviceCost: 0,
         notes: '',
         saveNewCustomer: false,
       });
@@ -466,15 +714,16 @@ export default function RiwayatPerbaikanGaransiPage() {
       vehicleBrand: claim.vehicleBrand,
       vehicleModel: claim.vehicleModel,
       vehicleYear: claim.vehicleYear,
+      plateNumber: claim.plateNumber || '',
       purchaseDate: claim.purchaseDate || '',
       claimDate: claim.claimDate,
       claimType: claim.claimType,
+      damageCategory: claim.damageCategory,
       complaintOrDamage: claim.complaintOrDamage || claim.complaint || '',
       partsToRepair: claim.partsToRepair || claim.damagedParts || '',
-      damageCategory: claim.damageCategory,
+      workshop: claim.workshop || 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
       repairActionDescription: claim.repairActionDescription || claim.actionTaken || '',
-      sparepartCost: claim.sparepartCost,
-      serviceCost: claim.serviceCost,
+      repairCost: claim.totalCost || 0,
       notes: claim.notes || '',
     });
     setIsEditModalOpen(true);
@@ -485,9 +734,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     e.preventDefault();
     if (!editFormData) return;
 
-    const sparepart = Number(editFormData.sparepartCost) || 0;
-    const service = Number(editFormData.serviceCost) || 0;
-    const total = sparepart + service;
+    const cost = Number(editFormData.repairCost) || 0;
 
     const res = await updateRepairClaim({
       id: editFormData.id,
@@ -496,6 +743,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       vehicleBrand: editFormData.vehicleBrand,
       vehicleModel: editFormData.vehicleModel.trim(),
       vehicleYear: Number(editFormData.vehicleYear),
+      plateNumber: editFormData.plateNumber.trim().toUpperCase() || undefined,
       purchaseDate: editFormData.purchaseDate || undefined,
       claimDate: editFormData.claimDate,
       claimType: editFormData.claimType,
@@ -504,11 +752,12 @@ export default function RiwayatPerbaikanGaransiPage() {
       complaint: editFormData.complaintOrDamage.trim(),
       partsToRepair: editFormData.partsToRepair.trim(),
       damagedParts: editFormData.partsToRepair.trim(),
+      workshop: editFormData.workshop.trim(),
       repairActionDescription: editFormData.repairActionDescription.trim(),
       actionTaken: editFormData.repairActionDescription.trim(),
-      sparepartCost: sparepart,
-      serviceCost: service,
-      totalCost: total,
+      sparepartCost: cost,
+      serviceCost: 0,
+      totalCost: cost,
       status: 'Selesai',
       notes: editFormData.notes.trim() || undefined,
       completedDate: editFormData.claimDate,
@@ -516,12 +765,12 @@ export default function RiwayatPerbaikanGaransiPage() {
 
     if (res.success) {
       setIsEditModalOpen(false);
-      triggerSuccess(`Data perbaikan tiket ${editFormData.claimNumber} berhasil diperbarui.`);
+      triggerSuccess(`Data garansi tiket ${editFormData.claimNumber} berhasil diperbarui.`);
       if (selectedClaim && selectedClaim.id === editFormData.id) {
         setSelectedClaim({
           ...selectedClaim,
           ...editFormData,
-          totalCost: total,
+          totalCost: cost,
         });
       }
     } else {
@@ -538,224 +787,45 @@ export default function RiwayatPerbaikanGaransiPage() {
         setIsDetailModalOpen(false);
         setSelectedClaim(null);
       }
-      triggerSuccess('Data riwayat perbaikan berhasil dihapus.');
+      triggerSuccess('Data klaim garansi berhasil dihapus.');
     } else {
       alert(`Gagal menghapus: ${res.error || 'Terjadi kesalahan'}`);
     }
   };
 
-  // 3. ANALITIK LAPORAN OWNER
-  // (A) Siapa saja konsumen yang meminta dan sudah mendapatkan perbaikan & total biaya per konsumen
-  const customerAnalytics = useMemo(() => {
-    const map: Record<
-      string,
-      {
-        customerName: string;
-        customerPhone: string;
-        repairCount: number;
-        warrantyCount: number;
-        totalCost: number;
-        vehicles: Set<string>;
-        latestRepairDate: string;
-      }
-    > = {};
-
-    repairClaims.forEach((claim) => {
-      const key = (claim.customerPhone || claim.customerName).trim().toLowerCase();
-      if (!map[key]) {
-        map[key] = {
-          customerName: claim.customerName,
-          customerPhone: claim.customerPhone,
-          repairCount: 0,
-          warrantyCount: 0,
-          totalCost: 0,
-          vehicles: new Set(),
-          latestRepairDate: claim.claimDate,
-        };
-      }
-      map[key].repairCount += 1;
-      map[key].warrantyCount += 1;
-      map[key].totalCost += claim.totalCost || 0;
-      map[key].vehicles.add(`${claim.vehicleBrand} ${claim.vehicleModel}`);
-      if (claim.claimDate > map[key].latestRepairDate) {
-        map[key].latestRepairDate = claim.claimDate;
-      }
-    });
-
-    return Object.values(map)
-      .map((item) => ({
-        ...item,
-        vehicleList: Array.from(item.vehicles).join(', '),
-      }))
-      .sort((a, b) => b.totalCost - a.totalCost);
-  }, [repairClaims]);
-
-  // (B) Mobil apa saja yang pernah diperbaiki & total biaya per mobil
-  const vehicleAnalytics = useMemo(() => {
-    const map: Record<
-      string,
-      {
-        vehicleName: string;
-        brand: string;
-        model: string;
-        year: number;
-        repairCount: number;
-        warrantyCount: number;
-        totalCost: number;
-        commonDamage: Record<string, number>;
-      }
-    > = {};
-
-    repairClaims.forEach((claim) => {
-      const key = `${claim.vehicleBrand} ${claim.vehicleModel} (${claim.vehicleYear})`;
-      if (!map[key]) {
-        map[key] = {
-          vehicleName: key,
-          brand: claim.vehicleBrand,
-          model: claim.vehicleModel,
-          year: claim.vehicleYear,
-          repairCount: 0,
-          warrantyCount: 0,
-          totalCost: 0,
-          commonDamage: {},
-        };
-      }
-      map[key].repairCount += 1;
-      map[key].warrantyCount += 1;
-      map[key].totalCost += claim.totalCost || 0;
-
-      const cat = claim.damageCategory || 'Lainnya';
-      map[key].commonDamage[cat] = (map[key].commonDamage[cat] || 0) + 1;
-    });
-
-    return Object.values(map)
-      .map((item) => {
-        const topCat = Object.entries(item.commonDamage).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
-        return {
-          ...item,
-          topCategory: topCat,
-        };
-      })
-      .sort((a, b) => b.totalCost - a.totalCost);
-  }, [repairClaims]);
-
-  // (C) Kerusakan yang paling sering terjadi (Peringkat Kerusakan)
-  const damageCategoryAnalytics = useMemo(() => {
-    const counts: Record<string, { count: number; totalCost: number; warrantyCount: number }> = {};
-    const totalCount = repairClaims.length || 1;
-
-    repairClaims.forEach((c) => {
-      const cat = c.damageCategory || 'Lainnya';
-      if (!counts[cat]) {
-        counts[cat] = { count: 0, totalCost: 0, warrantyCount: 0 };
-      }
-      counts[cat].count += 1;
-      counts[cat].totalCost += c.totalCost || 0;
-      counts[cat].warrantyCount += 1;
-    });
-
-    return Object.entries(counts)
-      .map(([name, data]) => ({
-        name,
-        count: data.count,
-        totalCost: data.totalCost,
-        warrantyCount: data.warrantyCount,
-        percentage: Math.round((data.count / totalCount) * 100),
-      }))
-      .sort((a, b) => b.count - a.count);
-  }, [repairClaims]);
-
-  // (D) Pengeluaran perbaikan setiap bulan & data grafik tren bulanan
-  const monthlyTimelineData = useMemo(() => {
-    const groups: Record<
-      string,
-      {
-        monthKey: string;
-        monthLabel: string;
-        totalClaims: number;
-        sparepartCost: number;
-        serviceCost: number;
-        totalCost: number;
-        uniqueCustomers: Set<string>;
-      }
-    > = {};
-
-    repairClaims.forEach((claim) => {
-      const d = claim.claimDate || claim.createdAt;
-      const key = d.slice(0, 7); // YYYY-MM
-      const [year, month] = key.split('-');
-      const monthIdx = parseInt(month, 10) - 1;
-      const label = `${MONTH_NAMES[monthIdx] || month} ${year}`;
-
-      if (!groups[key]) {
-        groups[key] = {
-          monthKey: key,
-          monthLabel: label,
-          totalClaims: 0,
-          sparepartCost: 0,
-          serviceCost: 0,
-          totalCost: 0,
-          uniqueCustomers: new Set(),
-        };
-      }
-
-      groups[key].totalClaims += 1;
-      groups[key].uniqueCustomers.add((claim.customerPhone || claim.customerName).trim().toLowerCase());
-      groups[key].sparepartCost += claim.sparepartCost || 0;
-      groups[key].serviceCost += claim.serviceCost || 0;
-      groups[key].totalCost += claim.totalCost || 0;
-    });
-
-    return Object.values(groups)
-      .map((g) => ({
-        ...g,
-        customerCount: g.uniqueCustomers.size,
-        'Biaya Sparepart Garansi': g.sparepartCost,
-        'Biaya Jasa Servis Garansi': g.serviceCost,
-        'Total Biaya Garansi': g.totalCost,
-      }))
-      .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
-  }, [repairClaims]);
-
-  // Export to Excel Function
+  // Export to Excel Function (10 Columns)
   const handleExportExcel = () => {
     const dataToExport = filteredClaims.map((c, idx) => {
-      const warrantyInfo = checkWarrantyStatus(c.purchaseDate, c.claimDate);
+      const wInfo = checkWarrantyStatus(c.purchaseDate, c.claimDate);
       return {
         No: idx + 1,
-        'Nomor Tiket': c.claimNumber || c.id,
-        'Nama Konsumen': c.customerName,
-        'No WhatsApp': c.customerPhone,
-        'Merek Mobil': c.vehicleBrand,
-        'Tipe Mobil': c.vehicleModel,
-        'Tahun Mobil': c.vehicleYear,
+        'No Tiket Garansi': c.claimNumber || c.id,
+        'Tanggal Klaim': c.claimDate,
+        'Nama Pelanggan': c.customerName,
+        'Nomor WhatsApp': c.customerPhone,
+        'Unit Mobil': `${c.vehicleBrand} ${c.vehicleModel} (${c.vehicleYear})`,
+        'No. Polisi (Plat)': c.plateNumber || '-',
         'Tanggal Pembelian': c.purchaseDate || '-',
-        'Tanggal Perbaikan': c.claimDate,
-        'Status Masa Garansi': warrantyInfo.statusLabel,
-        'Keterangan Durasi Garansi': warrantyInfo.notes,
-        'Jenis Perbaikan': c.claimType,
-        'Kategori Kerusakan': c.damageCategory,
-        'Keluhan / Kerusakan': c.complaintOrDamage || c.complaint || '-',
-        'Bagian Diperbaiki': c.partsToRepair || c.damagedParts || '-',
-        'Tindakan Perbaikan': c.repairActionDescription || c.actionTaken || '-',
-        'Biaya Sparepart (Rp)': c.sparepartCost,
-        'Biaya Jasa Mekanik (Rp)': c.serviceCost,
-        'Total Biaya (Rp)': c.totalCost,
-        Catatan: c.notes || '-',
+        'Kategori Perbaikan': c.damageCategory,
+        'Keluhan Perbaikan': c.complaintOrDamage || c.complaint || '-',
+        'Bagian yang Diperbaiki': c.partsToRepair || c.damagedParts || '-',
+        'Bengkel Rekanan Rujukan': c.workshop || 'Bengkel Rekanan HR MOTOR Garut',
+        'Biaya Perbaikan (Rp)': c.totalCost,
+        'Status Garansi': wInfo.badgeLabel,
+        'Keterangan Durasi': wInfo.notes,
       };
     });
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Riwayat Perbaikan HR MOTOR');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Garansi Perbaikan HR MOTOR');
 
-    // Auto fit column widths
     const maxProps = Object.keys(dataToExport[0] || {}).map((key) => ({
       wch: Math.max(key.length, 14),
     }));
     worksheet['!cols'] = maxProps;
 
-    const filename = `Riwayat_Perbaikan_Garansi_HR_MOTOR_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const filename = `Garansi_Perbaikan_HR_MOTOR_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(workbook, filename);
   };
 
@@ -763,111 +833,119 @@ export default function RiwayatPerbaikanGaransiPage() {
   const handleExportPDF = () => {
     const doc = new jsPDF('landscape');
 
-    // Header HR MOTOR
-    doc.setFontSize(15);
-    doc.setTextColor(15, 23, 42); // slate-900
-    doc.text('HR MOTOR GARUT — REKAPITULASI RIWAYAT PERBAIKAN GARANSI', 14, 15);
+    doc.setFontSize(14);
+    doc.setTextColor(26, 26, 26);
+    doc.text('HR MOTOR GARUT — REKAPITULASI GARANSI PERBAIKAN SHOWROOM', 14, 15);
 
-    doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139); // slate-500
-    doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')} | Showroom Mobil Bekas Berkualitas Garut`, 14, 21);
-    doc.text('Showroom: HR MOTOR Garut • Telp/WA: 0812-2134-5678', 14, 26);
-
-    // Summary Box
-    doc.setFontSize(9);
-    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
     doc.text(
-      `Total Riwayat: ${ownerSummary.totalRecords} Unit | Total Konsumen: ${ownerSummary.totalUniqueCustomers} Orang | Total Biaya Garansi: ${formatRupiah(ownerSummary.grandTotalCost)} (100% Ditanggung Showroom HR MOTOR)`,
+      `Dicetak pada: ${new Date().toLocaleDateString('id-ID')} | Garansi Perbaikan Gratis (< 1 Bulan Sejak Pembelian)`,
       14,
-      32
+      21
+    );
+    doc.text(
+      `Total Klaim: ${warrantyMetrics.totalClaimsCount} | Total Konsumen: ${warrantyMetrics.totalUniqueCustomers} orang | Total Biaya: ${formatRupiah(warrantyMetrics.grandTotalCost)} (100% Ditanggung HR MOTOR)`,
+      14,
+      26
     );
 
-    // Table Data
     const tableHeaders = [
-      ['No', 'Tiket', 'Konsumen', 'WhatsApp', 'Mobil', 'Tgl Beli', 'Tgl Perbaikan', 'Status Garansi', 'Jenis', 'Tindakan Perbaikan', 'Total Biaya'],
+      ['No', 'Tiket & Tgl', 'Pelanggan & WA', 'Mobil & Plat', 'Kategori', 'Keluhan', 'Bagian Diperbaiki', 'Bengkel Rekanan', 'Biaya', 'Status Garansi'],
     ];
 
     const tableRows = filteredClaims.map((c, idx) => {
       const wInfo = checkWarrantyStatus(c.purchaseDate, c.claimDate);
       return [
         idx + 1,
-        c.claimNumber || c.id,
-        c.customerName,
-        c.customerPhone,
-        `${c.vehicleBrand} ${c.vehicleModel} (${c.vehicleYear})`,
-        c.purchaseDate || '-',
-        c.claimDate,
-        wInfo.statusLabel,
-        c.claimType,
-        (c.repairActionDescription || c.actionTaken || '-').slice(0, 30) + '...',
+        `${c.claimNumber || c.id}\n${c.claimDate}`,
+        `${c.customerName}\n${c.customerPhone}`,
+        `${c.vehicleBrand} ${c.vehicleModel}\n[${c.plateNumber || '-'}]`,
+        c.damageCategory,
+        (c.complaintOrDamage || c.complaint || '-').slice(0, 28),
+        (c.partsToRepair || c.damagedParts || '-').slice(0, 24),
+        (c.workshop || 'Bengkel Rekanan').slice(0, 24),
         formatRupiah(c.totalCost),
+        wInfo.badgeLabel,
       ];
     });
 
     autoTable(doc, {
       head: tableHeaders,
       body: tableRows,
-      startY: 36,
+      startY: 30,
       theme: 'grid',
-      styles: {
-        fontSize: 7.5,
-        cellPadding: 2,
-      },
-      headStyles: {
-        fillColor: [15, 23, 42],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252],
-      },
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [28, 28, 28], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 247, 244] },
     });
 
-    const filename = `Riwayat_Perbaikan_Garansi_HR_MOTOR_${new Date().toISOString().slice(0, 10)}.pdf`;
-    doc.save(filename);
+    doc.save(`Garansi_Perbaikan_HR_MOTOR_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   // WhatsApp Message Generator
   const generateWhatsAppMessage = (claim: RepairClaim) => {
     const carName = `${claim.vehicleBrand} ${claim.vehicleModel} (${claim.vehicleYear})`;
+    const plate = claim.plateNumber ? ` [${claim.plateNumber}]` : '';
     const ticketNo = claim.claimNumber || claim.id;
-    const warrantyCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
+    const wCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
+    const workshopName = claim.workshop || 'Bengkel Rujukan Resmi HR MOTOR Garut';
 
-    const text = `Sampurasun Bapak/Ibu *${claim.customerName}*,\n\nSalam hormat dari *HR MOTOR Garut*.\n\nBerikut konfirmasi rincian riwayat perbaikan mobil Bapak/Ibu yang telah selesai dikerjakan:\n\n• No. Tiket: *${ticketNo}*\n• Unit Mobil: *${carName}*\n• Tanggal Perbaikan: *${formatDate(claim.claimDate)}*\n• Status Garansi: *${warrantyCheck.statusLabel}*\n• Jaminan Showroom: *Garansi Resmi Showroom HR MOTOR* (100% Ditanggung Dealer)\n• Keluhan: ${claim.complaintOrDamage || claim.complaint}\n• Tindakan: ${claim.repairActionDescription || claim.actionTaken}\n• Total Biaya: *${formatRupiah(claim.totalCost)}*\n\nUnit mobil siap digunakan kembali dalam kondisi prima. Terima kasih telah mempercayakan pembelian dan perawatan mobil di HR MOTOR Garut.\n\n*HR MOTOR GARUT*`;
+    const text =
+      `Sampurasun Bapak/Ibu *${claim.customerName}*,\n\n` +
+      `Salam hormat dari *HR MOTOR Garut*.\n\n` +
+      `Berikut konfirmasi pelayanan *Garansi Perbaikan Gratis (< 1 Bulan)* showroom HR MOTOR untuk unit mobil Anda:\n\n` +
+      `• No. Tiket Garansi: *${ticketNo}*\n` +
+      `• Unit Mobil: *${carName}${plate}*\n` +
+      `• Tanggal Beli: *${claim.purchaseDate ? formatDate(claim.purchaseDate) : '-'}*\n` +
+      `• Tanggal Klaim: *${formatDate(claim.claimDate)}*\n` +
+      `• Status Garansi: *${wCheck.badgeLabel}* (${wCheck.isWithinWarranty ? '100% GRATIS Showroom' : 'Layanan Khusus'})\n` +
+      `• Bengkel Rekanan Rujukan: *${workshopName}*\n` +
+      `• Kategori Perbaikan: *${claim.damageCategory}*\n` +
+      `• Keluhan: ${claim.complaintOrDamage || claim.complaint || '-'}\n` +
+      `• Bagian yang Diperbaiki: ${claim.partsToRepair || claim.damagedParts || '-'}\n` +
+      `• Total Biaya: *${formatRupiah(claim.totalCost)}* (*100% Beban HR MOTOR*)\n\n` +
+      `Unit mobil telah diservis dengan standar kualitas terbaik agar siap digunakan kembali dalam kondisi prima. Terima kasih telah mempercayakan pembelian mobil di HR MOTOR Garut.\n\n` +
+      `*HR MOTOR GARUT*\n_Showroom Mobil Bekas Berkualitas & Bergaransi_`;
 
     return formatWhatsAppLink(claim.customerPhone, text);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-hidden">
       {/* Top Banner & Header */}
       <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="badge-gold">
-                Layanan Purna Jual Showroom
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="badge-gold flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Garansi Resmi Showroom
               </span>
               <span className="text-xs text-charcoal-300">•</span>
-              <span className="text-xs text-charcoal-400 font-medium tracking-wide">Garansi 1 Bulan HR MOTOR Garut</span>
+              <span className="text-xs text-emerald-700 font-bold tracking-wide bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                Gratis Perbaikan &lt; 1 Bulan Pembelian
+              </span>
+              <span className="text-xs text-charcoal-300">•</span>
+              <span className="text-xs text-charcoal-500">Bengkel Rujukan HR MOTOR Garut</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight flex items-center gap-2.5">
-              <Wrench className="w-6 h-6 text-gold-600" />
-              <span>Riwayat Perbaikan & Klaim Garansi</span>
+            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1.5 tracking-tight flex items-center gap-2.5">
+              <ShieldCheck className="w-6 h-6 text-gold-600 shrink-0" />
+              <span>Garansi Perbaikan HR MOTOR</span>
             </h1>
-            <p className="text-xs text-charcoal-500 mt-0.5">
-              Pencatatan dan pemantauan menyeluruh riwayat servis armada konsumen yang selalu terlindungi oleh garansi resmi showroom HR MOTOR Garut.
+            <p className="text-xs sm:text-sm text-charcoal-500 mt-1 max-w-3xl leading-relaxed">
+              Pelanggan yang membeli mobil di HR MOTOR berhak mendapatkan <strong>Garansi Perbaikan Gratis (&lt; 1 Bulan)</strong> ke bengkel rekanan rujukan jika mobil mengalami masalah sebelum 30 hari sejak tanggal pembelian.
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
+          <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto shrink-0">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="btn-gold flex items-center justify-center gap-2 w-full sm:w-auto"
+              className="btn-gold flex items-center justify-center gap-2 w-full sm:w-auto shadow-md"
             >
               <Plus className="w-4 h-4" />
-              <span>Tambah Riwayat Perbaikan</span>
+              <span>+ Catat Klaim Garansi</span>
             </button>
 
             <button
@@ -902,94 +980,133 @@ export default function RiwayatPerbaikanGaransiPage() {
 
       {/* Success Notification Banner */}
       {actionSuccess && (
-        <div className="flex items-center justify-between p-3.5 text-xs text-gold-900 bg-gold-50/80 border border-gold-300 rounded-xl animate-in fade-in duration-200">
+        <div className="flex items-center justify-between p-3.5 text-xs text-emerald-900 bg-emerald-50 border border-emerald-300 rounded-xl animate-in fade-in duration-200">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-gold-600 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="font-semibold">{actionSuccess}</span>
           </div>
-          <button onClick={() => setActionSuccess(null)} className="text-gold-700 hover:text-gold-900">
+          <button onClick={() => setActionSuccess(null)} className="text-emerald-700 hover:text-emerald-900">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* 6 RINGKASAN METRIK UNTUK OWNER */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        {/* 1. Total Konsumen yang Melakukan Perbaikan */}
-        <div className="crm-card p-4">
-          <div className="flex items-center justify-between text-charcoal-400 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">Total Konsumen</span>
-            <Users className="w-4 h-4 text-gold-600" />
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-black text-charcoal-900">{ownerSummary.totalUniqueCustomers}</span>
-            <span className="text-[11px] text-charcoal-400 font-medium">orang</span>
-          </div>
-          <p className="text-[10px] text-charcoal-400 mt-1">Konsumen unik diservis</p>
-        </div>
-
-        {/* 2. Total Kendaraan yang Diperbaiki */}
-        <div className="crm-card p-4">
-          <div className="flex items-center justify-between text-charcoal-400 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">Total Kendaraan</span>
-            <Car className="w-4 h-4 text-charcoal-700" />
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-black text-charcoal-900">{ownerSummary.totalUniqueVehicles}</span>
-            <span className="text-[11px] text-charcoal-400 font-medium">unit mobil</span>
-          </div>
-          <p className="text-[10px] text-charcoal-400 mt-1">Armada pernah diperbaiki</p>
-        </div>
-
-        {/* 3. Total Riwayat Perbaikan */}
-        <div className="crm-card p-4">
-          <div className="flex items-center justify-between text-charcoal-400 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">Riwayat Perbaikan</span>
-            <FileText className="w-4 h-4 text-charcoal-700" />
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-black text-charcoal-900">{ownerSummary.totalRecords}</span>
-            <span className="text-[11px] text-charcoal-400 font-medium">tindakan</span>
-          </div>
-          <p className="text-[10px] text-charcoal-400 mt-1">Total seluruh penanganan</p>
-        </div>
-
-        {/* 4. Total Biaya Perbaikan Bulan Ini */}
-        <div className="crm-card p-4 bg-[#FAF9F5] border-gold-500/30">
+      {/* ========================================================================= */}
+      {/* 5 METRIK UTAMA DASHBOARD GARANSI (Permintaan Pengguna)                      */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        {/* 1. Total Uang Perbaikan Selama Satu Bulan */}
+        <div className="crm-card p-4 bg-gradient-to-br from-white to-[#FAF9F5] border-gold-500/40 relative">
           <div className="flex items-center justify-between text-charcoal-600 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700">Biaya Bulan Ini</span>
-            <DollarSign className="w-4 h-4 text-gold-600" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700 flex items-center gap-1">
+              <DollarSign className="w-3.5 h-3.5 text-gold-600" />
+              Biaya 1 Bulan
+            </span>
+            {/* Quick Month Selector */}
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="text-[10px] font-bold py-0.5 px-1.5 bg-white border border-gold-300 rounded text-charcoal-800 focus:outline-none cursor-pointer"
+              title="Pilih Bulan untuk Metrik Biaya 1 Bulan"
+            >
+              {MONTH_NAMES.map((name, idx) => {
+                const val = String(idx + 1).padStart(2, '0');
+                return (
+                  <option key={val} value={val}>
+                    {name}
+                  </option>
+                );
+              })}
+            </select>
           </div>
-          <div className="text-base font-black text-charcoal-900 truncate" title={formatRupiah(ownerSummary.totalCostThisMonth)}>
-            {formatRupiah(ownerSummary.totalCostThisMonth)}
+
+          <div className="text-base sm:text-lg font-black text-charcoal-900 truncate" title={formatRupiah(warrantyMetrics.totalCostSelectedMonth)}>
+            {formatRupiah(warrantyMetrics.totalCostSelectedMonth)}
           </div>
-          <p className="text-[10px] text-charcoal-500 mt-1 font-medium">
-            Bulan {MONTH_NAMES[new Date().getMonth()]} {new Date().getFullYear()}
+
+          <div className="flex items-center justify-between text-[10px] text-charcoal-500 mt-1">
+            <span className="font-medium">
+              Bulan {MONTH_NAMES[parseInt(selectedMonth, 10) - 1]} {selectedYear}
+            </span>
+            <span className="text-gold-700 font-bold">100% Ditanggung HR</span>
+          </div>
+        </div>
+
+        {/* 2. Total Pelanggan yang Meminta Perbaikan */}
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-blue-600" />
+              Pelanggan Klaim
+            </span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200">
+              Unik
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-black text-charcoal-900">{warrantyMetrics.totalUniqueCustomers}</span>
+            <span className="text-xs text-charcoal-500 font-semibold">pelanggan</span>
+          </div>
+          <p className="text-[10px] text-charcoal-400 mt-1">Mengajukan klaim garansi gratis</p>
+        </div>
+
+        {/* 3. Persentase Pelanggan Garansi dari Semua Penjualan */}
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 flex items-center gap-1">
+              <Percent className="w-3.5 h-3.5 text-emerald-600" />
+              % Rasio Klaim
+            </span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded border border-emerald-200">
+              Penjualan
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-black text-emerald-700">{warrantyMetrics.claimRatioPercentage}%</span>
+            <span className="text-[11px] text-charcoal-400 font-medium">dari total unit</span>
+          </div>
+          <p className="text-[10px] text-charcoal-400 mt-1 truncate" title={`${warrantyMetrics.totalUniqueCustomers} dari total ${warrantyMetrics.totalCarSales} mobil terjual`}>
+            {warrantyMetrics.totalUniqueCustomers} dari {warrantyMetrics.totalCarSales} unit mobil terjual
           </p>
         </div>
 
-        {/* 5. Total Biaya Garansi */}
-        <div className="crm-card p-4 bg-[#FAF9F5] border-gold-500/50">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-black uppercase tracking-wider text-gold-700">Garansi Showroom</span>
-            <ShieldCheck className="w-4 h-4 text-gold-600" />
+        {/* 4. Berapa Perbaikan Garansi per Unit */}
+        <div className="crm-card p-4">
+          <div className="flex items-center justify-between text-charcoal-400 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 flex items-center gap-1">
+              <Car className="w-3.5 h-3.5 text-purple-600" />
+              Klaim per Unit
+            </span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200">
+              Rata-rata
+            </span>
           </div>
-          <div className="text-base font-black text-gold-600 truncate" title={formatRupiah(ownerSummary.totalGaransiCost)}>
-            {formatRupiah(ownerSummary.totalGaransiCost)}
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-xl font-black text-charcoal-900">{warrantyMetrics.avgPerbaikanPerUnit}x</span>
+            <span className="text-xs text-charcoal-500 font-semibold">per mobil</span>
           </div>
-          <p className="text-[10px] text-gold-800 mt-1 font-semibold">100% Ditanggung HR MOTOR</p>
+          <p className="text-[10px] text-charcoal-400 mt-1 truncate">
+            {warrantyMetrics.totalClaimsCount} klaim dari {warrantyMetrics.totalUniqueUnits} mobil diservis
+          </p>
         </div>
 
-        {/* 6. Jaminan Garansi Showroom */}
-        <div className="crm-card p-4">
-          <div className="flex items-center justify-between text-charcoal-600 mb-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-600">Jaminan Showroom</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        {/* 5. Perbaikan yang Sering Terjadi di Garansi */}
+        <div className="crm-card p-4 bg-[#FAF9F5] border-charcoal-300">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-700 flex items-center gap-1">
+              <Wrench className="w-3.5 h-3.5 text-rose-600" />
+              Sering Terjadi
+            </span>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-rose-50 text-rose-700 rounded border border-rose-200">
+              Rank #1
+            </span>
           </div>
-          <div className="text-base font-black text-emerald-700 truncate">
-            100% Bergaransi
+          <div className="text-base font-black text-charcoal-900 truncate">
+            {warrantyMetrics.topCategory?.name || '-'}
           </div>
-          <p className="text-[10px] text-charcoal-500 mt-1 font-medium">Semua Pembelian Mobil Terlindungi</p>
+          <p className="text-[10px] text-charcoal-500 mt-1 font-medium">
+            {warrantyMetrics.topCategory?.count || 0} kasus ({warrantyMetrics.topCategory?.percentage || 0}% total perbaikan)
+          </p>
         </div>
       </div>
 
@@ -1005,7 +1122,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>Tabel Riwayat Perbaikan ({filteredClaims.length})</span>
+            <span>Tabel Data Garansi Perbaikan ({filteredClaims.length})</span>
           </button>
 
           <button
@@ -1017,7 +1134,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>Dashboard & Laporan Bulanan Owner</span>
+            <span>Dashboard &amp; Visualisasi Owner HR MOTOR</span>
           </button>
         </div>
 
@@ -1036,7 +1153,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: TABEL RIWAYAT PERBAIKAN                                            */}
+      {/* TAB 1: TABEL DATA GARANSI PERBAIKAN                                       */}
       {/* ========================================================================= */}
       {activeTab === 'list' && (
         <div className="space-y-4">
@@ -1047,10 +1164,10 @@ export default function RiwayatPerbaikanGaransiPage() {
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Cari nama konsumen, nomor WhatsApp, nomor tiket, atau kendaraan..."
+                placeholder="Cari nama pelanggan, plat nomor, tiket, unit mobil, atau bengkel..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white"
+                className="w-full pl-9 pr-3 py-1.5 text-xs text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 focus:bg-white"
               />
               {searchQuery && (
                 <button
@@ -1064,30 +1181,34 @@ export default function RiwayatPerbaikanGaransiPage() {
 
             {/* Quick Filters */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Filter Jenis Perbaikan */}
+              {/* Filter Kategori Perbaikan */}
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-slate-500 font-medium">Jenis:</span>
+                <span className="text-[11px] text-slate-500 font-medium">Kategori:</span>
                 <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value as any)}
-                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-gold-500"
                 >
-                  <option value="Semua">Semua Garansi Showroom</option>
-                  <option value="Garansi">Garansi Resmi HR MOTOR (100%)</option>
+                  <option value="Semua">Semua Kategori</option>
+                  {REPAIR_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Filter Keterangan Masa Garansi */}
+              {/* Filter Status Garansi 1 Bulan */}
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-slate-500 font-medium">Masa Garansi:</span>
+                <span className="text-[11px] text-slate-500 font-medium">Garansi:</span>
                 <select
                   value={warrantyFilter}
                   onChange={(e) => setWarrantyFilter(e.target.value as any)}
-                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-gold-500"
                 >
-                  <option value="Semua">Semua Keterangan</option>
-                  <option value="Dalam Masa Garansi">Dalam Masa Garansi (≤ 1 Bulan)</option>
-                  <option value="Di Luar Masa Garansi">Di Luar Masa Garansi (&gt; 1 Bulan)</option>
+                  <option value="Semua">Semua Status</option>
+                  <option value="Dalam Garansi (Gratis)">Gratis &lt; 1 Bulan (≤ 30 Hari)</option>
+                  <option value="Di Luar Garansi">Di Luar Garansi (&gt; 30 Hari)</option>
                 </select>
               </div>
 
@@ -1095,9 +1216,9 @@ export default function RiwayatPerbaikanGaransiPage() {
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] text-slate-500 font-medium">Tahun:</span>
                 <select
-                  value={selectedYearFilter}
-                  onChange={(e) => setSelectedYearFilter(e.target.value)}
-                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  value={tableYearFilter}
+                  onChange={(e) => setTableYearFilter(e.target.value)}
+                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-gold-500"
                 >
                   <option value="Semua">Semua Tahun</option>
                   <option value="2026">2026</option>
@@ -1106,13 +1227,17 @@ export default function RiwayatPerbaikanGaransiPage() {
               </div>
 
               {/* Reset Filter Button */}
-              {(typeFilter !== 'Semua' || warrantyFilter !== 'Semua' || selectedYearFilter !== 'Semua' || searchQuery || customerFilter !== 'Semua') && (
+              {(categoryFilter !== 'Semua' ||
+                warrantyFilter !== 'Semua' ||
+                tableYearFilter !== 'Semua' ||
+                searchQuery ||
+                customerFilter !== 'Semua') && (
                 <button
                   onClick={() => {
-                    setTypeFilter('Semua');
+                    setCategoryFilter('Semua');
                     setWarrantyFilter('Semua');
-                    setSelectedYearFilter('Semua');
-                    setSelectedMonthFilter('Semua');
+                    setTableYearFilter('Semua');
+                    setTableMonthFilter('Semua');
                     setCustomerFilter('Semua');
                     setSearchQuery('');
                   }}
@@ -1126,163 +1251,169 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
           </div>
 
-          {/* Tabel Riwayat Perbaikan (Sesuai Kolom Permintaan Pengguna) */}
-          <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+          {/* DESKTOP VIEW: TABEL SPREADSHEET ENTERPRISE (hidden on mobile, visible md+) */}
+          <div className="hidden md:block bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
             <div className="overflow-x-auto w-full">
-              <table className="w-full min-w-[1050px] text-left border-collapse">
+              <table className="w-full min-w-[1150px] text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-3 w-12 text-center">No</th>
-                    <th className="py-3 px-3">Nama Konsumen</th>
-                    <th className="py-3 px-3">Nomor WhatsApp</th>
-                    <th className="py-3 px-3">Mobil</th>
-                    <th className="py-3 px-3">Tgl Beli</th>
-                    <th className="py-3 px-3">Tgl Perbaikan</th>
-                    <th className="py-3 px-3">Keluhan</th>
-                    <th className="py-3 px-3">Tindakan Perbaikan</th>
-                    <th className="py-3 px-3">Jenis Perbaikan</th>
-                    <th className="py-3 px-3 text-right">Total Biaya</th>
-                    <th className="py-3 px-3 text-center">Keterangan Garansi</th>
+                    <th className="py-3 px-3">Tiket &amp; Tanggal</th>
+                    <th className="py-3 px-3">Pelanggan</th>
+                    <th className="py-3 px-3">Unit Mobil &amp; Plat</th>
+                    <th className="py-3 px-3 text-center">Kategori</th>
+                    <th className="py-3 px-3">Keluhan Perbaikan</th>
+                    <th className="py-3 px-3">Bagian Diperbaiki</th>
+                    <th className="py-3 px-3">Bengkel Rekanan Rujukan</th>
+                    <th className="py-3 px-3 text-right">Biaya (Rp)</th>
+                    <th className="py-3 px-3 text-center">Status Garansi</th>
                     <th className="py-3 px-3 text-center w-28">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredClaims.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="py-12 text-center text-slate-500">
-                        <Wrench className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                        <p className="font-semibold text-slate-700">Tidak ada riwayat perbaikan ditemukan</p>
+                      <td colSpan={11} className="py-12 text-center text-slate-500">
+                        <ShieldCheck className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                        <p className="font-semibold text-slate-700">Tidak ada klaim garansi perbaikan ditemukan</p>
                         <p className="text-[11px] text-slate-400 mt-0.5">
-                          Silakan klik tombol &quot;Tambah Riwayat Perbaikan&quot; untuk mencatat perbaikan yang telah dilaksanakan.
+                          Klik tombol &quot;+ Catat Klaim Garansi&quot; untuk mencatat klaim perbaikan garansi gratis pelanggan.
                         </p>
                       </td>
                     </tr>
                   ) : (
                     filteredClaims.map((claim, index) => {
-                      const warrantyCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
-
-                      // Check if customer has multiple repairs
-                      const customerRepairsCount = repairClaims.filter(
-                        (c) =>
-                          (c.customerPhone && c.customerPhone === claim.customerPhone) ||
-                          c.customerName.toLowerCase() === claim.customerName.toLowerCase()
-                      ).length;
+                      const wCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
 
                       return (
                         <tr key={claim.id} className="hover:bg-slate-50/80 transition-colors">
-                          {/* 1. Nomor / Tiket */}
+                          {/* 1. No */}
                           <td className="py-3 px-3 text-center text-slate-500 font-mono text-[11px]">
                             {index + 1}
-                            <div className="text-[9px] text-slate-400 font-sans">{claim.claimNumber || claim.id}</div>
                           </td>
 
-                          {/* 2. Nama Konsumen */}
-                          <td className="py-3 px-3 font-semibold text-slate-900 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              <span>{claim.customerName}</span>
-                              {customerRepairsCount > 1 && (
-                                <button
-                                  onClick={() => setCustomerFilter(claim.customerPhone || claim.customerName)}
-                                  className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors"
-                                  title={`Konsumen ini memiliki ${customerRepairsCount} riwayat perbaikan. Klik untuk filter.`}
-                                >
-                                  {customerRepairsCount}x
-                                </button>
-                              )}
+                          {/* 2. No Tiket Garansi & Tanggal */}
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            <div className="font-mono font-bold text-slate-900 text-xs">
+                              {claim.claimNumber || claim.id}
+                            </div>
+                            <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <Calendar className="w-3 h-3 text-slate-400" />
+                              <span>{formatDate(claim.claimDate)}</span>
                             </div>
                           </td>
 
-                          {/* 3. Nomor WhatsApp */}
+                          {/* 3. Pelanggan (Nama & WhatsApp) */}
                           <td className="py-3 px-3 whitespace-nowrap">
+                            <div className="font-semibold text-slate-900">{claim.customerName}</div>
                             <a
                               href={generateWhatsAppMessage(claim)}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-slate-700 hover:text-emerald-600 transition-colors flex items-center gap-1"
+                              className="text-slate-600 hover:text-emerald-600 transition-colors inline-flex items-center gap-1 text-[11px] font-mono mt-0.5"
                               title="Kirim Konfirmasi WhatsApp"
                             >
-                              <Phone className="w-3 h-3 text-slate-400" />
-                              <span className="font-mono text-[11px]">{claim.customerPhone}</span>
+                              <Phone className="w-3 h-3 text-emerald-600" />
+                              <span>{claim.customerPhone}</span>
                             </a>
                           </td>
 
-                          {/* 4. Mobil */}
+                          {/* 4. Unit Mobil & No. Polisi (Plat) */}
                           <td className="py-3 px-3 whitespace-nowrap">
-                            <div className="font-medium text-slate-800 flex items-center gap-1">
+                            <div className="font-medium text-slate-900 flex items-center gap-1">
                               <Car className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span>{claim.vehicleBrand} {claim.vehicleModel}</span>
+                              <span>
+                                {claim.vehicleBrand} {claim.vehicleModel} ({claim.vehicleYear})
+                              </span>
                             </div>
-                            <span className="text-[10px] text-slate-400">Tahun {claim.vehicleYear}</span>
+                            <div className="mt-0.5">
+                              {claim.plateNumber ? (
+                                <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-800">
+                                  {claim.plateNumber}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic">Tanpa Plat</span>
+                              )}
+                              {claim.purchaseDate && (
+                                <span className="text-[10px] text-slate-400 ml-1.5">
+                                  Beli: {formatDate(claim.purchaseDate)}
+                                </span>
+                              )}
+                            </div>
                           </td>
 
-                          {/* 5. Tanggal Pembelian */}
-                          <td className="py-3 px-3 whitespace-nowrap text-slate-600 text-[11px]">
-                            {claim.purchaseDate ? formatDate(claim.purchaseDate) : '-'}
+                          {/* 5. Kategori Perbaikan */}
+                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                            <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-800 border border-slate-200">
+                              {claim.damageCategory}
+                            </span>
                           </td>
 
-                          {/* 6. Tanggal Perbaikan */}
-                          <td className="py-3 px-3 whitespace-nowrap font-medium text-slate-800 text-[11px]">
-                            {formatDate(claim.claimDate)}
-                          </td>
-
-                          {/* 7. Keluhan */}
-                          <td className="py-3 px-3 max-w-[170px]">
-                            <p className="line-clamp-2 text-slate-700 text-[11px]" title={claim.complaintOrDamage || claim.complaint}>
+                          {/* 6. Keluhan Perbaikan Konsumen */}
+                          <td className="py-3 px-3 max-w-[180px]">
+                            <p
+                              className="line-clamp-2 text-slate-800 text-[11px]"
+                              title={claim.complaintOrDamage || claim.complaint}
+                            >
                               {claim.complaintOrDamage || claim.complaint || '-'}
                             </p>
                           </td>
 
-                          {/* 8. Tindakan Perbaikan */}
-                          <td className="py-3 px-3 max-w-[200px]">
-                            <p className="line-clamp-2 text-slate-800 font-medium text-[11px]" title={claim.repairActionDescription || claim.actionTaken}>
-                              {claim.repairActionDescription || claim.actionTaken || '-'}
+                          {/* 7. Bagian yang Diperbaiki */}
+                          <td className="py-3 px-3 max-w-[160px]">
+                            <p
+                              className="line-clamp-2 text-slate-800 font-medium text-[11px]"
+                              title={claim.partsToRepair || claim.damagedParts}
+                            >
+                              {claim.partsToRepair || claim.damagedParts || '-'}
                             </p>
-                            {claim.partsToRepair && (
-                              <span className="text-[10px] text-slate-400 block truncate">Part: {claim.partsToRepair}</span>
-                            )}
                           </td>
 
-                          {/* 9. Jenis Perbaikan (Garansi Showroom) */}
-                          <td className="py-3 px-3 whitespace-nowrap">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                              Garansi Showroom
-                            </span>
+                          {/* 8. Bengkel Rekanan Rujukan */}
+                          <td className="py-3 px-3 max-w-[170px]">
+                            <div className="flex items-start gap-1 text-[11px] text-slate-700">
+                              <Building2 className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2 font-medium">
+                                {claim.workshop || 'Bengkel Rekanan HR MOTOR Garut'}
+                              </span>
+                            </div>
                           </td>
 
-                          {/* 10. Total Biaya */}
+                          {/* 9. Biaya Perbaikan (Rp) */}
                           <td className="py-3 px-3 text-right whitespace-nowrap">
-                            <div className="font-bold text-slate-900 text-xs">
+                            <div className="font-extrabold text-slate-900 text-xs">
                               {formatRupiah(claim.totalCost)}
                             </div>
-                            <span className="text-[9px] text-slate-400 block">
-                              Part: {formatRupiah(claim.sparepartCost)} | Jasa: {formatRupiah(claim.serviceCost)}
+                            <span className="text-[9px] text-emerald-700 font-semibold block">
+                              100% Ditanggung HR
                             </span>
                           </td>
 
-                          {/* 11. Keterangan Masa Garansi */}
+                          {/* 10. Status Garansi (Badge "Gratis < 1 Bulan") */}
                           <td className="py-3 px-3 text-center whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-md ${
-                                warrantyCheck.isWithinWarranty
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full ${
+                                wCheck.isWithinWarranty
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  : 'bg-amber-100 text-amber-800 border border-amber-300'
                               }`}
-                              title={warrantyCheck.notes}
+                              title={wCheck.notes}
                             >
-                              {warrantyCheck.isWithinWarranty ? (
+                              {wCheck.isWithinWarranty ? (
                                 <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                               ) : (
                                 <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
                               )}
-                              <span>{warrantyCheck.statusLabel}</span>
+                              <span>{wCheck.badgeLabel}</span>
                             </span>
                             <div className="text-[9px] text-slate-400 mt-0.5">
-                              {warrantyCheck.isWithinWarranty ? `Hari ke-${warrantyCheck.daysDiff}` : `Lewat ${Math.max(0, warrantyCheck.daysDiff - 31)} hari`}
+                              {wCheck.isWithinWarranty
+                                ? `Hari ke-${wCheck.daysDiff}`
+                                : `Lewat ${Math.max(0, wCheck.daysDiff - 30)} hari`}
                             </div>
                           </td>
 
-                          {/* 12. Aksi: Detail, Edit, Hapus */}
+                          {/* 11. Aksi (Detail, Edit, Hapus, WA) */}
                           <td className="py-3 px-3 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <button
@@ -1290,8 +1421,8 @@ export default function RiwayatPerbaikanGaransiPage() {
                                   setSelectedClaim(claim);
                                   setIsDetailModalOpen(true);
                                 }}
-                                className="p-1.5 text-slate-600 hover:text-emerald-600 hover:bg-slate-100 rounded-md transition-colors"
-                                title="Lihat Detail Lengkap & Cetak Tanda Terima"
+                                className="p-1.5 text-slate-600 hover:text-gold-600 hover:bg-slate-100 rounded-md transition-colors"
+                                title="Lihat Detail Lengkap SPK"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -1299,7 +1430,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                               <button
                                 onClick={() => handleOpenEdit(claim)}
                                 className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-md transition-colors"
-                                title="Edit Riwayat Perbaikan"
+                                title="Edit Klaim Garansi"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
@@ -1307,7 +1438,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                               <button
                                 onClick={() => setDeleteConfirmId(claim.id)}
                                 className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-slate-100 rounded-md transition-colors"
-                                title="Hapus Data Perbaikan"
+                                title="Hapus Data Garansi"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -1324,46 +1455,217 @@ export default function RiwayatPerbaikanGaransiPage() {
             {/* Table Footer Summary */}
             <div className="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 flex flex-col sm:flex-row items-center justify-between gap-2">
               <div>
-                Menampilkan <strong>{filteredClaims.length}</strong> dari <strong>{repairClaims.length}</strong> total riwayat perbaikan
+                Menampilkan <strong>{filteredClaims.length}</strong> dari <strong>{repairClaims.length}</strong> total klaim garansi
               </div>
-              <div className="flex items-center gap-4 text-[11px]">
+              <div className="flex items-center gap-3 text-[11px]">
                 <span>
-                  Total Beban Garansi Showroom: <strong className="text-gold-600 font-bold">{formatRupiah(ownerSummary.grandTotalCost)}</strong>
+                  Total Pengeluaran Showroom:{' '}
+                  <strong className="text-gold-700 font-bold">{formatRupiah(warrantyMetrics.grandTotalCost)}</strong>
                 </span>
                 <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  100% Ditanggung HR MOTOR
+                  100% Ditanggung Dealer HR MOTOR
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* ========================================================================= */}
+          {/* MOBILE VIEW: CARD VIEW RAPI TANPA GESER HORIZONTAL (md:hidden)            */}
+          {/* ========================================================================= */}
+          <div className="block md:hidden space-y-3">
+            {filteredClaims.length === 0 ? (
+              <div className="p-8 text-center bg-white border border-slate-200 rounded-xl">
+                <ShieldCheck className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                <p className="font-semibold text-slate-700 text-sm">Tidak ada klaim garansi</p>
+                <p className="text-xs text-slate-400 mt-1">Silakan klik tombol &quot;+ Catat Klaim Garansi&quot;.</p>
+              </div>
+            ) : (
+              filteredClaims.map((claim, index) => {
+                const wCheck = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
+
+                return (
+                  <div
+                    key={claim.id}
+                    className="crm-card p-4 space-y-3 border border-slate-200 shadow-sm"
+                  >
+                    {/* Top Row: Ticket + Status Badge */}
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                          {claim.claimNumber || claim.id}
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          • {formatDate(claim.claimDate)}
+                        </span>
+                      </div>
+
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                          wCheck.isWithinWarranty
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-amber-100 text-amber-800 border border-amber-300'
+                        }`}
+                      >
+                        {wCheck.isWithinWarranty ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                        ) : (
+                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                        )}
+                        <span>{wCheck.badgeLabel}</span>
+                      </span>
+                    </div>
+
+                    {/* Pelanggan & WhatsApp */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm">{claim.customerName}</div>
+                        <div className="text-xs text-slate-500 font-mono">{claim.customerPhone}</div>
+                      </div>
+
+                      <a
+                        href={generateWhatsAppMessage(claim)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1 text-xs font-semibold"
+                        title="Kirim WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4 text-emerald-600" />
+                        <span>WA</span>
+                      </a>
+                    </div>
+
+                    {/* Unit Mobil & Plat */}
+                    <div className="p-2.5 bg-slate-50 rounded-lg flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-900">
+                        <Car className="w-4 h-4 text-slate-500 shrink-0" />
+                        <span>
+                          {claim.vehicleBrand} {claim.vehicleModel} ({claim.vehicleYear})
+                        </span>
+                      </div>
+                      {claim.plateNumber ? (
+                        <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-white border border-slate-300 rounded text-slate-800">
+                          {claim.plateNumber}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 italic">-</span>
+                      )}
+                    </div>
+
+                    {/* Kategori, Keluhan & Bagian Diperbaiki */}
+                    <div className="space-y-1.5 text-xs text-slate-700">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Kategori:
+                        </span>
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-200 text-slate-800">
+                          {claim.damageCategory}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Keluhan:
+                        </span>
+                        <p className="text-xs text-slate-800 font-medium">
+                          {claim.complaintOrDamage || claim.complaint || '-'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Bagian Diperbaiki:
+                        </span>
+                        <p className="text-xs text-slate-800">
+                          {claim.partsToRepair || claim.damagedParts || '-'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Bengkel Rekanan Rujukan:
+                        </span>
+                        <p className="text-xs text-slate-800 flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span>{claim.workshop || 'Bengkel Rekanan HR MOTOR'}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Biaya & Tombol Aksi */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <div>
+                        <div className="text-[10px] font-semibold text-slate-400 uppercase">
+                          Biaya Perbaikan
+                        </div>
+                        <div className="text-sm font-black text-slate-900 font-mono">
+                          {formatRupiah(claim.totalCost)}
+                        </div>
+                        <div className="text-[9px] text-emerald-700 font-bold">100% Beban HR MOTOR</div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            setSelectedClaim(claim);
+                            setIsDetailModalOpen(true);
+                          }}
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Detail</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenEdit(claim)}
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          onClick={() => setDeleteConfirmId(claim.id)}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: DASHBOARD & LAPORAN BULANAN OWNER                                   */}
+      {/* TAB 2: DASHBOARD & VISUALISASI OWNER HR MOTOR                              */}
       {/* ========================================================================= */}
       {activeTab === 'reports' && (
         <div className="space-y-6">
           {/* Header Periode Laporan */}
           <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-                Laporan Eksekutif Owner
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-gold-600" />
+                Executive Dashboard Owner
               </span>
               <h3 className="text-base font-bold text-slate-900 mt-0.5">
-                Analitik Riwayat Perbaikan, Kerusakan Mobil & Kontrol Biaya Showroom
+                Analitik &amp; Visualisasi Garansi Perbaikan Showroom HR MOTOR
               </h3>
               <p className="text-xs text-slate-500">
-                Memantau pengeluaran klaim garansi HR MOTOR, biaya per unit kendaraan, dan rekapitulasi konsumen.
+                Pemantauan frekuensi klaim per unit mobil, kategori perbaikan paling sering terjadi, dan kontrol biaya showroom.
               </p>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={handleExportExcel}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
               >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                <FileSpreadsheet className="w-4 h-4 text-gold-600" />
                 <span>Unduh Excel</span>
               </button>
 
@@ -1377,16 +1679,18 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
           </div>
 
-          {/* VISUALISASI GRAFIK 1: Grafik Biaya Perbaikan Berdasarkan Bulan dan Tahun */}
+          {/* VISUALISASI GRAFIK 1 & 2: Kategori Perbaikan yang Sering Terjadi */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Visualisasi 1: Bar Chart Frekuensi & Biaya per Kategori Perbaikan */}
             <div className="lg:col-span-2 p-4 bg-white border border-slate-200 rounded-xl shadow-xs min-w-0">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">
-                    Grafik Biaya Perbaikan Berdasarkan Bulan & Tahun
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <BarChart3 className="w-4 h-4 text-gold-600" />
+                    Perbaikan yang Sering Terjadi di Garansi (Kasus &amp; Biaya)
                   </h4>
                   <p className="text-xs text-slate-500">
-                    Perbandingan pengeluaran Biaya Sparepart Garansi vs Biaya Jasa Servis Garansi (100% Beban HR MOTOR)
+                    Ranking kategori perbaikan garansi gratis showroom HR MOTOR Garut
                   </p>
                 </div>
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
@@ -1394,40 +1698,50 @@ export default function RiwayatPerbaikanGaransiPage() {
 
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyTimelineData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <BarChart
+                    data={warrantyMetrics.rankedCategories}
+                    margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: '#64748b' }} />
-                    <YAxis
+                    <XAxis
+                      dataKey="name"
                       tick={{ fontSize: 10, fill: '#64748b' }}
-                      tickFormatter={(v) => `${(v / 1000000).toFixed(1)}jt`}
+                      interval={0}
+                      angle={-15}
+                      textAnchor="end"
+                      height={40}
                     />
+                    <YAxis tick={{ fontSize: 10, fill: '#64748b' }} allowDecimals={false} />
                     <Tooltip
-                      formatter={(val: any) => [formatRupiah(Number(val)), '']}
-                      labelFormatter={(lbl) => `Periode: ${lbl}`}
+                      formatter={(val: any, name: any) => [
+                        name === 'Jumlah Kasus' ? `${val} kasus` : formatRupiah(Number(val)),
+                        name,
+                      ]}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="Biaya Sparepart Garansi" fill="#D99A32" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Biaya Jasa Servis Garansi" fill="#202020" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" name="Jumlah Kasus" fill="#D99A32" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* VISUALISASI GRAFIK 2: Kerusakan yang Paling Sering Terjadi */}
+            {/* Visualisasi 2: Donut Chart Proporsi Kategori Kerusakan */}
             <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs min-w-0">
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">Kerusakan Paling Sering</h4>
-                  <p className="text-xs text-slate-500">Distribusi komponen mobil yang diservis</p>
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <PieChartIcon className="w-4 h-4 text-blue-600" />
+                    Distribusi Kategori
+                  </h4>
+                  <p className="text-xs text-slate-500">Komposisi kerusakan garansi</p>
                 </div>
-                <PieChartIcon className="w-4 h-4 text-emerald-600" />
               </div>
 
-              <div className="h-56 w-full">
+              <div className="h-52 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={damageCategoryAnalytics}
+                      data={warrantyMetrics.rankedCategories}
                       cx="50%"
                       cy="50%"
                       innerRadius={45}
@@ -1435,8 +1749,11 @@ export default function RiwayatPerbaikanGaransiPage() {
                       paddingAngle={3}
                       dataKey="count"
                     >
-                      {damageCategoryAnalytics.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      {warrantyMetrics.rankedCategories.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={PIE_COLORS[index % PIE_COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip
@@ -1450,17 +1767,17 @@ export default function RiwayatPerbaikanGaransiPage() {
               </div>
 
               <div className="space-y-1 mt-1 text-[11px] max-h-28 overflow-y-auto divide-y divide-slate-100">
-                {damageCategoryAnalytics.map((item, idx) => (
+                {warrantyMetrics.rankedCategories.map((item, idx) => (
                   <div key={item.name} className="flex items-center justify-between py-1">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className="w-2.5 h-2.5 rounded-full"
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
                       />
                       <span className="font-semibold text-slate-800">{item.name}</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-slate-900">{item.count} unit</span>
+                      <span className="font-bold text-slate-900">{item.count} kasus</span>
                       <span className="text-[10px] text-slate-400 ml-1">({item.percentage}%)</span>
                     </div>
                   </div>
@@ -1469,119 +1786,69 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
           </div>
 
-          {/* LAPORAN 1: SIAPA SAJA KONSUMEN YANG MEMINTA DAN SUDAH MENDAPATKAN PERBAIKAN */}
+          {/* DAFTAR PERBAIKAN GARANSI PER UNIT MOBIL (Permintaan Pengguna: Berapa Perbaikan Garansi per Unit) */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+            <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div>
                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-emerald-600" />
-                  Daftar Konsumen yang Telah Menerima Perbaikan & Total Biaya per Konsumen
+                  <Car className="w-4 h-4 text-purple-600" />
+                  Daftar Unit Mobil &amp; Frekuensi Perbaikan Garansi per Unit
                 </h4>
                 <p className="text-xs text-slate-500">
-                  Rekapitulasi riwayat penanganan purna jual bagi masing-masing konsumen showroom HR MOTOR Garut
+                  Rata-rata klaim garansi: <strong>{warrantyMetrics.avgPerbaikanPerUnit}x per unit</strong> • Daftar unit mobil dengan klaim garansi terbanyak
                 </p>
               </div>
-              <span className="px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 rounded-md border border-emerald-200">
-                {customerAnalytics.length} Konsumen Terlayani
+              <span className="px-2.5 py-1 text-xs font-semibold text-purple-800 bg-purple-50 rounded-md border border-purple-200">
+                {warrantyMetrics.totalUniqueUnits} Unit Pernah Diservis
               </span>
             </div>
 
             <div className="overflow-x-auto w-full">
-              <table className="w-full min-w-[760px] text-left border-collapse text-xs">
+              <table className="w-full min-w-[700px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                    <th className="py-3 px-4">Nama Konsumen</th>
-                    <th className="py-3 px-4">Nomor WhatsApp</th>
-                    <th className="py-3 px-4">Kendaraan yang Pernah Diservis</th>
-                    <th className="py-3 px-4 text-center">Jumlah Perbaikan</th>
-                    <th className="py-3 px-4 text-center">Status Garansi</th>
-                    <th className="py-3 px-4 text-right font-bold text-slate-800">Total Biaya Perbaikan Konsumen</th>
-                    <th className="py-3 px-4 text-center">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {customerAnalytics.map((c) => (
-                    <tr key={c.customerPhone || c.customerName} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 font-semibold text-slate-900">{c.customerName}</td>
-                      <td className="py-3 px-4 font-mono text-slate-600">{c.customerPhone}</td>
-                      <td className="py-3 px-4 text-slate-700">{c.vehicleList}</td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-slate-100 text-slate-800">
-                          {c.repairCount}x perbaikan
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="text-[10px] text-emerald-700 font-semibold">{c.warrantyCount}x Garansi Showroom</span>
-                      </td>
-                      <td className="py-3 px-4 text-right font-extrabold text-slate-900">
-                        {formatRupiah(c.totalCost)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() => {
-                            setCustomerFilter(c.customerPhone || c.customerName);
-                            setActiveTab('list');
-                          }}
-                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 transition-colors"
-                        >
-                          Lihat Rincian →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* LAPORAN 2: MOBIL APA SAJA YANG PERNAH DIPERBAIKI & TOTAL BIAYA SETIAP MOBIL */}
-          <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Car className="w-4 h-4 text-blue-600" />
-                  Daftar Kendaraan yang Pernah Diperbaiki & Total Biaya per Mobil
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Statistik frekuensi kerusakan unit kendaraan dan akumulasi pengeluaran perbaikan per model
-                </p>
-              </div>
-              <span className="px-2.5 py-1 text-xs font-semibold text-blue-800 bg-blue-50 rounded-md border border-blue-200">
-                {vehicleAnalytics.length} Tipe Kendaraan
-              </span>
-            </div>
-
-            <div className="overflow-x-auto w-full">
-              <table className="w-full min-w-[760px] text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                    <th className="py-3 px-4">Merek & Model Kendaraan</th>
-                    <th className="py-3 px-4 text-center">Tahun</th>
-                    <th className="py-3 px-4 text-center">Frekuensi Diservis</th>
+                    <th className="py-3 px-4">Peringkat</th>
+                    <th className="py-3 px-4">Unit Kendaraan</th>
+                    <th className="py-3 px-4">No. Polisi (Plat)</th>
+                    <th className="py-3 px-4 text-center">Frekuensi Klaim</th>
                     <th className="py-3 px-4">Kerusakan Paling Umum</th>
-                    <th className="py-3 px-4 text-center">Rincian Klaim</th>
-                    <th className="py-3 px-4 text-right font-bold text-slate-800">Total Biaya Perbaikan Mobil</th>
+                    <th className="py-3 px-4 text-right font-bold text-slate-800">Total Biaya Garansi Showroom</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {vehicleAnalytics.map((v) => (
-                    <tr key={v.vehicleName} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-4 font-semibold text-slate-900 flex items-center gap-1.5">
-                        <Car className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{v.brand} {v.model}</span>
+                  {warrantyMetrics.rankedUnits.map((unit, idx) => (
+                    <tr key={unit.unitKey} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3 px-4 font-bold text-slate-500">#{idx + 1}</td>
+                      <td className="py-3 px-4 font-semibold text-slate-900">
+                        {unit.brand} {unit.model} ({unit.year})
                       </td>
-                      <td className="py-3 px-4 text-center text-slate-600">{v.year}</td>
-                      <td className="py-3 px-4 text-center font-bold text-slate-800">{v.repairCount} kali</td>
-                      <td className="py-3 px-4 text-slate-700">
-                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 rounded text-slate-700">
-                          {v.topCategory}
+                      <td className="py-3 px-4">
+                        {unit.plateNumber !== '-' ? (
+                          <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-800">
+                            {unit.plateNumber}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span
+                          className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
+                            unit.claimCount > 1
+                              ? 'bg-amber-100 text-amber-900 font-extrabold'
+                              : 'bg-slate-100 text-slate-800'
+                          }`}
+                        >
+                          {unit.claimCount}x perbaikan
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center text-[11px]">
-                        <span className="text-emerald-700 font-semibold">{v.warrantyCount}x Garansi Showroom</span>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 rounded">
+                          {unit.topCategory}
+                        </span>
                       </td>
-                      <td className="py-3 px-4 text-right font-extrabold text-slate-900">
-                        {formatRupiah(v.totalCost)}
+                      <td className="py-3 px-4 text-right font-black text-slate-900">
+                        {formatRupiah(unit.totalCost)}
                       </td>
                     </tr>
                   ))}
@@ -1590,16 +1857,16 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
           </div>
 
-          {/* LAPORAN 3: TOTAL PENGELUARAN PERBAIKAN SETIAP BULAN */}
+          {/* Tren Pengeluaran Garansi Showroom dari Bulan ke Bulan */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-indigo-600" />
-                  Rekapitulasi Total Pengeluaran Perbaikan Setiap Bulan
+                  <Calendar className="w-4 h-4 text-gold-600" />
+                  Tren Pengeluaran Garansi Showroom HR MOTOR (Bulan ke Bulan)
                 </h4>
                 <p className="text-xs text-slate-500">
-                  Rincian biaya sparepart garansi vs biaya jasa servis yang ditanggung dealer HR MOTOR per bulan
+                  Akumulasi beban biaya perbaikan gratis showroom yang direalisasikan setiap bulan
                 </p>
               </div>
               <span className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 rounded-md">
@@ -1608,15 +1875,13 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
 
             <div className="overflow-x-auto w-full">
-              <table className="w-full min-w-[760px] text-left border-collapse text-xs">
+              <table className="w-full min-w-[650px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
-                    <th className="py-3 px-4">Bulan & Tahun</th>
-                    <th className="py-3 px-4 text-center">Total Unit Diservis</th>
-                    <th className="py-3 px-4 text-center">Konsumen Unik</th>
-                    <th className="py-3 px-4 text-right text-amber-800">Biaya Sparepart (Garansi)</th>
-                    <th className="py-3 px-4 text-right text-slate-700">Biaya Jasa Servis (Garansi)</th>
-                    <th className="py-3 px-4 text-right font-bold text-slate-900">Total Pengeluaran Garansi</th>
+                    <th className="py-3 px-4">Bulan &amp; Tahun</th>
+                    <th className="py-3 px-4 text-center">Jumlah Klaim</th>
+                    <th className="py-3 px-4 text-center">Pelanggan Unik</th>
+                    <th className="py-3 px-4 text-right font-bold text-slate-900">Total Biaya Ditanggung Showroom</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1624,16 +1889,14 @@ export default function RiwayatPerbaikanGaransiPage() {
                     <tr key={m.monthKey} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4 font-semibold text-slate-900">
                         {m.monthLabel}
-                        {m.monthKey === currentMonthKey && (
-                          <span className="ml-2 px-1.5 py-0.2 text-[9px] font-bold bg-emerald-100 text-emerald-800 rounded">
-                            Bulan Ini
+                        {m.monthKey === `${selectedYear}-${selectedMonth}` && (
+                          <span className="ml-2 px-1.5 py-0.5 text-[9px] font-bold bg-gold-100 text-gold-900 rounded">
+                            Bulan Dipilih
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center font-bold text-slate-800">{m.totalClaims} unit</td>
+                      <td className="py-3 px-4 text-center font-bold text-slate-800">{m.totalClaims} klaim</td>
                       <td className="py-3 px-4 text-center text-slate-600">{m.customerCount} orang</td>
-                      <td className="py-3 px-4 text-right font-semibold text-amber-700">{formatRupiah(m.sparepartCost)}</td>
-                      <td className="py-3 px-4 text-right font-semibold text-slate-700">{formatRupiah(m.serviceCost)}</td>
                       <td className="py-3 px-4 text-right font-black text-slate-900">{formatRupiah(m.totalCost)}</td>
                     </tr>
                   ))}
@@ -1645,7 +1908,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 1: FORMULIR TAMBAH RIWAYAT PERBAIKAN                                */}
+      {/* MODAL 1: FORMULIR INPUT SEDERHANA ("+ Catat Klaim Garansi")               */}
       {/* ========================================================================= */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
@@ -1653,12 +1916,14 @@ export default function RiwayatPerbaikanGaransiPage() {
             {/* Header Modal */}
             <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <Wrench className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold">Formulir Tambah Riwayat Perbaikan</h3>
-                  <p className="text-[11px] text-slate-400">Pencatatan perbaikan yang telah dilaksanakan oleh HR MOTOR Garut</p>
+                  <h3 className="text-sm font-bold">Formulir Catat Klaim Garansi Perbaikan</h3>
+                  <p className="text-[11px] text-slate-400">
+                    Garansi Perbaikan Gratis (&lt; 1 Bulan) ke Bengkel Rujukan HR MOTOR Garut
+                  </p>
                 </div>
               </div>
               <button
@@ -1671,150 +1936,160 @@ export default function RiwayatPerbaikanGaransiPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmitAdd} className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
-              {/* Auto-fill Konsumen Terdaftar */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-emerald-600" />
-                    Pilih Konsumen Terdaftar (Auto-fill Data Pembelian):
+              {/* 1. DATA PELANGGAN (Dropdown Pemilih Pelanggan Beli Mobil) */}
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-gold-600" />
+                    Data Pelanggan (Pilih Pembeli Unit Mobil HR MOTOR):
                   </label>
-                  <span className="text-[10px] text-slate-500">Atau ketik manual di bawah</span>
-                </div>
-                <select
-                  value={formData.customerId}
-                  onChange={(e) => handleSelectCustomer(e.target.value)}
-                  className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                >
-                  <option value="">-- Ketik Konsumen Baru Secara Manual --</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.fullName} ({c.whatsapp}) — {c.interestedVehicle || 'Pelanggan Showroom'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Data Konsumen */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nama Konsumen <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: Agus Gunawan"
-                    value={formData.customerName}
-                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nomor WhatsApp Konsumen <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="Contoh: 081221345678"
-                    value={formData.customerPhone}
-                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Data Kendaraan */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Merek Mobil <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={formData.vehicleBrand}
-                    onChange={(e) => setFormData({ ...formData, vehicleBrand: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isManualMode: !prev.isManualMode,
+                        selectedPurchaseKey: '',
+                      }))
+                    }
+                    className="text-[11px] font-semibold text-gold-700 hover:text-gold-900 underline"
                   >
-                    {CAR_BRANDS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
+                    {formData.isManualMode ? '← Pilih dari Daftar Pembelian' : 'Atau Ketik Data Manual'}
+                  </button>
+                </div>
+
+                {!formData.isManualMode ? (
+                  <select
+                    value={formData.selectedPurchaseKey}
+                    onChange={(e) => handleSelectCustomerPurchase(e.target.value)}
+                    className="w-full text-xs py-2.5 px-3 bg-white border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  >
+                    <option value="">-- Pilih Pelanggan yang Sudah Membeli Mobil --</option>
+                    {purchaseCustomersList.map((p) => (
+                      <option key={p.key} value={p.key}>
+                        {p.label}
                       </option>
                     ))}
                   </select>
-                </div>
+                ) : (
+                  <p className="text-[11px] text-slate-500 italic">
+                    Mode ketik manual aktif. Silakan isi data pelanggan dan unit mobil di kolom bawah.
+                  </p>
+                )}
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Tipe & Model Mobil <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: Innova Reborn 2.4 V Diesel A/T"
-                    value={formData.vehicleModel}
-                    onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Tahun Mobil <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="2000"
-                    max="2027"
-                    required
-                    value={formData.vehicleYear}
-                    onChange={(e) => setFormData({ ...formData, vehicleYear: Number(e.target.value) })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-
-              {/* Tanggal Pembelian, Tanggal Perbaikan & Pemeriksaan Masa Garansi Otomatis */}
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
-                  <span>Pemeriksaan Masa Garansi 1 Bulan HR MOTOR</span>
-                  <span className="text-[10px] text-slate-500">Dihitung otomatis dari Tgl Beli & Perbaikan</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Auto-filled details */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Nama Pelanggan <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Agus Gunawan"
+                      value={formData.customerName}
+                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Nomor WhatsApp Pelanggan <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Contoh: 081221345678"
+                      value={formData.customerPhone}
+                      onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 font-mono bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Data Mobil & Plat Nomor */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Merek
+                    </label>
+                    <select
+                      value={formData.vehicleBrand}
+                      onChange={(e) => setFormData({ ...formData, vehicleBrand: e.target.value })}
+                      className="w-full text-xs py-2 px-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                    >
+                      {CAR_BRANDS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Model Kendaraan <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Innova Reborn 2.4 V Diesel A/T"
+                      value={formData.vehicleModel}
+                      onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      No. Polisi (Plat)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Z 1524 DB"
+                      value={formData.plateNumber}
+                      onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value.toUpperCase() })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 font-mono uppercase bg-white font-bold"
+                    />
+                  </div>
+                </div>
+
+                {/* Tanggal Beli & Indikator Sisa Hari Garansi 1 Bulan */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                       Tanggal Pembelian Mobil
                     </label>
                     <input
                       type="date"
                       value={formData.purchaseDate}
                       onChange={(e) => setFormData({ ...formData, purchaseDate: e.target.value })}
-                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Tanggal Perbaikan Dilaksanakan <span className="text-rose-500">*</span>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Tanggal Klaim / Perbaikan <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="date"
                       required
                       value={formData.claimDate}
                       onChange={(e) => setFormData({ ...formData, claimDate: e.target.value })}
-                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                     />
                   </div>
                 </div>
 
-                {/* Banner Status Masa Garansi Otomatis */}
+                {/* Indikator Status Masa Garansi Otomatis */}
                 {formData.purchaseDate && (
                   <div
-                    className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 ${
+                    className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 mt-2 ${
                       addFormWarrantyCheck.isWithinWarranty
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                        : 'bg-amber-50 text-amber-900 border-amber-200'
+                        ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                        : 'bg-amber-50 text-amber-900 border-amber-300'
                     }`}
                   >
                     {addFormWarrantyCheck.isWithinWarranty ? (
@@ -1823,172 +2098,145 @@ export default function RiwayatPerbaikanGaransiPage() {
                       <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                     )}
                     <div>
-                      <span className="font-bold">{addFormWarrantyCheck.statusLabel}:</span>{' '}
+                      <span className="font-bold">{addFormWarrantyCheck.badgeLabel}:</span>{' '}
                       <span>{addFormWarrantyCheck.notes}</span>
-                      {!addFormWarrantyCheck.isWithinWarranty && (
-                        <p className="text-[10px] text-amber-700 mt-0.5 font-medium">
-                          ✓ Jaminan Showroom HR MOTOR tetap memberikan perlindungan purna jual resmi showroom.
-                        </p>
-                      )}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Status Jaminan Showroom HR MOTOR */}
+              {/* 2. KATEGORI PERBAIKAN */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Status Jaminan Garansi Showroom
+                  Kategori Perbaikan <span className="text-rose-500">*</span>
                 </label>
-                <div className="p-3 rounded-lg border border-gold-500/40 bg-gold-50/50 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <ShieldCheck className="w-5 h-5 text-gold-600 shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold text-charcoal-900">Garansi Resmi Showroom HR MOTOR</p>
-                      <p className="text-[11px] text-charcoal-600">Seluruh unit mobil yang dibeli pasti bergaransi resmi (100% Ditanggung HR MOTOR)</p>
-                    </div>
-                  </div>
-                  <span className="badge-gold">
-                    100% Beban Dealer
-                  </span>
-                </div>
+                <select
+                  value={formData.damageCategory}
+                  onChange={(e) =>
+                    setFormData({ ...formData, damageCategory: e.target.value as RepairPartCategory })
+                  }
+                  className="w-full text-xs py-2.5 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white font-medium text-slate-800"
+                >
+                  {REPAIR_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Keluhan & Informasi Kerusakan */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Keluhan atau Kerusakan Mobil <span className="text-rose-500">*</span>
-                  </label>
-                  <textarea
-                    rows={2}
-                    required
-                    placeholder="Contoh: Suara decit rem depan saat turunan dan sedikit getar..."
-                    value={formData.complaintOrDamage}
-                    onChange={(e) => setFormData({ ...formData, complaintOrDamage: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Kategori Kerusakan <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={formData.damageCategory}
-                    onChange={(e) => setFormData({ ...formData, damageCategory: e.target.value as any })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
-                  >
-                    {REPAIR_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-
-                  <label className="block text-xs font-semibold text-slate-700 mt-2 mb-1">
-                    Bagian yang Diperbaiki
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Kampas rem & piringan rotor"
-                    value={formData.partsToRepair}
-                    onChange={(e) => setFormData({ ...formData, partsToRepair: e.target.value })}
-                    className="w-full text-xs py-1.5 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-
-              {/* Tindakan Perbaikan yang Dilakukan */}
+              {/* 3. KELUHAN PERBAIKAN */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Tindakan Perbaikan yang Dilakukan <span className="text-rose-500">*</span>
+                  Keluhan Perbaikan Konsumen <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="Contoh: AC kurang dingin saat siang hari dan bunyi mendesis di kompresor..."
+                  value={formData.complaintOrDamage}
+                  onChange={(e) => setFormData({ ...formData, complaintOrDamage: e.target.value })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                />
+              </div>
+
+              {/* 4. BAGIAN YANG DIPERBAIKI */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Bagian yang Diperbaiki <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Penggantian kampas rem orisinal Toyota dan pembubutan piringan cakram halus"
-                  value={formData.repairActionDescription}
-                  onChange={(e) => setFormData({ ...formData, repairActionDescription: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  placeholder="Contoh: Magnetic clutch AC & pengisian freon R134a"
+                  value={formData.partsToRepair}
+                  onChange={(e) => setFormData({ ...formData, partsToRepair: e.target.value })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                 />
               </div>
 
-              {/* Rincian Biaya Perbaikan (Sparepart + Jasa Mekanik = Total Otomatis) */}
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
-                  <span>Biaya Perbaikan</span>
-                  <span className="text-[11px] font-semibold text-emerald-700">
-                    Total Otomatis: Sparepart + Jasa Mekanik
+              {/* 5. BENGKEL REKANAN HR MOTOR YANG DISARANKAN */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Bengkel Rekanan HR MOTOR yang Disarankan</span>
+                  <span className="text-[10px] text-slate-500 font-normal">Rujukan Resmi Showroom Garut</span>
+                </label>
+                <select
+                  value={formData.workshop}
+                  onChange={(e) => setFormData({ ...formData, workshop: e.target.value })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white text-slate-800"
+                >
+                  {RECOMMENDED_WORKSHOPS.map((ws) => (
+                    <option key={ws} value={ws}>
+                      {ws}
+                    </option>
+                  ))}
+                  <option value="Lainnya">+ Ketik Bengkel Rekanan Lainnya</option>
+                </select>
+
+                {formData.workshop === 'Lainnya' && (
+                  <input
+                    type="text"
+                    placeholder="Ketik nama bengkel rujukan..."
+                    value={formData.customWorkshop}
+                    onChange={(e) => setFormData({ ...formData, customWorkshop: e.target.value })}
+                    className="w-full text-xs py-2 px-3 mt-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                )}
+              </div>
+
+              {/* 6. BIAYA PERBAIKAN (RP) */}
+              <div className="p-3.5 bg-gold-50/60 border border-gold-300 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-900">
+                    Biaya Perbaikan (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200">
+                    100% Ditanggung HR MOTOR (Gratis Pelanggan)
                   </span>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Biaya Sparepart (Rp)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="10000"
-                      value={formData.sparepartCost || ''}
-                      onChange={(e) => setFormData({ ...formData, sparepartCost: Number(e.target.value) || 0 })}
-                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
-                      placeholder="0"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Biaya Jasa Mekanik (Rp)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="10000"
-                      value={formData.serviceCost || ''}
-                      onChange={(e) => setFormData({ ...formData, serviceCost: Number(e.target.value) || 0 })}
-                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
-                      placeholder="0"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-emerald-800 mb-1">
-                      Total Biaya Perbaikan
-                    </label>
-                    <div className="text-sm font-extrabold text-emerald-700 py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg font-mono">
-                      {formatRupiah((formData.sparepartCost || 0) + (formData.serviceCost || 0))}
-                    </div>
-                  </div>
+                <input
+                  type="number"
+                  min="0"
+                  step="10000"
+                  required
+                  placeholder="Contoh: 850000"
+                  value={formData.repairCost || ''}
+                  onChange={(e) => setFormData({ ...formData, repairCost: Number(e.target.value) || 0 })}
+                  className="w-full text-sm font-bold py-2.5 px-3 bg-white border border-gold-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-600 font-mono text-slate-900"
+                />
+                <div className="text-xs text-charcoal-600 font-medium">
+                  Terbilang:{' '}
+                  <strong className="text-slate-900 font-bold">{formatRupiah(formData.repairCost)}</strong>
                 </div>
               </div>
 
-              {/* Catatan Tambahan */}
+              {/* Tindakan Perbaikan Opsional */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Catatan Tambahan</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Tindakan Teknisi / Catatan (Opsional)
+                </label>
                 <input
                   type="text"
-                  placeholder="Contoh: Garansi resmi HR MOTOR ditanggung 100% oleh showroom"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  placeholder="Contoh: Penggantian part orisinal dan uji coba test drive Samarang"
+                  value={formData.repairActionDescription}
+                  onChange={(e) => setFormData({ ...formData, repairActionDescription: e.target.value })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                 />
               </div>
 
-              {/* Checkbox Save to Customer Database */}
-              {!formData.customerId && (
+              {/* Checkbox Save to Customer Database if manual */}
+              {formData.isManualMode && (
                 <div className="flex items-center gap-2 pt-1">
                   <input
                     type="checkbox"
                     id="saveCustCheck"
                     checked={formData.saveNewCustomer}
                     onChange={(e) => setFormData({ ...formData, saveNewCustomer: e.target.checked })}
-                    className="rounded text-emerald-600 focus:ring-emerald-500"
+                    className="rounded text-gold-600 focus:ring-gold-500"
                   />
                   <label htmlFor="saveCustCheck" className="text-xs text-slate-600 cursor-pointer">
-                    Simpan juga konsumen ini ke Database Pelanggan HR MOTOR Garut
+                    Simpan juga pelanggan ini ke Database Pelanggan HR MOTOR Garut
                   </label>
                 </div>
               )}
@@ -2004,10 +2252,10 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5"
+                  className="w-full sm:w-auto btn-gold flex items-center justify-center gap-1.5 text-xs font-bold"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Simpan Riwayat Perbaikan</span>
+                  <span>Simpan Klaim Garansi</span>
                 </button>
               </div>
             </form>
@@ -2016,7 +2264,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: DETAIL RIWAYAT PERBAIKAN & TANDA TERIMA / SPK                    */}
+      {/* MODAL 2: DETAIL KLAIM GARANSI & TANDA TERIMA                              */}
       {/* ========================================================================= */}
       {isDetailModalOpen && selectedClaim && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
@@ -2024,23 +2272,17 @@ export default function RiwayatPerbaikanGaransiPage() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <FileText className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold flex items-center gap-2">
                     <span>Tiket: {selectedClaim.claimNumber || selectedClaim.id}</span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                        selectedClaim.claimType === 'Garansi'
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : 'bg-blue-500/20 text-blue-300'
-                      }`}
-                    >
-                      {selectedClaim.claimType}
+                    <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-300">
+                      Garansi HR MOTOR
                     </span>
                   </h3>
-                  <p className="text-[11px] text-slate-400">Rincian Riwayat Perbaikan Mobil Konsumen HR MOTOR</p>
+                  <p className="text-[11px] text-slate-400">Rincian Surat Klaim Garansi Perbaikan Showroom</p>
                 </div>
               </div>
 
@@ -2065,12 +2307,16 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
 
             {/* Content */}
-            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
-              {/* Header Box: Konsumen & Kendaraan */}
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
+              {/* Header Box: Pelanggan & Kendaraan */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Konsumen</div>
-                  <div className="text-base font-bold text-slate-900 mt-0.5">{selectedClaim.customerName}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Pelanggan
+                  </div>
+                  <div className="text-base font-bold text-slate-900 mt-0.5">
+                    {selectedClaim.customerName}
+                  </div>
                   <div className="flex items-center gap-1.5 text-xs text-slate-600 mt-1">
                     <Phone className="w-3.5 h-3.5 text-slate-400" />
                     <span className="font-mono">{selectedClaim.customerPhone}</span>
@@ -2078,13 +2324,19 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </div>
 
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unit Kendaraan</div>
-                  <div className="text-base font-bold text-slate-900 mt-0.5">
-                    {selectedClaim.vehicleBrand} {selectedClaim.vehicleModel}
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Unit Kendaraan &amp; No. Polisi
                   </div>
-                  <div className="text-xs text-slate-600 mt-1">
-                    Tahun {selectedClaim.vehicleYear}
-                    {selectedClaim.purchaseDate && ` • Beli: ${formatDate(selectedClaim.purchaseDate)}`}
+                  <div className="text-base font-bold text-slate-900 mt-0.5">
+                    {selectedClaim.vehicleBrand} {selectedClaim.vehicleModel} ({selectedClaim.vehicleYear})
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1 flex items-center gap-2">
+                    <span className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-slate-300">
+                      {selectedClaim.plateNumber || '-'}
+                    </span>
+                    {selectedClaim.purchaseDate && (
+                      <span>Beli: {formatDate(selectedClaim.purchaseDate)}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2096,91 +2348,91 @@ export default function RiwayatPerbaikanGaransiPage() {
                   <div
                     className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
                       wInfo.isWithinWarranty
-                        ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
-                        : 'bg-amber-50 text-amber-900 border-amber-200'
+                        ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                        : 'bg-amber-50 text-amber-900 border-amber-300'
                     }`}
                   >
                     {wInfo.isWithinWarranty ? (
-                      <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                     ) : (
                       <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     )}
                     <div>
-                      <span className="font-bold text-sm block">Status: {wInfo.statusLabel}</span>
+                      <span className="font-bold text-sm block">Status Garansi: {wInfo.badgeLabel}</span>
                       <p className="mt-0.5">{wInfo.notes}</p>
-                      <div className="mt-1 text-[11px] font-medium">
-                        Jenis Perbaikan Ditetapkan:{' '}
-                        <strong>{selectedClaim.claimType}</strong>{' '}
-                        ({selectedClaim.claimType === 'Garansi' ? 'Ditanggung HR MOTOR 100%' : 'Ditagihkan ke Konsumen'})
+                      <div className="mt-1 text-[11px] font-medium text-emerald-800">
+                        Jaminan Showroom: <strong>100% Beban HR MOTOR (Gratis Pelanggan)</strong>
                       </div>
                     </div>
                   </div>
                 );
               })()}
 
-              {/* Keluhan & Tindakan */}
+              {/* Rincian Bengkel & Perbaikan */}
               <div className="space-y-3">
-                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Keluhan atau Kerusakan yang Dialami:
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                  <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    Bengkel Rekanan Rujukan HR MOTOR:
+                  </div>
+                  <p className="text-xs text-slate-900 font-semibold flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-gold-600 shrink-0" />
+                    <span>{selectedClaim.workshop || 'Bengkel Rekanan HR MOTOR Garut'}</span>
+                  </p>
+                </div>
+
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                  <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    Keluhan Perbaikan Konsumen:
                   </div>
                   <p className="text-xs text-slate-800 leading-relaxed">
                     {selectedClaim.complaintOrDamage || selectedClaim.complaint || '-'}
                   </p>
-                  {selectedClaim.partsToRepair && (
-                    <p className="text-[11px] text-slate-500 font-medium mt-1.5">
-                      Bagian Mobil: {selectedClaim.partsToRepair} ({selectedClaim.damageCategory})
-                    </p>
-                  )}
                 </div>
 
-                <div className="p-3.5 bg-emerald-50/50 border border-emerald-200/80 rounded-xl">
-                  <div className="text-[11px] font-bold text-emerald-900 uppercase tracking-wider mb-1">
-                    Tindakan Perbaikan yang Dilakukan Teknisi:
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                  <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    Bagian yang Diperbaiki:
                   </div>
-                  <p className="text-xs text-slate-800 leading-relaxed">
-                    {selectedClaim.repairActionDescription || selectedClaim.actionTaken || '-'}
+                  <p className="text-xs text-slate-900 font-semibold">
+                    {selectedClaim.partsToRepair || selectedClaim.damagedParts || '-'} ({selectedClaim.damageCategory})
                   </p>
-                  {selectedClaim.notes && (
-                    <p className="text-[11px] text-slate-500 mt-1 italic">Catatan: {selectedClaim.notes}</p>
+                  {selectedClaim.repairActionDescription && (
+                    <p className="text-xs text-slate-600 mt-1">
+                      Tindakan: {selectedClaim.repairActionDescription}
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Rincian Biaya */}
-              <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Rincian Biaya Perbaikan
+              <div className="p-4 bg-gold-50/50 border border-gold-300 rounded-xl">
+                <div className="flex items-center justify-between pb-2 border-b border-gold-200 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Total Biaya Perbaikan Garansi
                   </span>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    100% Ditanggung HR MOTOR
+                    100% Ditanggung Showroom HR MOTOR
                   </span>
                 </div>
-
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Biaya Sparepart</span>
-                    <span className="font-mono">{formatRupiah(selectedClaim.sparepartCost)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Biaya Jasa Mekanik</span>
-                    <span className="font-mono">{formatRupiah(selectedClaim.serviceCost)}</span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-slate-200 text-sm font-extrabold text-slate-900">
-                    <span>Total Biaya Perbaikan</span>
-                    <span className="font-mono text-emerald-700">{formatRupiah(selectedClaim.totalCost)}</span>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-600">Beban Konsumen:</span>
+                  <span className="text-sm font-extrabold text-emerald-700 font-mono">Rp 0 (GRATIS)</span>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-xs text-slate-600">Realisasi Pengeluaran Showroom:</span>
+                  <span className="text-base font-black text-slate-900 font-mono">
+                    {formatRupiah(selectedClaim.totalCost)}
+                  </span>
                 </div>
               </div>
 
-              {/* WhatsApp Notification CTA */}
-              <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
+              {/* WhatsApp Confirmation */}
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
-                    <h5 className="text-xs font-bold text-emerald-950">Konfirmasi ke WhatsApp Konsumen</h5>
-                    <p className="text-[11px] text-emerald-700">Kirimkan rincian perbaikan ini ke nomor {selectedClaim.customerPhone}</p>
+                    <h5 className="text-xs font-bold text-emerald-950">Kirim Konfirmasi WhatsApp</h5>
+                    <p className="text-[11px] text-emerald-700">Kirimkan rincian surat garansi ke {selectedClaim.customerPhone}</p>
                   </div>
                 </div>
                 <a
@@ -2189,7 +2441,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                   rel="noreferrer"
                   className="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all whitespace-nowrap"
                 >
-                  Kirim WhatsApp
+                  Kirim WA
                 </a>
               </div>
             </div>
@@ -2198,43 +2450,33 @@ export default function RiwayatPerbaikanGaransiPage() {
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0">
               <button
                 onClick={() => setDeleteConfirmId(selectedClaim.id)}
-                className="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors flex items-center justify-center gap-1 py-1 sm:py-0"
+                className="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-center gap-1"
               >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Hapus Riwayat Ini</span>
+                <Trash2 className="w-4 h-4" />
+                <span>Hapus Klaim</span>
               </button>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  onClick={() => window.print()}
-                  className="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Printer className="w-4 h-4 text-slate-500" />
-                  <span>Cetak SPK</span>
-                </button>
-
-                <button
-                  onClick={() => setIsDetailModalOpen(false)}
-                  className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors text-center"
-                >
-                  Tutup
-                </button>
-              </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 3: EDIT RIWAYAT PERBAIKAN                                           */}
+      {/* MODAL 3: EDIT KLAIM GARANSI                                               */}
       {/* ========================================================================= */}
       {isEditModalOpen && editFormData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2">
-                <Edit className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-bold">Edit Riwayat Perbaikan ({editFormData.claimNumber})</h3>
+                <Edit className="w-4 h-4 text-gold-400" />
+                <h3 className="text-sm font-bold">Edit Klaim Garansi ({editFormData.claimNumber})</h3>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
@@ -2247,24 +2489,28 @@ export default function RiwayatPerbaikanGaransiPage() {
             <form onSubmit={handleSubmitEdit} className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Konsumen</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Nama Pelanggan <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     type="text"
                     required
                     value={editFormData.customerName}
                     onChange={(e) => setEditFormData({ ...editFormData, customerName: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500"
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Nomor WhatsApp</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Nomor WhatsApp <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     type="tel"
                     required
                     value={editFormData.customerPhone}
                     onChange={(e) => setEditFormData({ ...editFormData, customerPhone: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:ring-1 focus:ring-emerald-500"
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 font-mono"
                   />
                 </div>
               </div>
@@ -2275,7 +2521,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                   <select
                     value={editFormData.vehicleBrand}
                     onChange={(e) => setEditFormData({ ...editFormData, vehicleBrand: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg bg-white"
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
                   >
                     {CAR_BRANDS.map((b) => (
                       <option key={b} value={b}>
@@ -2286,169 +2532,172 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Model / Tipe Mobil</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Model Mobil</label>
                   <input
                     type="text"
                     required
                     value={editFormData.vehicleModel}
                     onChange={(e) => setEditFormData({ ...editFormData, vehicleModel: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tahun Mobil</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">No. Polisi (Plat)</label>
                   <input
-                    type="number"
-                    value={editFormData.vehicleYear}
-                    onChange={(e) => setEditFormData({ ...editFormData, vehicleYear: Number(e.target.value) })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
+                    type="text"
+                    value={editFormData.plateNumber}
+                    onChange={(e) => setEditFormData({ ...editFormData, plateNumber: e.target.value.toUpperCase() })}
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 font-mono uppercase font-bold"
                   />
                 </div>
               </div>
 
-              {/* Tanggal & Garansi */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tanggal Pembelian</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tanggal Beli</label>
                   <input
                     type="date"
                     value={editFormData.purchaseDate}
                     onChange={(e) => setEditFormData({ ...editFormData, purchaseDate: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tanggal Perbaikan</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Tanggal Klaim</label>
                   <input
                     type="date"
                     required
                     value={editFormData.claimDate}
                     onChange={(e) => setEditFormData({ ...editFormData, claimDate: e.target.value })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
+                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                   />
                 </div>
               </div>
 
-              {editFormWarrantyCheck && (
+              {editFormWarrantyCheck && editFormData.purchaseDate && (
                 <div
-                  className={`p-2 rounded-lg border text-xs flex items-center gap-2 ${
+                  className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 ${
                     editFormWarrantyCheck.isWithinWarranty
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                      : 'bg-amber-50 text-amber-800 border-amber-200'
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                      : 'bg-amber-50 text-amber-900 border-amber-300'
                   }`}
                 >
-                  <span className="font-bold">{editFormWarrantyCheck.statusLabel}:</span>
-                  <span>{editFormWarrantyCheck.notes}</span>
+                  {editFormWarrantyCheck.isWithinWarranty ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  )}
+                  <div>
+                    <span className="font-bold">{editFormWarrantyCheck.badgeLabel}:</span>{' '}
+                    <span>{editFormWarrantyCheck.notes}</span>
+                  </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Jenis Perbaikan</label>
-                  <select
-                    value={editFormData.claimType}
-                    onChange={(e) => setEditFormData({ ...editFormData, claimType: e.target.value as any })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg bg-white"
-                  >
-                    <option value="Garansi">Garansi Resmi Showroom HR MOTOR (100% Ditanggung)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Kategori Bagian</label>
-                  <select
-                    value={editFormData.damageCategory}
-                    onChange={(e) => setEditFormData({ ...editFormData, damageCategory: e.target.value as any })}
-                    className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg bg-white"
-                  >
-                    {REPAIR_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Kategori Perbaikan <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={editFormData.damageCategory}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, damageCategory: e.target.value as RepairPartCategory })
+                  }
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                >
+                  {REPAIR_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Keluhan / Kerusakan</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Keluhan Perbaikan <span className="text-rose-500">*</span>
+                </label>
                 <textarea
                   rows={2}
+                  required
                   value={editFormData.complaintOrDamage}
                   onChange={(e) => setEditFormData({ ...editFormData, complaintOrDamage: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Tindakan Perbaikan</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Bagian yang Diperbaiki <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.partsToRepair}
+                  onChange={(e) => setEditFormData({ ...editFormData, partsToRepair: e.target.value })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Bengkel Rekanan Rujukan
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.workshop}
+                  onChange={(e) => setEditFormData({ ...editFormData, workshop: e.target.value })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                />
+              </div>
+
+              <div className="p-3 bg-gold-50/60 border border-gold-300 rounded-xl">
+                <label className="block text-xs font-bold text-slate-900 mb-1">
+                  Biaya Perbaikan (Rp)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="10000"
+                  required
+                  value={editFormData.repairCost}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, repairCost: Number(e.target.value) || 0 })
+                  }
+                  className="w-full text-sm font-bold py-2 px-3 bg-white border border-gold-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-600 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Tindakan Teknisi / Catatan
+                </label>
                 <input
                   type="text"
                   value={editFormData.repairActionDescription}
-                  onChange={(e) => setEditFormData({ ...editFormData, repairActionDescription: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, repairActionDescription: e.target.value })
+                  }
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                 />
               </div>
 
-              {/* Rincian Biaya */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Biaya Sparepart (Rp)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="10000"
-                    value={editFormData.sparepartCost}
-                    onChange={(e) => setEditFormData({ ...editFormData, sparepartCost: Number(e.target.value) || 0 })}
-                    className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Biaya Jasa Mekanik (Rp)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="10000"
-                    value={editFormData.serviceCost}
-                    onChange={(e) => setEditFormData({ ...editFormData, serviceCost: Number(e.target.value) || 0 })}
-                    className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-emerald-800 mb-1">Total Biaya Baru</label>
-                  <div className="text-xs font-extrabold text-emerald-700 py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg font-mono">
-                    {formatRupiah((editFormData.sparepartCost || 0) + (editFormData.serviceCost || 0))}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Catatan Tambahan</label>
-                <input
-                  type="text"
-                  value={editFormData.notes}
-                  onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg"
-                />
-              </div>
-
-              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all text-center"
+                  className="btn-gold flex items-center gap-1.5 text-xs font-bold"
                 >
-                  Simpan Perubahan
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Simpan Perubahan</span>
                 </button>
               </div>
             </form>
@@ -2457,30 +2706,31 @@ export default function RiwayatPerbaikanGaransiPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 4: KONFIRMASI HAPUS                                                 */}
+      {/* MODAL 4: KONFIRMASI HAPUS                                                  */}
       {/* ========================================================================= */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-luxury border border-warm-200 p-5 space-y-4 my-auto">
-            <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-luxury border border-warm-200 p-5 space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">Hapus Data Garansi?</h4>
+                <p className="text-xs text-slate-500">Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
             </div>
-            <div className="text-center">
-              <h4 className="text-sm font-bold text-slate-900">Hapus Riwayat Perbaikan?</h4>
-              <p className="text-xs text-slate-500 mt-1">
-                Data perbaikan ini akan dihapus secara permanen dari server database CRM.
-              </p>
-            </div>
-            <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-2 pt-2">
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
               >
                 Batal
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors text-center"
+                className="px-3.5 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-all"
               >
                 Ya, Hapus
               </button>

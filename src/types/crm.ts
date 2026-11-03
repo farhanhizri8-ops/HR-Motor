@@ -523,6 +523,8 @@ export interface RepairClaim {
   vehicleBrand: string;
   vehicleModel: string;
   vehicleYear: number;
+  plateNumber?: string; // Plat Nomor / No. Polisi
+  workshop?: string; // Bengkel Rekanan HR MOTOR yang Disarankan
   purchaseDate?: string;
   claimDate: string; // YYYY-MM-DD
   claimType: RepairClaimType; // Selalu Garansi Resmi Showroom HR MOTOR

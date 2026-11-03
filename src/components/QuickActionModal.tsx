@@ -372,7 +372,7 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
             }`}
           >
             <Wrench className="w-4 h-4" />
-            + Riwayat Perbaikan
+            + Klaim Garansi
           </button>
         </div>
 

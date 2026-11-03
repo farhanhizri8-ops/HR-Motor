@@ -896,7 +896,9 @@ export async function POST(request: Request) {
       case 'ADD_REPAIR_CLAIM': {
         const sparepartCost = Number(payload.sparepartCost) || 0;
         const serviceCost = Number(payload.serviceCost) || 0;
-        const totalCost = sparepartCost + serviceCost;
+        const totalCost = payload.totalCost !== undefined && Number(payload.totalCost) > 0 && sparepartCost === 0 && serviceCost === 0
+          ? Number(payload.totalCost)
+          : sparepartCost + serviceCost;
         const count = (db.repairClaims || []).length + 1;
         const claimNum = payload.claimNumber || `GRS-2026-${String(count).padStart(3, '0')}`;
         const newClaim: RepairClaim = {
@@ -908,17 +910,22 @@ export async function POST(request: Request) {
           vehicleBrand: payload.vehicleBrand || '',
           vehicleModel: payload.vehicleModel || '',
           vehicleYear: Number(payload.vehicleYear) || 2020,
+          plateNumber: payload.plateNumber || '',
+          workshop: payload.workshop || '',
           purchaseDate: payload.purchaseDate || '',
           claimDate: payload.claimDate || new Date().toISOString().split('T')[0],
           claimType: payload.claimType || 'Garansi',
           damageCategory: payload.damageCategory || 'Mesin',
-          complaint: payload.complaint || '',
-          damagedParts: payload.damagedParts || '',
-          actionTaken: payload.actionTaken || '',
+          complaint: payload.complaint || payload.complaintOrDamage || '',
+          complaintOrDamage: payload.complaintOrDamage || payload.complaint || '',
+          partsToRepair: payload.partsToRepair || payload.damagedParts || '',
+          damagedParts: payload.damagedParts || payload.partsToRepair || '',
+          actionTaken: payload.actionTaken || payload.repairActionDescription || '',
+          repairActionDescription: payload.repairActionDescription || payload.actionTaken || '',
           sparepartCost,
           serviceCost,
           totalCost,
-          status: payload.status || 'Menunggu',
+          status: payload.status || 'Selesai',
           notes: payload.notes || '',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -945,7 +952,9 @@ export async function POST(request: Request) {
         const existing = db.repairClaims[index];
         const sparepartCost = payload.sparepartCost !== undefined ? Number(payload.sparepartCost) || 0 : existing.sparepartCost;
         const serviceCost = payload.serviceCost !== undefined ? Number(payload.serviceCost) || 0 : existing.serviceCost;
-        const totalCost = sparepartCost + serviceCost;
+        const totalCost = payload.totalCost !== undefined && Number(payload.totalCost) > 0 && sparepartCost === 0 && serviceCost === 0
+          ? Number(payload.totalCost)
+          : (sparepartCost + serviceCost || Number(payload.totalCost) || existing.totalCost || 0);
 
         const wasFinished = existing.status === 'Selesai';
         const isNowFinished = payload.status === 'Selesai';

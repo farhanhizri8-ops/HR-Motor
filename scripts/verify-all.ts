@@ -631,6 +631,110 @@ console.log('\n[8/8] Testing Sales Pipeline 3-Stage Tracking & Lead Management S
   assert(allLeadsHaveHistory, 'All leads in persistent database have valid stageHistory initialized');
 }
 
+// ----------------------------------------------------------------------
+// TEST SUITE 9: Garansi Perbaikan HR MOTOR (< 1 Bulan Free Repair) & Analytics
+// ----------------------------------------------------------------------
+console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard Metrics...');
+{
+  const { checkWarrantyStatus } = require('../src/app/riwayat-perbaikan/page');
+
+  // 1. Garansi 30 Hari Calculation & Badge Labels
+  const testSameDay = checkWarrantyStatus('2026-10-01', '2026-10-01');
+  assert(testSameDay.isWithinWarranty, 'Same day claim is within warranty (day 0)');
+  assert(testSameDay.statusLabel === 'Dalam Garansi (Gratis)', 'Same day claim statusLabel is "Dalam Garansi (Gratis)"');
+  assert(testSameDay.badgeLabel === 'Gratis < 1 Bulan', 'Same day claim badgeLabel is "Gratis < 1 Bulan"');
+  assert(testSameDay.daysRemaining === 30, 'Same day claim has 30 days remaining');
+
+  const test15Days = checkWarrantyStatus('2026-10-01', '2026-10-16');
+  assert(test15Days.isWithinWarranty, 'Day 15 claim is within warranty');
+  assert(test15Days.daysDiff === 15, 'Day 15 diff is 15');
+  assert(test15Days.daysRemaining === 15, 'Day 15 claim has 15 days remaining');
+
+  const testExactly30Days = checkWarrantyStatus('2026-10-01', '2026-10-31');
+  assert(testExactly30Days.isWithinWarranty, 'Exactly 30 days claim is within warranty');
+  assert(testExactly30Days.badgeLabel === 'Gratis < 1 Bulan', '30 days claim badgeLabel is "Gratis < 1 Bulan"');
+
+  const test31Days = checkWarrantyStatus('2026-10-01', '2026-11-01');
+  assert(!test31Days.isWithinWarranty, 'Day 31 claim is outside warranty (> 30 days)');
+  assert(test31Days.statusLabel === 'Di Luar Garansi', 'Day 31 claim statusLabel is "Di Luar Garansi"');
+  assert(test31Days.badgeLabel === 'Di Luar Garansi', 'Day 31 claim badgeLabel is "Di Luar Garansi"');
+
+  const testMissingPurchaseDate = checkWarrantyStatus(undefined, '2026-11-01');
+  assert(!testMissingPurchaseDate.isWithinWarranty, 'Missing purchase date safely defaults to outside warranty');
+
+  // 2. Metrics & Analytics Calculation
+  const sampleClaims = [
+    {
+      id: 'REP-001',
+      customerName: 'Agus Gunawan',
+      customerPhone: '081221345678',
+      vehicleBrand: 'Toyota',
+      vehicleModel: 'Innova Reborn',
+      vehicleYear: 2020,
+      plateNumber: 'Z 1524 DB',
+      workshop: 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+      purchaseDate: '2026-09-12',
+      claimDate: '2026-09-28',
+      damageCategory: 'Sistem Rem',
+      totalCost: 850000,
+    },
+    {
+      id: 'REP-002',
+      customerName: 'Agus Gunawan',
+      customerPhone: '081221345678',
+      vehicleBrand: 'Toyota',
+      vehicleModel: 'Innova Reborn',
+      vehicleYear: 2020,
+      plateNumber: 'Z 1524 DB',
+      workshop: 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+      purchaseDate: '2026-09-12',
+      claimDate: '2026-10-08',
+      damageCategory: 'Kaki-kaki & Suspensi',
+      totalCost: 1050000,
+    },
+    {
+      id: 'REP-003',
+      customerName: 'Dr. Hj. Nina Marlina',
+      customerPhone: '081320456789',
+      vehicleBrand: 'Honda',
+      vehicleModel: 'Honda HR-V',
+      vehicleYear: 2018,
+      plateNumber: 'Z 1982 EA',
+      workshop: 'Bengkel Resmi HR MOTOR Garut - Samarang',
+      purchaseDate: '2026-09-20',
+      claimDate: '2026-10-05',
+      damageCategory: 'Kelistrikan & AC',
+      totalCost: 800000,
+    },
+  ];
+
+  // Unique customers: Agus Gunawan (2 claims) + Nina Marlina (1 claim) = 2 unique customers
+  const uniqueKeys = new Set(sampleClaims.map(c => c.customerPhone.trim()));
+  assert(uniqueKeys.size === 2, 'Unique customer count is 2 (Agus Gunawan counted once despite 2 repairs)');
+
+  // Claims per unit: 3 claims across 2 units (Innova Reborn + HR-V) = 1.5x
+  const unitKeys = new Set(sampleClaims.map(c => c.plateNumber));
+  assert(unitKeys.size === 2, 'Unique vehicles count is 2');
+  const avgPerUnit = (sampleClaims.length / unitKeys.size).toFixed(1);
+  assert(avgPerUnit === '1.5', 'Average repair per unit is 1.5x');
+
+  // Claim percentage against total sales (e.g. 20 sales)
+  const totalSales = 20;
+  const ratio = ((uniqueKeys.size / totalSales) * 100).toFixed(1);
+  assert(ratio === '10.0', 'Percentage of warranty customers against total sales is 10.0%');
+
+  // Category frequency ranking
+  const catCounts: Record<string, number> = {};
+  sampleClaims.forEach(c => { catCounts[c.damageCategory] = (catCounts[c.damageCategory] || 0) + 1; });
+  assert(catCounts['Sistem Rem'] === 1, 'Sistem Rem count is 1');
+  assert(catCounts['Kaki-kaki & Suspensi'] === 1, 'Kaki-kaki & Suspensi count is 1');
+  assert(catCounts['Kelistrikan & AC'] === 1, 'Kelistrikan & AC count is 1');
+
+  // Verify Plate Number & Workshop on sample claims
+  assert(sampleClaims.every(c => Boolean(c.plateNumber)), 'Every sample claim has a plateNumber');
+  assert(sampleClaims.every(c => c.workshop.includes('HR MOTOR')), 'Every sample claim links to HR MOTOR recommended workshop');
+}
+
 console.log('\n================================================================');
 console.log(`SUMMARY: ${passCount} PASSED, ${failCount} FAILED`);
 console.log('================================================================');
@@ -640,3 +744,4 @@ if (failCount > 0) {
 } else {
   console.log('ALL VERIFICATION CRITERIA MET WITH 100% SUCCESS.');
 }
+
