@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -27,6 +27,8 @@ import {
   Wrench,
   FileText,
   Printer,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory } from '@/types/crm';
@@ -94,6 +96,98 @@ function getKwitansiForCustomer(customer: Customer, allPurchases: CustomerPurcha
   };
 }
 
+function guessVehicleCategory(brand: string, model: string): VehicleCategory {
+  const combined = `${brand} ${model}`.toLowerCase();
+  if (
+    combined.includes('avanza') ||
+    combined.includes('innova') ||
+    combined.includes('xpander') ||
+    combined.includes('sigra') ||
+    combined.includes('calya') ||
+    combined.includes('mobilio') ||
+    combined.includes('ertiga') ||
+    combined.includes('serena') ||
+    combined.includes('cortez') ||
+    combined.includes('confero') ||
+    combined.includes('veloz') ||
+    combined.includes('sienta') ||
+    combined.includes('livina') ||
+    combined.includes('br-v') ||
+    combined.includes('brv')
+  ) {
+    return 'MPV';
+  }
+  if (
+    combined.includes('pajero') ||
+    combined.includes('fortuner') ||
+    combined.includes('rush') ||
+    combined.includes('terios') ||
+    combined.includes('hr-v') ||
+    combined.includes('hrv') ||
+    combined.includes('cr-v') ||
+    combined.includes('crv') ||
+    combined.includes('raize') ||
+    combined.includes('rocky') ||
+    combined.includes('creta') ||
+    combined.includes('almaz') ||
+    combined.includes('mu-x') ||
+    combined.includes('everest') ||
+    combined.includes('santa fe') ||
+    combined.includes('palisade') ||
+    combined.includes('wr-v') ||
+    combined.includes('wrv')
+  ) {
+    return 'SUV';
+  }
+  if (
+    combined.includes('brio') ||
+    combined.includes('agya') ||
+    combined.includes('ayla') ||
+    combined.includes('ignis') ||
+    combined.includes('sirion') ||
+    combined.includes('karimun') ||
+    combined.includes('picanto') ||
+    combined.includes('march')
+  ) {
+    return 'City Car';
+  }
+  if (
+    combined.includes('yaris') ||
+    combined.includes('jazz') ||
+    combined.includes('baleno') ||
+    combined.includes('swift') ||
+    combined.includes('rio')
+  ) {
+    return 'Hatchback';
+  }
+  if (
+    combined.includes('civic') ||
+    combined.includes('city') ||
+    combined.includes('corolla') ||
+    combined.includes('camry') ||
+    combined.includes('vios') ||
+    combined.includes('accord') ||
+    combined.includes('altis') ||
+    combined.includes('mercedes') ||
+    combined.includes('bmw')
+  ) {
+    return 'Sedan';
+  }
+  if (
+    combined.includes('gran max') ||
+    combined.includes('carry') ||
+    combined.includes('l300') ||
+    combined.includes('hilux') ||
+    combined.includes('triton') ||
+    combined.includes('blind van') ||
+    combined.includes('pickup') ||
+    combined.includes('d-max')
+  ) {
+    return 'Commercial';
+  }
+  return 'MPV';
+}
+
 export default function CustomersPage() {
   const {
     customers,
@@ -102,6 +196,7 @@ export default function CustomersPage() {
     communications,
     purchases,
     repairClaims,
+    stocks,
     users,
     currentUser,
     addCustomer,
@@ -127,6 +222,68 @@ export default function CustomersPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // Ready stocks dropdown & search state for "Mobil Diminati"
+  const [isStockDropdownOpen, setIsStockDropdownOpen] = useState(false);
+  const [stockSearchQuery, setStockSearchQuery] = useState('');
+  const stockDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (stockDropdownRef.current && !stockDropdownRef.current.contains(event.target as Node)) {
+        setIsStockDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Filter ready showroom stock (status: 'Tersedia')
+  const readyStocks = useMemo(() => {
+    return (stocks || []).filter((s) => s.status === 'Tersedia');
+  }, [stocks]);
+
+  const filteredReadyStocks = useMemo(() => {
+    const q = (stockSearchQuery || '').trim().toLowerCase();
+    if (!q) return readyStocks;
+    return readyStocks.filter((s) => {
+      const brand = (s.brand || '').toLowerCase();
+      const model = (s.model || '').toLowerCase();
+      const merk = (s.merkType || '').toLowerCase();
+      const plate = (s.licensePlate || s.plateNumber || '').toLowerCase();
+      const year = String(s.year || '');
+      const color = (s.color || '').toLowerCase();
+      return (
+        brand.includes(q) ||
+        model.includes(q) ||
+        merk.includes(q) ||
+        plate.includes(q) ||
+        year.includes(q) ||
+        color.includes(q)
+      );
+    });
+  }, [readyStocks, stockSearchQuery]);
+
+  const handleSelectStock = (stock: any) => {
+    const fullName = `${stock.brand} ${stock.model} ${stock.year}`.trim();
+    const plate = stock.licensePlate || stock.plateNumber || '';
+    const category = guessVehicleCategory(stock.brand, stock.model);
+
+    setFormData((prev) => ({
+      ...prev,
+      interestedVehicle: fullName,
+      vehicleType: category,
+      budget: String(stock.price || prev.budget || ''),
+      plateNumber: plate || prev.plateNumber,
+      receiptAmount: String(stock.price || prev.receiptAmount || ''),
+      notes: prev.notes || `Unit Ready Stok Showroom: ${fullName} (Plat: ${plate || '-'}).`,
+    }));
+    setIsStockDropdownOpen(false);
+    setStockSearchQuery('');
+  };
 
   // Form input state
   const [formData, setFormData] = useState({
@@ -211,6 +368,8 @@ export default function CustomersPage() {
       receiptReceiver: 'HR MOTOR',
     });
     setFormError('');
+    setIsStockDropdownOpen(false);
+    setStockSearchQuery('');
     setIsAddModalOpen(true);
   };
 
@@ -234,6 +393,8 @@ export default function CustomersPage() {
       receiptReceiver: c.receiptReceiver || kw.penerima || 'HR MOTOR',
     });
     setFormError('');
+    setIsStockDropdownOpen(false);
+    setStockSearchQuery('');
     setIsAddModalOpen(true);
   };
 
@@ -713,17 +874,162 @@ export default function CustomersPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-charcoal-800 mb-1">Unit Mobil Diminati</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.interestedVehicle}
-                    onChange={(e) => setFormData({ ...formData, interestedVehicle: e.target.value })}
-                    placeholder="Contoh: Innova Reborn 2020"
-                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-medium"
-                  />
+                <div className="relative" ref={stockDropdownRef}>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-charcoal-800">
+                      Mobil Diminati <span className="text-rose-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsStockDropdownOpen((prev) => !prev)}
+                      className="text-[11px] font-bold text-gold-700 hover:text-gold-800 flex items-center gap-1 bg-gold-50 hover:bg-gold-100 border border-gold-300/80 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                      title="Buka daftar mobil yang ready di stok showroom"
+                    >
+                      <Car className="w-3 h-3 text-gold-600" />
+                      <span>Pilih dari Stok Ready ({readyStocks.length})</span>
+                      <ChevronDown className={`w-3 h-3 transition-transform ${isStockDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={formData.interestedVehicle}
+                      onFocus={() => setIsStockDropdownOpen(true)}
+                      onChange={(e) => {
+                        setFormData({ ...formData, interestedVehicle: e.target.value });
+                        setStockSearchQuery(e.target.value);
+                        setIsStockDropdownOpen(true);
+                      }}
+                      placeholder="Contoh: Innova Reborn 2020 (klik untuk pilih stok)"
+                      className="w-full text-xs px-3.5 py-2.5 pr-8 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsStockDropdownOpen((prev) => !prev)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 p-1 rounded-md"
+                      tabIndex={-1}
+                    >
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isStockDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                  </div>
+
+                  {/* Indikator jika unit dipilih dari stok ready */}
+                  {readyStocks.some(
+                    (s) =>
+                      `${s.brand} ${s.model} ${s.year}`.toLowerCase().trim() ===
+                      formData.interestedVehicle.toLowerCase().trim()
+                  ) && (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg">
+                      <CheckCircle className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                      <span>Unit terhubung ke Stok Ready (Plat No & Harga otomatis terisi)</span>
+                    </div>
+                  )}
+
+                  {/* Dropdown Menu of Ready Stocks */}
+                  {isStockDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#DDD9CF] rounded-xl shadow-2xl z-50 overflow-hidden text-charcoal-900 animate-in fade-in slide-in-from-top-2 duration-150">
+                      {/* Header Dropdown */}
+                      <div className="p-2.5 bg-[#FAF9F5] border-b border-[#EAE8E3] flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Car className="w-3.5 h-3.5 text-gold-600" />
+                          <span className="text-[11px] font-black text-charcoal-900">
+                            Unit Ready di Stok Showroom ({readyStocks.length} Mobil)
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-semibold text-charcoal-500">
+                          Klik untuk memilih
+                        </span>
+                      </div>
+
+                      {/* Search Filter inside dropdown */}
+                      <div className="p-2 border-b border-[#F0EEEA] bg-white">
+                        <div className="relative">
+                          <Search className="w-3 h-3 text-charcoal-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                          <input
+                            type="text"
+                            value={stockSearchQuery}
+                            onChange={(e) => setStockSearchQuery(e.target.value)}
+                            placeholder="Cari merk, model, plat nomor, atau tahun..."
+                            className="w-full text-xs pl-8 pr-2.5 py-1.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-lg focus:outline-none focus:border-gold-500 font-medium"
+                          />
+                        </div>
+                      </div>
+
+                      {/* List of Ready Cars */}
+                      <div className="max-h-56 overflow-y-auto divide-y divide-[#F4F2EC]">
+                        {filteredReadyStocks.length === 0 ? (
+                          <div className="p-4 text-center">
+                            <p className="text-xs text-charcoal-500">Tidak ada unit ready yang cocok dengan kata kunci.</p>
+                            <p className="text-[11px] text-gold-700 font-bold mt-1">
+                              Anda tetap dapat mengetik manual jika unit pesanan khusus.
+                            </p>
+                          </div>
+                        ) : (
+                          filteredReadyStocks.map((stock) => {
+                            const isCurrentSelected =
+                              formData.interestedVehicle.toLowerCase().trim() ===
+                              `${stock.brand} ${stock.model} ${stock.year}`.toLowerCase().trim();
+                            const plate = stock.licensePlate || stock.plateNumber;
+
+                            return (
+                              <button
+                                key={stock.id}
+                                type="button"
+                                onClick={() => handleSelectStock(stock)}
+                                className={`w-full text-left p-2.5 hover:bg-gold-50 transition-colors flex items-center justify-between gap-3 ${
+                                  isCurrentSelected ? 'bg-gold-100/70 font-bold border-l-4 border-gold-600' : ''
+                                }`}
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-xs font-black text-charcoal-900 truncate">
+                                      {stock.brand} {stock.model} {stock.year}
+                                    </span>
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                      Ready
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] text-charcoal-600 mt-0.5">
+                                    {plate && (
+                                      <span className="font-mono font-bold px-1.5 py-0.2 bg-[#F0EEEA] rounded text-charcoal-800 border border-charcoal-300">
+                                        {plate}
+                                      </span>
+                                    )}
+                                    <span>{stock.color}</span>
+                                    <span>•</span>
+                                    <span>{stock.transmission}</span>
+                                  </div>
+                                </div>
+
+                                <div className="text-right shrink-0">
+                                  <div className="text-xs font-black font-mono text-gold-700">
+                                    Rp {stock.price.toLocaleString('id-ID')}
+                                  </div>
+                                  <div className="text-[10px] text-charcoal-400">Harga Unit</div>
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Footer Info */}
+                      <div className="p-2 bg-[#FAF9F5] border-t border-[#EAE8E3] flex items-center justify-between text-[10px] text-charcoal-500">
+                        <span>Pilih unit untuk otomatis mengisi Plat No & Estimasi Harga</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsStockDropdownOpen(false)}
+                          className="text-xs font-bold text-charcoal-800 hover:text-black underline cursor-pointer"
+                        >
+                          Tutup
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">Estimasi Budget (Rp)</label>
                   <input
@@ -733,6 +1039,7 @@ export default function CustomersPage() {
                     placeholder="350000000"
                     className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-medium"
                   />
+                  <p className="text-[10px] text-charcoal-400 mt-1">Otomatis terisi jika memilih mobil dari stok ready.</p>
                 </div>
               </div>
 
