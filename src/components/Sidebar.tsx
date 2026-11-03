@@ -52,16 +52,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
     },
     {
-      name: 'Leads Management',
+      name: 'Leads & Pipeline',
       href: '/leads',
-      icon: Target,
-      roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'Marketing'],
-    },
-    {
-      name: 'Sales Pipeline',
-      href: '/pipeline',
       icon: GitPullRequest,
-      roles: ['Owner', 'CRM Administrator', 'Sales Representative'],
+      roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
     },
     {
       name: 'Manajemen Stok Unit',
@@ -185,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
           {filteredNav.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href === '/leads' && pathname === '/pipeline');
             const Icon = item.icon;
 
             return (
