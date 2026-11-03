@@ -76,6 +76,13 @@ export interface Customer {
   registeredDate: string;
   status: 'Aktif' | 'Prospek' | 'Sudah Beli' | 'Tidak Aktif';
   updatedAt: string;
+  // Official Showroom Kwitansi / Receipt fields
+  plateNumber?: string;
+  receiptNumber?: string;
+  receiptAmount?: number;
+  receiptDate?: string;
+  receiptReceiver?: string;
+  receiptNotes?: string;
 }
 
 export interface Lead {
@@ -277,13 +284,16 @@ export interface CustomerPurchase {
   color: string;
   mileageKm: number;
   purchasePrice: number; // in IDR
-  paymentMethod: 'Cash Keras' | 'Cash Bertahap' | 'Kredit BCA Finance' | 'Kredit Mandiri Utama' | 'Kredit Adira Finance' | 'Kredit OTO Multiartha';
+  paymentMethod: 'Cash Keras' | 'Cash Bertahap' | 'Kredit BCA Finance' | 'Kredit Mandiri Utama' | 'Kredit Adira Finance' | 'Kredit OTO Multiartha' | string;
   purchaseDate: string;
   warrantyUntil: string;
   salesId: string;
   salesName: string;
   notes: string;
   createdAt: string;
+  receiptNumber?: string;
+  receiptDate?: string;
+  receiptReceiver?: string;
 }
 
 export interface CustomerFeedback {

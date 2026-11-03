@@ -171,16 +171,48 @@ export async function POST(request: Request) {
           updatedAt: new Date().toISOString(),
         };
 
-        // Duplicate WhatsApp check
-        const existing = db.customers.find((c) => c.whatsapp === customer.whatsapp);
-        if (existing) {
-          return NextResponse.json(
-            { success: false, error: `Nomor WhatsApp ${customer.whatsapp} sudah terdaftar atas nama ${existing.fullName}` },
-            { status: 400 }
-          );
+        // Duplicate WhatsApp check (only if non-empty)
+        if (customer.whatsapp && customer.whatsapp.trim().length > 4) {
+          const existing = db.customers.find((c) => c.whatsapp && c.whatsapp === customer.whatsapp);
+          if (existing) {
+            return NextResponse.json(
+              { success: false, error: `Nomor WhatsApp ${customer.whatsapp} sudah terdaftar atas nama ${existing.fullName}` },
+              { status: 400 }
+            );
+          }
         }
 
         db.customers.unshift(customer);
+
+        // Otomatis buat Kwitansi & Riwayat Transaksi Showroom HR MOTOR
+        if (customer.interestedVehicle || customer.plateNumber || customer.receiptAmount || customer.budget) {
+          const purchaseId = `DEAL-2026-${String(db.purchases.length + 1).padStart(3, '0')}`;
+          const dateNow = customer.registeredDate || new Date().toISOString().split('T')[0];
+          const newPurchase: CustomerPurchase = {
+            id: purchaseId,
+            customerId: customer.id,
+            customerName: customer.fullName,
+            vehicleBrand: (customer.interestedVehicle || '').split(' ')[0] || 'Showroom HR MOTOR',
+            vehicleModel: customer.interestedVehicle || 'Unit Showroom HR MOTOR',
+            vehicleYear: new Date().getFullYear(),
+            plateNumber: customer.plateNumber || 'Z - HR MOTOR',
+            color: 'Orisinal Showroom',
+            mileageKm: 35000,
+            purchasePrice: customer.receiptAmount || customer.budget || 0,
+            paymentMethod: (customer.notes || '').toUpperCase().includes('OTO') ? 'Kredit OTO Multiartha' : 'Cash Keras',
+            purchaseDate: dateNow,
+            warrantyUntil: `${parseInt(dateNow.slice(0, 4)) + 1}${dateNow.slice(4)}`,
+            salesId: currentUser?.id || 'USR-001',
+            salesName: customer.receiptReceiver || 'HR MOTOR',
+            notes: customer.notes || `Kwitansi Pembayaran Showroom HR MOTOR`,
+            createdAt: new Date().toISOString(),
+            receiptNumber: customer.receiptNumber || `No. ${db.customers.length}`,
+            receiptDate: customer.receiptDate || `GARUT, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}`,
+            receiptReceiver: customer.receiptReceiver || 'HR MOTOR',
+          };
+          db.purchases.unshift(newPurchase);
+        }
+
         logActivity('Menambah Pelanggan Baru', 'Pelanggan', customer.id, `Mendaftarkan pelanggan baru ${customer.fullName} (${customer.district}, Garut)`);
         break;
       }

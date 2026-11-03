@@ -57,84 +57,41 @@ function formatRupiahWords(n: number): string {
   return `${n}`;
 }
 
-function getKwitansiForCustomer(customer: Customer, allPurchases: CustomerPurchase[]): KwitansiData | null {
-  const nameLower = customer.fullName.toLowerCase();
-
-  if (nameLower.includes('wildan')) {
-    return {
-      nomorKwitansi: 'No. 1 / KW-HRM / V / 2026',
-      terimaDari: 'Wildan Fitriadi',
-      sejumlahUang: 60000000,
-      terbilang: 'Enam Puluh Juta Rupiah',
-      untukPembayaran: '1 UNIT MOBIL JAZZ 2005',
-      nomorPolisi: 'Z 1770 AD',
-      tempatTanggal: 'Garut, 19 Mei 2026',
-      keterangan: 'sisa sepuluh juta di bayar pihak bank otto',
-      penerima: 'Dani Muhammad Ramdani',
-    };
-  }
-
-  if (nameLower.includes('udin')) {
-    return {
-      nomorKwitansi: 'No. 2 / KW-HRM / V / 2026',
-      terimaDari: 'Udin',
-      sejumlahUang: 10000000,
-      terbilang: 'Sepuluh Juta Rupiah',
-      untukPembayaran: '1 SEPEDAH',
-      nomorPolisi: 'D 1234 PAH',
-      tempatTanggal: 'Garut, 15 Mei 2026',
-      keterangan: 'SISA DI BAYAR TANGGAL 10 MEI',
-      penerima: 'Andika',
-    };
-  }
-
-  if (nameLower.includes('baoa')) {
-    return {
-      nomorKwitansi: 'No. 3 / KW-HRM / V / 2026',
-      terimaDari: 'Baoa',
-      sejumlahUang: 10000000,
-      terbilang: 'Sepuluh Juta Rupiah',
-      untukPembayaran: '1 SEPDA',
-      nomorPolisi: 'UDHUIEHIE',
-      tempatTanggal: 'Garut, 16 Mei 2026',
-      keterangan: 'Kwitansi Pembayaran Unit Showroom HR MOTOR Garut',
-      penerima: 'Hahah (Staff Kasir)',
-    };
-  }
-
-  if (nameLower.includes('neng tian')) {
-    return {
-      nomorKwitansi: 'No. 4 / KW-HRM / V / 2026',
-      terimaDari: 'Neng Tian',
-      sejumlahUang: 120000000,
-      terbilang: 'Seratus Dua Puluh Juta Rupiah',
-      untukPembayaran: '1 UNIT BRIO',
-      nomorPolisi: 'Z 1234 AH',
-      tempatTanggal: 'Garut, 19 Mei 2026',
-      keterangan: 'Pembayaran Tunai Lunas HR MOTOR',
-      penerima: 'HR MOTOR / Dani Muhammad Ramdani',
-    };
-  }
-
+function getKwitansiForCustomer(customer: Customer, allPurchases: CustomerPurchase[] = []): KwitansiData {
   const purchase = allPurchases.find(
-    (p) => p.customerId === customer.id || p.customerName.toLowerCase() === nameLower
+    (p) =>
+      p.customerId === customer.id ||
+      (customer.plateNumber && p.plateNumber === customer.plateNumber) ||
+      (p.customerName && customer.fullName && p.customerName.toLowerCase() === customer.fullName.toLowerCase())
   );
 
-  if (purchase) {
-    return {
-      nomorKwitansi: `KW-${purchase.id.replace('DEAL-', '')} / HRM`,
-      terimaDari: customer.fullName,
-      sejumlahUang: purchase.purchasePrice,
-      terbilang: `${formatRupiahWords(purchase.purchasePrice)} Rupiah`,
-      untukPembayaran: `1 UNIT ${purchase.vehicleBrand} ${purchase.vehicleModel} (${purchase.vehicleYear})`,
-      nomorPolisi: purchase.plateNumber,
-      tempatTanggal: `Garut, ${purchase.purchaseDate}`,
-      keterangan: purchase.notes || 'Pembayaran Unit Showroom HR MOTOR Garut',
-      penerima: purchase.salesName || 'HR MOTOR Kasir',
-    };
-  }
+  const terimaDari = customer.fullName;
+  const plateNo = customer.plateNumber || purchase?.plateNumber || '-';
+  const untukPembayaran = customer.interestedVehicle || purchase?.vehicleModel || '1 UNIT KENDARAAN';
+  const nominal = customer.receiptAmount || Number(customer.budget) || purchase?.purchasePrice || 0;
+  const terbilang = `${formatRupiahWords(nominal)} Rupiah`;
+  const tempatTanggal =
+    customer.receiptDate ||
+    purchase?.receiptDate ||
+    `GARUT, ${customer.registeredDate || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}`;
+  const keterangan = customer.receiptNotes || customer.notes || purchase?.notes || 'Lunas';
+  const penerima = customer.receiptReceiver || purchase?.salesName || 'HR MOTOR';
+  const nomorKwitansi =
+    customer.receiptNumber ||
+    (purchase?.receiptNumber) ||
+    `No. ${customer.id.replace('CUST-2026-', '').replace(/^0+/, '') || '1'}`;
 
-  return null;
+  return {
+    nomorKwitansi,
+    terimaDari,
+    sejumlahUang: nominal,
+    terbilang,
+    untukPembayaran,
+    nomorPolisi: plateNo,
+    tempatTanggal,
+    keterangan,
+    penerima,
+  };
 }
 
 export default function CustomersPage() {
@@ -183,6 +140,10 @@ export default function CustomersPage() {
     vehicleType: 'MPV' as VehicleCategory,
     budget: '',
     notes: '',
+    plateNumber: '',
+    receiptAmount: '',
+    receiptDate: '',
+    receiptReceiver: 'HR MOTOR',
   });
 
   // Filtered & Sorted Customers
@@ -199,6 +160,7 @@ export default function CustomersPage() {
           c.district.toLowerCase().includes(q) ||
           c.address.toLowerCase().includes(q) ||
           c.interestedVehicle.toLowerCase().includes(q) ||
+          (c.plateNumber && c.plateNumber.toLowerCase().includes(q)) ||
           c.id.toLowerCase().includes(q)
       );
     }
@@ -231,6 +193,7 @@ export default function CustomersPage() {
 
   const openAddModal = () => {
     setEditingCustomer(null);
+    const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
     setFormData({
       fullName: '',
       whatsapp: '',
@@ -242,6 +205,10 @@ export default function CustomersPage() {
       vehicleType: 'MPV',
       budget: '',
       notes: '',
+      plateNumber: '',
+      receiptAmount: '',
+      receiptDate: `GARUT, ${todayStr}`,
+      receiptReceiver: 'HR MOTOR',
     });
     setFormError('');
     setIsAddModalOpen(true);
@@ -249,6 +216,7 @@ export default function CustomersPage() {
 
   const openEditModal = (c: Customer) => {
     setEditingCustomer(c);
+    const kw = getKwitansiForCustomer(c, purchases);
     setFormData({
       fullName: c.fullName,
       whatsapp: c.whatsapp,
@@ -260,6 +228,10 @@ export default function CustomersPage() {
       vehicleType: c.vehicleType || 'MPV',
       budget: String(c.budget || ''),
       notes: c.notes || '',
+      plateNumber: c.plateNumber || kw.nomorPolisi || '',
+      receiptAmount: String(c.receiptAmount || kw.sejumlahUang || ''),
+      receiptDate: c.receiptDate || kw.tempatTanggal || '',
+      receiptReceiver: c.receiptReceiver || kw.penerima || 'HR MOTOR',
     });
     setFormError('');
     setIsAddModalOpen(true);
@@ -269,13 +241,24 @@ export default function CustomersPage() {
     e.preventDefault();
     setFormError('');
 
+    const nominal = Number(formData.receiptAmount || formData.budget) || 0;
+    const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+    const placeDate = formData.receiptDate.trim() || `GARUT, ${todayStr}`;
+    const receiver = formData.receiptReceiver.trim() || 'HR MOTOR';
+    const plateNo = formData.plateNumber.trim().toUpperCase();
+
     if (editingCustomer) {
       // Update
       const res = await updateCustomer({
         id: editingCustomer.id,
         ...formData,
-        budget: Number(formData.budget) || 0,
-        status: editingCustomer.status || 'Aktif',
+        plateNumber: plateNo,
+        receiptAmount: nominal,
+        budget: nominal,
+        receiptDate: placeDate,
+        receiptReceiver: receiver,
+        receiptNotes: formData.notes,
+        status: editingCustomer.status || 'Sudah Beli',
       });
 
       if (res.success) {
@@ -284,15 +267,36 @@ export default function CustomersPage() {
         setFormError(res.error || 'Gagal memperbarui data');
       }
     } else {
-      // Add
-      const res = await addCustomer({
+      // Add Customer + Otomatis generate Kwitansi
+      const newReceiptNumber = `No. ${customers.length + 1}`;
+      const payload: Partial<Customer> = {
         ...formData,
-        budget: Number(formData.budget) || 0,
-        status: 'Aktif',
-      });
+        plateNumber: plateNo,
+        receiptAmount: nominal,
+        budget: nominal,
+        receiptNumber: newReceiptNumber,
+        receiptDate: placeDate,
+        receiptReceiver: receiver,
+        receiptNotes: formData.notes,
+        status: 'Sudah Beli',
+      };
+
+      const res = await addCustomer(payload);
 
       if (res.success) {
         setIsAddModalOpen(false);
+        // Otomatis tampilkan kwitansi resmi yang siap di-print
+        setSelectedKwitansi({
+          nomorKwitansi: newReceiptNumber,
+          terimaDari: formData.fullName,
+          sejumlahUang: nominal,
+          terbilang: `${formatRupiahWords(nominal)} Rupiah`,
+          untukPembayaran: formData.interestedVehicle || '1 UNIT KENDARAAN',
+          nomorPolisi: plateNo || '-',
+          tempatTanggal: placeDate,
+          keterangan: formData.notes || 'Lunas',
+          penerima: receiver,
+        });
       } else {
         setFormError(res.error || 'Gagal menyimpan data');
       }
@@ -732,13 +736,86 @@ export default function CustomersPage() {
                 </div>
               </div>
 
+              {/* Kwitansi Pembayaran Kasir Showroom */}
+              <div className="bg-[#FAF9F5] p-4 rounded-xl border border-gold-300/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gold-600" />
+                    <span className="font-bold text-xs text-charcoal-900 uppercase tracking-wide">
+                      Data Kwitansi Pembayaran Showroom (Format Excel Resmi)
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gold-100 text-gold-800 border border-gold-300">
+                    Otomatis Siap Cetak
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-charcoal-700 mb-1">
+                      Plat Nomor Polisi (Plat No)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.plateNumber}
+                      onChange={(e) => setFormData({ ...formData, plateNumber: e.target.value.toUpperCase() })}
+                      placeholder="Contoh: Z 1529 TK / D 1581 OR"
+                      className="w-full text-xs font-mono font-bold px-3 py-2 bg-white border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 uppercase"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-charcoal-700 mb-1">
+                      Jumlah Uang Kasir (Jumlah Rp)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.receiptAmount || formData.budget}
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          receiptAmount: e.target.value,
+                          budget: e.target.value,
+                        });
+                      }}
+                      placeholder="Contoh: 1000000 / 80000000"
+                      className="w-full text-xs font-bold px-3 py-2 bg-white border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-charcoal-700 mb-1">
+                      Tempat dan Tanggal
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.receiptDate}
+                      onChange={(e) => setFormData({ ...formData, receiptDate: e.target.value })}
+                      placeholder="GARUT, 3 NOVEMBER 2026"
+                      className="w-full text-xs font-semibold px-3 py-2 bg-white border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-charcoal-700 mb-1">
+                      Yang Menerima (Penerima)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.receiptReceiver}
+                      onChange={(e) => setFormData({ ...formData, receiptReceiver: e.target.value })}
+                      placeholder="HR MOTOR"
+                      className="w-full text-xs font-bold px-3 py-2 bg-white border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-charcoal-800 mb-1">Catatan Tambahan</label>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Keterangan Kwitansi & Catatan Khusus
+                </label>
                 <input
                   type="text"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Catatan preferensi warna, leasing, kebutuhan khusus..."
+                  placeholder="Contoh: LUNAS / SISA 40 JUTA RUPIAH DIBAYAR PIHAK OTO / BOKING KREDIT..."
                   className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-medium"
                 />
               </div>
@@ -1145,7 +1222,7 @@ export default function CustomersPage() {
 
             {/* Printable Kwitansi Sheet */}
             <div className="p-4 sm:p-6 overflow-y-auto bg-[#FAF8F5]">
-              <div className="bg-white border-2 border-[#D4C3A3] rounded-xl p-5 sm:p-7 shadow-sm relative overflow-hidden text-charcoal-900">
+              <div id="printable-kwitansi" className="bg-white border-2 border-[#D4C3A3] rounded-xl p-5 sm:p-7 shadow-sm relative overflow-hidden text-charcoal-900">
                 {/* Watermark HR MOTOR */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
                   <span className="text-7xl sm:text-8xl font-black rotate-[-22deg] tracking-widest text-charcoal-950">
@@ -1179,72 +1256,80 @@ export default function CustomersPage() {
                   </div>
                 </div>
 
-                {/* Isi Kwitansi */}
-                <div className="py-5 space-y-3.5 text-xs">
-                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                    <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
-                      Telah Diterima Dari
+                {/* Isi Kwitansi (Sesuai Layout Excel Resmi HR MOTOR) */}
+                <div className="py-5 space-y-3.5 text-xs sm:text-sm">
+                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
+                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
+                      Terima Dari
                     </span>
-                    <span className="text-charcoal-400 hidden sm:inline">:</span>
-                    <span className="font-black text-sm text-charcoal-950 border-b border-dotted border-charcoal-400 pb-0.5 flex-1 uppercase">
+                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
+                    <span className="col-span-7 sm:col-span-8 font-black text-charcoal-950 text-sm sm:text-base uppercase tracking-tight">
                       {selectedKwitansi.terimaDari}
                     </span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                    <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
-                      Uang Sejumlah
+                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
+                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
+                      Sejumlah Uang
                     </span>
-                    <span className="text-charcoal-400 hidden sm:inline">:</span>
-                    <span className="font-bold italic text-charcoal-900 bg-[#FBF7EE] border border-[#E9DFCE] px-3 py-1.5 rounded-lg flex-1">
+                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
+                    <span className="col-span-7 sm:col-span-8 font-bold italic text-charcoal-900 bg-[#FAF7F0] px-3 py-1.5 rounded-lg border border-[#E8DFC8]">
                       &ldquo;{selectedKwitansi.terbilang}&rdquo;
                     </span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                    <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
+                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
+                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
                       Untuk Pembayaran
                     </span>
-                    <span className="text-charcoal-400 hidden sm:inline">:</span>
-                    <span className="font-black text-charcoal-950 border-b border-dotted border-charcoal-400 pb-0.5 flex-1 uppercase">
+                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
+                    <span className="col-span-7 sm:col-span-8 font-black text-charcoal-950 uppercase">
                       {selectedKwitansi.untukPembayaran}
                     </span>
                   </div>
 
-                  {selectedKwitansi.keterangan && (
-                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                      <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
-                        Keterangan
-                      </span>
-                      <span className="text-charcoal-400 hidden sm:inline">:</span>
-                      <span className="font-semibold text-charcoal-700 border-b border-dotted border-charcoal-400 pb-0.5 flex-1">
-                        {selectedKwitansi.keterangan}
-                      </span>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
+                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
+                      Plat No
+                    </span>
+                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
+                    <span className="col-span-7 sm:col-span-8 font-mono font-black text-charcoal-950 text-xs sm:text-sm bg-charcoal-100/70 px-2 py-0.5 rounded border border-charcoal-300 inline-block w-fit">
+                      {selectedKwitansi.nomorPolisi || '-'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
+                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
+                      Keterangan
+                    </span>
+                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
+                    <span className="col-span-7 sm:col-span-8 font-medium text-charcoal-800">
+                      {selectedKwitansi.keterangan || 'Walk in'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Bagian Bawah: Jumlah Uang & Tanda Tangan */}
                 <div className="pt-4 border-t-2 border-charcoal-900 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  {/* Kotak Nominal Uang */}
-                  <div className="w-full sm:w-auto p-3 bg-charcoal-950 text-gold-400 rounded-xl border border-gold-500/40 text-center sm:text-left shadow-xs">
-                    <p className="text-[10px] uppercase font-bold tracking-wider text-white/70">Jumlah Uang Kasir</p>
-                    <p className="text-lg font-black tracking-tight font-mono">
+                  {/* Kotak Jumlah Rp */}
+                  <div className="w-full sm:w-auto p-3.5 bg-charcoal-950 text-gold-400 rounded-xl border border-gold-500/40 text-center sm:text-left shadow-xs">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-white/70 block">Jumlah Rp</span>
+                    <span className="text-lg sm:text-xl font-black tracking-tight font-mono text-gold-400">
                       Rp {selectedKwitansi.sejumlahUang.toLocaleString('id-ID')} ,-
-                    </p>
+                    </span>
                   </div>
 
                   {/* Tanda Tangan & Cap Kasir Showroom */}
-                  <div className="text-center sm:text-right">
-                    <p className="text-xs font-semibold text-charcoal-700">{selectedKwitansi.tempatTanggal}</p>
-                    <p className="text-[11px] font-bold text-charcoal-500 mt-0.5">Yang Menerima,</p>
+                  <div className="text-center sm:text-right shrink-0">
+                    <p className="text-xs sm:text-sm font-black text-charcoal-900 uppercase">{selectedKwitansi.tempatTanggal}</p>
+                    <p className="text-[11px] font-bold text-charcoal-500 mt-0.5">Penerima,</p>
                     <div className="my-1.5 flex justify-center sm:justify-end">
-                      <div className="w-24 h-10 border-2 border-dashed border-emerald-600/60 rounded flex items-center justify-center rotate-[-3deg] bg-emerald-50/70 text-emerald-800 text-[10px] font-black uppercase tracking-wider">
+                      <div className="w-26 h-10 border-2 border-dashed border-emerald-600/70 rounded-lg flex items-center justify-center rotate-[-3deg] bg-emerald-50/70 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2 shadow-2xs">
                         ✓ LUNAS HR MOTOR
                       </div>
                     </div>
-                    <p className="text-xs font-black text-charcoal-950 underline underline-offset-2">
-                      {selectedKwitansi.penerima}
+                    <p className="text-xs sm:text-sm font-black text-charcoal-950 underline underline-offset-2 uppercase">
+                      {selectedKwitansi.penerima || 'HR MOTOR'}
                     </p>
                   </div>
                 </div>
