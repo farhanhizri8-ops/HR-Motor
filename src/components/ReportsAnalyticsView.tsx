@@ -840,9 +840,11 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
             <span className="text-2xl font-black text-[#242424] block tracking-tight">
               {totalUnitsSold} <span className="text-xs font-semibold text-[#666666]">Unit</span>
             </span>
-            <span className="text-[10px] text-[#666666] font-medium mt-1 block">
-              Armada keluar showroom
-            </span>
+            <div className="flex items-center gap-1 text-[10px] font-bold mt-1">
+              <span className="text-emerald-700">Cash: {filteredPurchases.filter((p) => p.paymentType === 'Cash' || !p.paymentType).length}</span>
+              <span className="text-charcoal-400">•</span>
+              <span className="text-indigo-700">Kredit: {filteredPurchases.filter((p) => p.paymentType === 'Kredit' || (p.paymentMethod && p.paymentMethod.toLowerCase().includes('kredit'))).length}</span>
+            </div>
           </div>
 
           {/* KPI 6: Total Omzet Penjualan (Charcoal Luxury Card) */}

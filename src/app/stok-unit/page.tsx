@@ -852,10 +852,10 @@ export default function StokUnitPage() {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-2.5 py-1 bg-warm-50 border border-warm-200 rounded-lg text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
             >
-              <option value="Semua">Semua Status</option>
-              <option value="Tersedia">Ready Showroom (30)</option>
-              <option value="Booking">Booking (1)</option>
-              <option value="Terjual">Sold Out (1)</option>
+              <option value="Semua">Semua Status ({stocks.length})</option>
+              <option value="Tersedia">Ready Showroom ({dashboardStats.tersedia})</option>
+              <option value="Booking">Boking Kredit ({dashboardStats.booking})</option>
+              <option value="Terjual">Sold Out ({dashboardStats.terjual})</option>
             </select>
 
             {/* Tahun */}
@@ -1114,16 +1114,28 @@ export default function StokUnitPage() {
                             </span>
                           )}
                           {stock.status === 'Booking' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
-                              <Clock className="w-3.5 h-3.5 text-amber-700" />
-                              Booking
-                            </span>
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+                                <Clock className="w-3.5 h-3.5 text-amber-700" />
+                                BOKING
+                              </span>
+                              <span className="text-[10px] text-amber-950 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-center max-w-[140px] truncate" title={`Dipesan: ${stock.bookingCustomerName || 'Pelanggan'} (${stock.bookingLeasing || 'Leasing'})`}>
+                                {stock.bookingCustomerName || 'Pelanggan'} • {stock.bookingLeasing || 'Leasing'}
+                              </span>
+                            </div>
                           )}
                           {stock.status === 'Terjual' && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 shadow-xs">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
-                              Sold Out
-                            </span>
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200 shadow-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
+                                SOLD OUT
+                              </span>
+                              {stock.soldToCustomerName && (
+                                <span className="text-[10px] text-rose-900 font-medium bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 text-center max-w-[130px] truncate" title={`Pembeli: ${stock.soldToCustomerName}`}>
+                                  {stock.soldToCustomerName}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </td>
 
@@ -1250,13 +1262,13 @@ export default function StokUnitPage() {
                         {stock.status === 'Booking' && (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/90 text-amber-300 border border-amber-500/50 backdrop-blur shadow-sm flex items-center gap-1">
                             <Clock className="w-3 h-3 text-amber-400" />
-                            Booking
+                            BOKING ({stock.bookingLeasing || 'KREDIT'})
                           </span>
                         )}
                         {stock.status === 'Terjual' && (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/90 text-rose-300 border border-rose-500/50 backdrop-blur shadow-sm flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-rose-400" />
-                            Sold Out
+                            SOLD OUT
                           </span>
                         )}
                       </div>
@@ -1289,6 +1301,38 @@ export default function StokUnitPage() {
 
                     {/* Content Section */}
                     <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                      {/* Booking / Sold Status Banner for Card */}
+                      {stock.status === 'Booking' && (
+                        <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-amber-700" /> BOKING KREDIT
+                            </span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200 text-amber-900">
+                              {stock.bookingLeasing || 'Leasing'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-bold text-charcoal-900 truncate">
+                            Dipesan: {stock.bookingCustomerName || 'Pelanggan'}
+                          </p>
+                        </div>
+                      )}
+
+                      {stock.status === 'Terjual' && (
+                        <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-950 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-rose-700 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-rose-600" /> TERJUAL (SOLD)
+                            </span>
+                            <span className="text-[10px] font-mono text-rose-800">
+                              {stock.soldDate || 'SOLD OUT'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-bold text-charcoal-900 truncate">
+                            Pembeli: {stock.soldToCustomerName || 'Pelanggan Showroom'}
+                          </p>
+                        </div>
+                      )}
                       {/* Specs Row */}
                       <div className="grid grid-cols-3 gap-2 py-2 border-y border-warm-200 text-center">
                         <div className="flex flex-col items-center justify-center p-1 bg-warm-50 rounded">
@@ -1664,6 +1708,31 @@ export default function StokUnitPage() {
             </div>
 
             <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+              {/* Alert Status Boking / Sold Out di Modal */}
+              {selectedStock.status === 'Booking' && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex items-start gap-3 shadow-xs">
+                  <Clock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-950">Unit Sedang Dalam Status BOKING (Pengajuan Kredit)</h4>
+                    <p className="text-[11px] text-amber-900 mt-0.5 leading-relaxed">
+                      Unit ini sedang dibooking oleh <strong>{selectedStock.bookingCustomerName || 'Pelanggan Showroom'}</strong> untuk pengajuan kredit ke <strong>{selectedStock.bookingLeasing || 'Bank/Leasing'}</strong>{selectedStock.bookingDp ? ` (DP Awal: ${formatRupiah(selectedStock.bookingDp)})` : ''}. Selama status booking aktif, unit ini tidak dapat dibeli atau dibooking oleh calon pembeli lain.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedStock.status === 'Terjual' && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 shadow-xs">
+                  <CheckCircle2 className="w-5 h-5 text-rose-700 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-bold text-rose-950">Unit Berstatus SOLD OUT (Sudah Terjual)</h4>
+                    <p className="text-[11px] text-rose-800 mt-0.5">
+                      Unit ini telah resmi terjual kepada <strong>{selectedStock.soldToCustomerName || 'Pelanggan Showroom'}</strong>{selectedStock.soldDate ? ` pada tanggal ${formatDate(selectedStock.soldDate)}` : ''}.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Photo Showcase */}
               <div className="space-y-2">
                 <div className="relative w-full h-72 bg-charcoal-950 rounded-xl overflow-hidden shadow-inner">

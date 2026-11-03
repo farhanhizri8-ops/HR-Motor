@@ -18,105 +18,189 @@ import {
   ActivityLog,
   RepairClaim,
   VehicleStock,
+  CreditApplication,
 } from '@/types/crm';
 
 function triggerStockMatching(stock: VehicleStock, db: CrmDatabase, userName: string) {
   if (stock.status !== 'Tersedia') return;
-  if (!db.leads || !Array.isArray(db.leads)) return;
   if (!db.followUps) db.followUps = [];
+  if (!db.notifications) db.notifications = [];
+  if (!db.activityLogs) db.activityLogs = [];
 
-  const stockBrandLower = stock.brand.toLowerCase().trim();
-  const stockModelLower = stock.model.toLowerCase().trim();
+  const stockBrandLower = (stock.brand || '').toLowerCase().trim();
+  const stockModelLower = (stock.model || '').toLowerCase().trim();
+  const stockMerkTypeLower = (stock.merkType || '').toLowerCase().trim();
 
-  db.leads.forEach((lead) => {
-    if (lead.status === 'Deal') return;
+  // 1. Match Prospect Follow-Ups
+  db.followUps.forEach((flw) => {
+    if (flw.followUpType === 'PROSPECT' && flw.status !== 'Sudah Deal' && flw.status !== 'Tidak Tertarik') {
+      const pBrand = (flw.searchBrand || '').toLowerCase().trim();
+      const pModel = (flw.searchModel || '').toLowerCase().trim();
+      const pYear = flw.searchYear;
+      const pBudget = flw.searchBudget;
 
-    let isMatch = false;
+      const brandMatched =
+        !pBrand ||
+        stockBrandLower.includes(pBrand) ||
+        pBrand.includes(stockBrandLower);
 
-    // Check brand match
-    const leadBrand = (lead.searchBrand || '').toLowerCase().trim();
-    const leadModel = (lead.searchModel || '').toLowerCase().trim();
-    const interested = (lead.interestedVehicle || '').toLowerCase().trim();
+      if (brandMatched) {
+        // Model matching: all meaningful keywords in pModel should match stock model/merkType
+        let modelMatched = true;
+        if (pModel) {
+          const words = pModel.split(' ').filter((w) => w.length > 1);
+          modelMatched = words.some((w) => stockModelLower.includes(w) || stockMerkTypeLower.includes(w));
+        }
 
-    const brandMatched =
-      (leadBrand && (stockBrandLower.includes(leadBrand) || leadBrand.includes(stockBrandLower))) ||
-      (!leadBrand && stockBrandLower.length > 0 && interested.includes(stockBrandLower));
+        // Year matching (within +/- 1 year tolerance)
+        let yearMatched = true;
+        if (pYear && Math.abs(stock.year - pYear) > 1) {
+          yearMatched = false;
+        }
 
-    if (brandMatched) {
-      // Check model match
-      let modelMatched = true;
-      if (leadModel) {
-        const words = leadModel.split(' ').filter((w) => w.length > 1);
-        modelMatched = words.some((w) => stockModelLower.includes(w));
-      } else if (interested) {
-        const words = interested.split(' ').filter((w) => w.length > 2);
-        modelMatched = words.some((w) => stockModelLower.includes(w));
-      }
+        // Budget matching
+        let budgetMatched = true;
+        if (pBudget && stock.price > pBudget * 1.15) {
+          budgetMatched = false;
+        }
 
-      // Check year range
-      let yearMatched = true;
-      if (lead.searchYearMin && stock.year < lead.searchYearMin) yearMatched = false;
-      if (lead.searchYearMax && stock.year > lead.searchYearMax) yearMatched = false;
+        if (brandMatched && modelMatched && yearMatched && budgetMatched) {
+          flw.status = 'Mobil Sudah Ready';
+          flw.prospectStatus = 'Mobil Sudah Ready';
+          flw.matchedStockId = stock.id;
+          flw.matchedStockInfo = `${stock.brand} ${stock.model} (${stock.year}) - Rp ${stock.price.toLocaleString('id-ID')} [${stock.licensePlate || '-'}]`;
+          flw.priority = 'Tinggi';
+          flw.updatedAt = new Date().toISOString();
 
-      // Check budget with 15% allowance
-      let budgetMatched = true;
-      if (lead.searchBudgetMax && stock.price > lead.searchBudgetMax * 1.15) {
-        budgetMatched = false;
-      }
+          // Add notification
+          const notifExists = db.notifications.some(
+            (n) => n.title.includes(flw.customerName) && n.message.includes(stock.model)
+          );
+          if (!notifExists) {
+            db.notifications.unshift({
+              id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              userId: 'USR-001',
+              title: `Mobil Tersedia: ${flw.customerName}`,
+              message: `Unit ${stock.brand} ${stock.model} (${stock.year}) kini READY! Cocok dengan pencarian calon pembeli ${flw.customerName}. Segera hubungi via WhatsApp.`,
+              type: 'system',
+              isRead: false,
+              link: '/follow-up',
+              createdAt: new Date().toISOString(),
+            });
+          }
 
-      if (brandMatched && modelMatched && yearMatched && budgetMatched) {
-        isMatch = true;
-      }
-    }
-
-    if (isMatch) {
-      // Avoid duplicate follow-up for the same lead and vehicleStockId
-      const alreadyExists = db.followUps.some(
-        (f) => f.leadId === lead.id && f.vehicleStockId === stock.id
-      );
-
-      if (!alreadyExists) {
-        const matchedCust = lead.customerId ? db.customers?.find((c) => c.id === lead.customerId) : null;
-        const phone = lead.contactNumber || lead.customerPhone || matchedCust?.whatsapp || '';
-
-        const newFlw: FollowUp = {
-          id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
-          customerId: lead.customerId,
-          customerName: lead.customerName,
-          customerPhone: phone,
-          leadId: lead.id,
-          category: 'Unit yang Dicari Sudah Tersedia',
-          scheduledDate: new Date().toISOString().split('T')[0],
-          scheduledTime: '09:00',
-          channel: 'WhatsApp',
-          status: 'Belum Dihubungi',
-          priority: 'Tinggi',
-          vehicleStockId: stock.id,
-          vehicleInfo: `${stock.brand} ${stock.model} (${stock.year}) - Rp ${stock.price.toLocaleString('id-ID')}`,
-          followUpReason: `Unit yang dicari konsumen (${stock.brand} ${stock.model} ${stock.year}) baru saja tersedia di showroom HR MOTOR. Segera hubungi sebelum unit terjual.`,
-          isUnitSold: false,
-          notes: `Otomatis dijadwalkan oleh sistem: Cocok dengan preferensi pencarian ${lead.customerName}.`,
-          communicationLogs: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        db.followUps.unshift(newFlw);
-
-        db.activityLogs.unshift({
-          id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          userId: 'SYS-001',
-          userName: 'Sistem CRM HR MOTOR',
-          userRole: 'CRM Administrator',
-          action: 'Pencocokan Stok Otomatis',
-          entityType: 'Follow-up',
-          entityId: newFlw.id,
-          details: `Unit ${stock.brand} ${stock.model} cocok dengan kebutuhan ${lead.customerName}. Dibuat follow-up prioritas tinggi!`,
-          createdAt: new Date().toISOString(),
-        });
+          db.activityLogs.unshift({
+            id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            userId: 'SYS-001',
+            userName: 'Sistem CRM HR MOTOR',
+            userRole: 'CRM Administrator',
+            action: 'Pencocokan Prospek Otomatis',
+            entityType: 'Follow-up',
+            entityId: flw.id,
+            details: `Unit ${stock.brand} ${stock.model} cocok dengan kebutuhan ${flw.customerName}. Status prospek diubah menjadi "Mobil Sudah Ready"!`,
+            createdAt: new Date().toISOString(),
+          });
+        }
       }
     }
   });
+
+  // 2. Match Leads
+  if (db.leads && Array.isArray(db.leads)) {
+    db.leads.forEach((lead) => {
+      if (lead.status === 'Deal') return;
+
+      let isMatch = false;
+
+      // Check brand match
+      const leadBrand = (lead.searchBrand || '').toLowerCase().trim();
+      const leadModel = (lead.searchModel || '').toLowerCase().trim();
+      const interested = (lead.interestedVehicle || '').toLowerCase().trim();
+
+      const brandMatched =
+        (leadBrand && (stockBrandLower.includes(leadBrand) || leadBrand.includes(stockBrandLower))) ||
+        (!leadBrand && stockBrandLower.length > 0 && interested.includes(stockBrandLower));
+
+      if (brandMatched) {
+        // Check model match
+        let modelMatched = true;
+        if (leadModel) {
+          const words = leadModel.split(' ').filter((w) => w.length > 1);
+          modelMatched = words.some((w) => stockModelLower.includes(w) || stockMerkTypeLower.includes(w));
+        } else if (interested) {
+          const words = interested.split(' ').filter((w) => w.length > 2);
+          modelMatched = words.some((w) => stockModelLower.includes(w) || stockMerkTypeLower.includes(w));
+        }
+
+        // Check year range
+        let yearMatched = true;
+        if (lead.searchYearMin && stock.year < lead.searchYearMin) yearMatched = false;
+        if (lead.searchYearMax && stock.year > lead.searchYearMax) yearMatched = false;
+
+        // Check budget with 15% allowance
+        let budgetMatched = true;
+        if (lead.searchBudgetMax && stock.price > lead.searchBudgetMax * 1.15) {
+          budgetMatched = false;
+        }
+
+        if (brandMatched && modelMatched && yearMatched && budgetMatched) {
+          isMatch = true;
+        }
+      }
+
+      if (isMatch) {
+        // Avoid duplicate follow-up for the same lead and vehicleStockId
+        const alreadyExists = db.followUps.some(
+          (f) => f.leadId === lead.id && f.vehicleStockId === stock.id
+        );
+
+        if (!alreadyExists) {
+          const matchedCust = lead.customerId ? db.customers?.find((c) => c.id === lead.customerId) : null;
+          const phone = lead.contactNumber || lead.customerPhone || matchedCust?.whatsapp || '';
+
+          const newFlw: FollowUp = {
+            id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
+            followUpType: 'PROSPECT',
+            customerId: lead.customerId,
+            customerName: lead.customerName,
+            customerPhone: phone,
+            leadId: lead.id,
+            category: 'Unit yang Dicari Sudah Tersedia',
+            scheduledDate: new Date().toISOString().split('T')[0],
+            scheduledTime: '09:00',
+            channel: 'WhatsApp',
+            status: 'Mobil Sudah Ready',
+            prospectStatus: 'Mobil Sudah Ready',
+            priority: 'Tinggi',
+            vehicleStockId: stock.id,
+            matchedStockId: stock.id,
+            matchedStockInfo: `${stock.brand} ${stock.model} (${stock.year}) - Rp ${stock.price.toLocaleString('id-ID')}`,
+            vehicleInfo: `${stock.brand} ${stock.model} (${stock.year}) - Rp ${stock.price.toLocaleString('id-ID')}`,
+            followUpReason: `Unit yang dicari konsumen (${stock.brand} ${stock.model} ${stock.year}) baru saja tersedia di showroom HR MOTOR. Segera hubungi sebelum unit terjual.`,
+            isUnitSold: false,
+            notes: `Otomatis dijadwalkan oleh sistem: Cocok dengan preferensi pencarian ${lead.customerName}.`,
+            communicationLogs: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          db.followUps.unshift(newFlw);
+
+          db.activityLogs.unshift({
+            id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            userId: 'SYS-001',
+            userName: 'Sistem CRM HR MOTOR',
+            userRole: 'CRM Administrator',
+            action: 'Pencocokan Stok Otomatis',
+            entityType: 'Follow-up',
+            entityId: newFlw.id,
+            details: `Unit ${stock.brand} ${stock.model} cocok dengan kebutuhan ${lead.customerName}. Dibuat follow-up prioritas tinggi!`,
+            createdAt: new Date().toISOString(),
+          });
+        }
+      }
+    });
+  }
 }
 
 export async function GET() {
@@ -532,7 +616,11 @@ export async function POST(request: Request) {
         } else if (outcome === 'Menunggu Konfirmasi Keluarga' || outcome === 'Sedang Mempertimbangkan Unit Lain') {
           item.status = 'Menunggu Respons';
         } else if (outcome === 'Tidak Ada Respons') {
-          item.status = 'Sudah Dihubungi';
+          item.status = 'Tidak Merespons';
+        }
+
+        if (payload.status) {
+          item.status = payload.status;
         }
 
         // If manual next follow-up date was specified
@@ -1033,6 +1121,792 @@ export async function POST(request: Request) {
             error: `Gagal terhubung ke Supabase: ${e.message || String(e)}`,
           });
         }
+      }
+
+      // =========================================================================
+      // FITUR 1: TRANSAKSI PENJUALAN CASH (TUNAI)
+      // =========================================================================
+      case 'CREATE_CASH_TRANSACTION': {
+        const {
+          customerName,
+          customerPhone,
+          customerAddress,
+          customerSource,
+          vehicleStockId,
+          dealPrice,
+          notes,
+          transactionDate,
+          prospectFollowUpId,
+        } = payload;
+
+        if (!customerName || !customerPhone || !vehicleStockId) {
+          return NextResponse.json({ success: false, error: 'Nama pelanggan, nomor WhatsApp, dan unit mobil wajib diisi' }, { status: 400 });
+        }
+
+        const stock = db.stocks.find((s) => s.id === vehicleStockId);
+        if (!stock) {
+          return NextResponse.json({ success: false, error: 'Unit kendaraan tidak ditemukan di database stok' }, { status: 404 });
+        }
+
+        if (stock.status !== 'Tersedia') {
+          return NextResponse.json({
+            success: false,
+            error: `Unit ${stock.brand} ${stock.model} (${stock.licensePlate || '-'}) saat ini berstatus ${stock.status === 'Booking' ? 'BOKING' : 'SOLD OUT'} dan tidak dapat dipilih untuk transaksi baru.`,
+          }, { status: 400 });
+        }
+
+        const dateTx = transactionDate || new Date().toISOString().split('T')[0];
+        const nominal = Number(dealPrice) || stock.price;
+
+        // 1. Save / Update Customer
+        let cust = db.customers.find((c) => c.whatsapp && c.whatsapp.trim() === customerPhone.trim());
+        const custId = cust?.id || `CUST-2026-${String(db.customers.length + 1).padStart(3, '0')}`;
+        const newReceiptNumber = `No. ${db.customers.length + 1}`;
+        const todayStr = new Date(dateTx).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+        const receiptPlaceDate = `GARUT, ${todayStr}`;
+
+        const updatedCustomer: Customer = {
+          id: custId,
+          fullName: customerName.trim(),
+          whatsapp: customerPhone.trim(),
+          email: cust?.email || '',
+          address: customerAddress?.trim() || cust?.address || 'Garut',
+          district: cust?.district || 'Tarogong Kidul',
+          source: customerSource || cust?.source || 'Walk-in',
+          interestedVehicle: `${stock.brand} ${stock.model} (${stock.year})`,
+          vehicleType: (stock.brand.toLowerCase().includes('sigra') || stock.brand.toLowerCase().includes('avanza') ? 'MPV' : 'SUV') as any,
+          budget: nominal,
+          notes: notes || 'Transaksi Penjualan Tunai (Cash)',
+          registeredDate: cust?.registeredDate || dateTx,
+          status: 'Sudah Beli',
+          paymentType: 'Cash',
+          plateNumber: stock.licensePlate || stock.plateNumber || '',
+          receiptNumber: newReceiptNumber,
+          receiptAmount: nominal,
+          receiptDate: receiptPlaceDate,
+          receiptReceiver: 'HR MOTOR',
+          receiptNotes: notes || 'LUNAS (CASH)',
+          updatedAt: new Date().toISOString(),
+        };
+
+        if (cust) {
+          const idx = db.customers.findIndex((c) => c.id === cust!.id);
+          db.customers[idx] = updatedCustomer;
+        } else {
+          db.customers.unshift(updatedCustomer);
+        }
+
+        // 2. Add CustomerPurchase (Laporan Penjualan)
+        const purchaseId = `DEAL-2026-${String(db.purchases.length + 1).padStart(3, '0')}`;
+        const newPurchase: CustomerPurchase = {
+          id: purchaseId,
+          customerId: custId,
+          customerName: customerName.trim(),
+          vehicleBrand: stock.brand,
+          vehicleModel: `${stock.brand} ${stock.model}`,
+          vehicleYear: stock.year,
+          vehicleName: `${stock.brand} ${stock.model} (${stock.year})`,
+          plateNumber: stock.licensePlate || stock.plateNumber || 'Z - HR MOTOR',
+          color: stock.color,
+          mileageKm: stock.mileage,
+          purchasePrice: nominal,
+          paymentType: 'Cash',
+          paymentMethod: 'Cash Keras',
+          purchaseDate: dateTx,
+          warrantyUntil: `${parseInt(dateTx.slice(0, 4)) + 1}${dateTx.slice(4)}`,
+          salesId: userId,
+          salesName: userName || 'HR MOTOR',
+          notes: notes || 'Transaksi Penjualan Tunai (Cash) Sukses di HR MOTOR Garut',
+          receiptNumber: newReceiptNumber,
+          receiptDate: receiptPlaceDate,
+          receiptReceiver: 'HR MOTOR',
+          vehicleStockId: stock.id,
+          createdAt: new Date().toISOString(),
+        };
+        db.purchases.unshift(newPurchase);
+
+        // 3. Update VehicleStock to SOLD OUT (Terjual)
+        stock.status = 'Terjual';
+        stock.soldDate = dateTx;
+        stock.soldToCustomerId = custId;
+        stock.soldToCustomerName = customerName.trim();
+        stock.bookingCustomerId = undefined;
+        stock.bookingCustomerName = undefined;
+        stock.bookingLeasing = undefined;
+        stock.bookingDp = undefined;
+        stock.bookingDate = undefined;
+        stock.bookingApplicationId = undefined;
+        stock.updatedAt = new Date().toISOString();
+
+        // 4. Schedule Customer Follow Up (Pelanggan yang sudah membeli)
+        if (!db.followUps) db.followUps = [];
+        const dealDateObj = new Date(dateTx);
+        dealDateObj.setMonth(dealDateObj.getMonth() + 1);
+        const nextScheduleDate = dealDateObj.toISOString().split('T')[0];
+
+        const newFollowUp: FollowUp = {
+          id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
+          followUpType: 'CUSTOMER',
+          customerId: custId,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerAddress: customerAddress?.trim() || 'Garut',
+          customerSource: customerSource || 'Walk-in',
+          vehicleInfo: `${stock.brand} ${stock.model} (${stock.year})`,
+          paymentType: 'Cash',
+          purchaseDate: dateTx,
+          periodicStep: '1 Bulan',
+          category: 'Pelanggan Lama (1 Tahun)',
+          scheduledDate: nextScheduleDate,
+          scheduledTime: '10:00',
+          channel: 'WhatsApp',
+          status: 'Belum Dihubungi',
+          priority: 'Tinggi',
+          followUpReason: 'Pengecekan berkala kepuasan 1 tahun (Cash): kondisi mobil setelah digunakan, kendala kendaraan, rencana ganti unit/trade-in, dan rencana jual kembali.',
+          notes: `Pembelian Cash: ${stock.brand} ${stock.model} (${stock.licensePlate || '-'}).`,
+          communicationLogs: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        db.followUps.unshift(newFollowUp);
+
+        // 5. If this transaction was converted from a prospect follow-up
+        if (prospectFollowUpId) {
+          const prospect = db.followUps.find((f) => f.id === prospectFollowUpId);
+          if (prospect) {
+            prospect.status = 'Sudah Deal';
+            prospect.prospectStatus = 'Sudah Deal';
+            prospect.customerId = custId;
+            prospect.notes = `${prospect.notes || ''} [Deal Cash: ${stock.brand} ${stock.model}]`.trim();
+            prospect.updatedAt = new Date().toISOString();
+          }
+        } else {
+          // Check if any matching prospect by phone
+          const existingProspect = db.followUps.find(
+            (f) => f.followUpType === 'PROSPECT' && f.customerPhone === customerPhone.trim() && f.status !== 'Sudah Deal'
+          );
+          if (existingProspect) {
+            existingProspect.status = 'Sudah Deal';
+            existingProspect.prospectStatus = 'Sudah Deal';
+            existingProspect.customerId = custId;
+            existingProspect.updatedAt = new Date().toISOString();
+          }
+        }
+
+        // 6. Log Activity
+        logActivity(
+          'Penjualan Mobil Tunai (Cash)',
+          'Deal',
+          newPurchase.id,
+          `Penjualan Cash unit ${stock.brand} ${stock.model} (${stock.licensePlate || '-'}) kepada ${customerName.trim()} senilai Rp ${nominal.toLocaleString('id-ID')}. Status unit SOLD OUT.`
+        );
+        break;
+      }
+
+      // =========================================================================
+      // FITUR 2: TRANSAKSI PENJUALAN KREDIT (PENGAJUAN AWAL -> STATUS: PENDING)
+      // =========================================================================
+      case 'CREATE_CREDIT_APPLICATION': {
+        const {
+          customerName,
+          customerPhone,
+          customerAddress,
+          customerSource,
+          vehicleStockId,
+          targetLeasing,
+          dealPrice,
+          initialDp,
+          notes,
+          applicationDate,
+          prospectFollowUpId,
+        } = payload;
+
+        if (!customerName || !customerPhone || !vehicleStockId || !targetLeasing) {
+          return NextResponse.json({
+            success: false,
+            error: 'Nama pelanggan, nomor WhatsApp, unit mobil, dan bank/leasing tujuan wajib diisi',
+          }, { status: 400 });
+        }
+
+        const stock = db.stocks.find((s) => s.id === vehicleStockId);
+        if (!stock) {
+          return NextResponse.json({ success: false, error: 'Unit kendaraan tidak ditemukan di database stok' }, { status: 404 });
+        }
+
+        if (stock.status !== 'Tersedia') {
+          return NextResponse.json({
+            success: false,
+            error: `Unit ${stock.brand} ${stock.model} (${stock.licensePlate || '-'}) saat ini berstatus ${stock.status === 'Booking' ? 'BOKING' : 'SOLD OUT'} dan tidak dapat dipilih untuk pengajuan kredit.`,
+          }, { status: 400 });
+        }
+
+        const dateApp = applicationDate || new Date().toISOString().split('T')[0];
+        const nominalDeal = Number(dealPrice) || stock.price;
+        const nominalDp = Number(initialDp) || (stock.creditDp || Math.round(nominalDeal * 0.2));
+
+        // 1. Create or Update Customer
+        if (!db.customers) db.customers = [];
+        let cust = db.customers.find((c) => c.whatsapp && c.whatsapp.trim() === customerPhone.trim());
+        const custId = cust?.id || `CUST-2026-${String(db.customers.length + 1).padStart(3, '0')}`;
+
+        const updatedCustomer: Customer = {
+          id: custId,
+          fullName: customerName.trim(),
+          whatsapp: customerPhone.trim(),
+          email: cust?.email || '',
+          address: customerAddress?.trim() || cust?.address || 'Garut',
+          district: cust?.district || 'Tarogong Kidul',
+          source: customerSource || cust?.source || 'Walk-in',
+          interestedVehicle: `${stock.brand} ${stock.model} (${stock.year})`,
+          vehicleType: (stock.brand.toLowerCase().includes('sigra') || stock.brand.toLowerCase().includes('avanza') ? 'MPV' : 'SUV') as any,
+          budget: nominalDeal,
+          notes: notes || `Pengajuan Kredit ${targetLeasing}`,
+          registeredDate: cust?.registeredDate || dateApp,
+          status: 'Prospek',
+          paymentType: 'Kredit',
+          creditStatus: 'PENDING',
+          downPayment: nominalDp,
+          leasingPartner: targetLeasing,
+          plateNumber: stock.licensePlate || stock.plateNumber || '',
+          updatedAt: new Date().toISOString(),
+        };
+
+        if (cust) {
+          const idx = db.customers.findIndex((c) => c.id === cust!.id);
+          db.customers[idx] = updatedCustomer;
+        } else {
+          db.customers.unshift(updatedCustomer);
+        }
+
+        // 2. Create Credit Application (Status: PENDING)
+        if (!db.creditApplications) db.creditApplications = [];
+        const appId = `CRD-2026-${String(db.creditApplications.length + 1).padStart(3, '0')}`;
+        const newApplication: CreditApplication = {
+          id: appId,
+          customerId: custId,
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerAddress: customerAddress?.trim() || 'Garut',
+          customerSource: customerSource || 'Walk-in',
+          vehicleStockId: stock.id,
+          vehicleName: `${stock.brand} ${stock.model} (${stock.year})`,
+          plateNumber: stock.licensePlate || stock.plateNumber || '',
+          targetLeasing: targetLeasing,
+          dealPrice: nominalDeal,
+          initialDp: nominalDp,
+          status: 'PENDING',
+          applicationDate: dateApp,
+          notes: notes || '',
+          history: [
+            {
+              status: 'PENDING',
+              timestamp: new Date().toISOString(),
+              adminName: userName,
+              notes: `Pengajuan kredit pertama kali dibuat (Status: PENDING), unit mobil otomatis BOKING untuk ${customerName.trim()} ke ${targetLeasing}.`,
+              dpAmount: nominalDp,
+              leasingPartner: targetLeasing,
+            },
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        db.creditApplications.unshift(newApplication);
+
+        // 3. Update VehicleStock to BOKING (Booking)
+        stock.status = 'Booking';
+        stock.bookingCustomerId = custId;
+        stock.bookingCustomerName = customerName.trim();
+        stock.bookingLeasing = targetLeasing;
+        stock.bookingDp = nominalDp;
+        stock.bookingDate = dateApp;
+        stock.bookingApplicationId = appId;
+        stock.updatedAt = new Date().toISOString();
+
+        // 4. Link with prospect if applicable
+        if (prospectFollowUpId) {
+          const prospect = db.followUps?.find((f) => f.id === prospectFollowUpId);
+          if (prospect) {
+            prospect.status = 'Tertarik';
+            prospect.prospectStatus = 'Tertarik';
+            prospect.notes = `${prospect.notes || ''} [Pengajuan Kredit: ${stock.brand} ${stock.model} via ${targetLeasing}]`.trim();
+            prospect.updatedAt = new Date().toISOString();
+          }
+        }
+
+        // 5. Add Notification for Dealer
+        if (!db.notifications) db.notifications = [];
+        db.notifications.unshift({
+          id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          userId: 'USR-001',
+          title: `Pengajuan Kredit: ${customerName.trim()}`,
+          message: `Pengajuan kredit baru (Status PENDING) untuk ${stock.brand} ${stock.model} ke ${targetLeasing} (DP: Rp ${nominalDp.toLocaleString('id-ID')}). Unit berstatus BOKING.`,
+          type: 'approval',
+          isRead: false,
+          link: '/customers?tab=transactions',
+          createdAt: new Date().toISOString(),
+        });
+
+        // 6. Log Activity
+        logActivity(
+          'Pengajuan Kredit Baru (PENDING)',
+          'Stok Unit',
+          stock.id,
+          `Pengajuan kredit atas nama ${customerName.trim()} ke ${targetLeasing} untuk unit ${stock.brand} ${stock.model} (DP: Rp ${nominalDp.toLocaleString('id-ID')}). Status unit berubah menjadi BOKING.`
+        );
+        break;
+      }
+
+      // =========================================================================
+      // FITUR 2B: PERSETUJUAN KREDIT (ACC)
+      // =========================================================================
+      case 'APPROVE_CREDIT_APPLICATION': {
+        const { applicationId, finalDp, approvedLeasing, approvalNotes } = payload;
+
+        if (!applicationId || !approvedLeasing) {
+          return NextResponse.json({ success: false, error: 'ID pengajuan kredit dan bank/leasing yang ACC wajib diisi' }, { status: 400 });
+        }
+
+        // Role check
+        const canApprove =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'CRM Administrator' ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+
+        if (!canApprove) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Hanya akun Owner atau CRM Administrator yang berhak menyetujui (ACC) pengajuan kredit.',
+          }, { status: 403 });
+        }
+
+        if (!db.creditApplications) db.creditApplications = [];
+        const app = db.creditApplications.find((a) => a.id === applicationId);
+        if (!app) {
+          return NextResponse.json({ success: false, error: 'Data pengajuan kredit tidak ditemukan' }, { status: 404 });
+        }
+
+        if (app.status !== 'PENDING') {
+          return NextResponse.json({ success: false, error: `Pengajuan kredit ini sudah berstatus ${app.status}` }, { status: 400 });
+        }
+
+        const finalDpNominal = Number(finalDp) !== undefined && !isNaN(Number(finalDp)) ? Number(finalDp) : app.initialDp;
+        const nowIso = new Date().toISOString();
+        const todayDate = nowIso.split('T')[0];
+
+        // 1. Find Stock and ensure safety
+        const stock = db.stocks.find((s) => s.id === app.vehicleStockId);
+        if (stock) {
+          stock.status = 'Terjual'; // Changed from BOKING to SOLD OUT
+          stock.soldDate = todayDate;
+          stock.soldToCustomerId = app.customerId;
+          stock.soldToCustomerName = app.customerName;
+          stock.bookingCustomerId = undefined;
+          stock.bookingCustomerName = undefined;
+          stock.bookingLeasing = undefined;
+          stock.bookingDp = undefined;
+          stock.bookingDate = undefined;
+          stock.bookingApplicationId = undefined;
+          stock.updatedAt = nowIso;
+        }
+
+        // 2. Update Application Status to APPROVED
+        app.status = 'APPROVED';
+        app.finalDp = finalDpNominal;
+        app.approvedLeasing = approvedLeasing;
+        app.approvalDate = todayDate;
+        app.updatedAt = nowIso;
+        if (!app.history) app.history = [];
+        app.history.unshift({
+          status: 'APPROVED',
+          timestamp: nowIso,
+          adminName: userName,
+          notes: approvalNotes || `Pengajuan kredit disetujui (ACC) oleh ${approvedLeasing}.`,
+          dpAmount: finalDpNominal,
+          leasingPartner: approvedLeasing,
+        });
+
+        // 3. Update Customer Record
+        let cust = db.customers.find((c) => c.id === app.customerId || (c.whatsapp && c.whatsapp === app.customerPhone));
+        const newReceiptNum = `No. ${db.customers.length + 1}`;
+        const placeDate = `GARUT, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}`;
+
+        if (cust) {
+          cust.status = 'Sudah Beli';
+          cust.paymentType = 'Kredit';
+          cust.creditStatus = 'APPROVED';
+          cust.downPayment = finalDpNominal;
+          cust.leasingPartner = approvedLeasing;
+          cust.receiptNumber = cust.receiptNumber || newReceiptNum;
+          cust.receiptAmount = finalDpNominal;
+          cust.receiptDate = placeDate;
+          cust.receiptNotes = `DP KREDIT ${approvedLeasing} (ACC)`;
+          cust.updatedAt = nowIso;
+        }
+
+        // 4. Record CustomerPurchase (Laporan Penjualan Kredit)
+        const purchaseId = `DEAL-2026-${String(db.purchases.length + 1).padStart(3, '0')}`;
+        const newPurchase: CustomerPurchase = {
+          id: purchaseId,
+          customerId: app.customerId || cust?.id || `CUST-2026-${String(db.customers.length + 1).padStart(3, '0')}`,
+          customerName: app.customerName,
+          vehicleBrand: stock?.brand || 'HR MOTOR',
+          vehicleModel: stock ? `${stock.brand} ${stock.model}` : app.vehicleName,
+          vehicleYear: stock?.year || 2021,
+          vehicleName: app.vehicleName,
+          plateNumber: stock?.licensePlate || stock?.plateNumber || app.plateNumber || 'Z - HR MOTOR',
+          color: stock?.color || 'Hitam',
+          mileageKm: stock?.mileage || 35000,
+          purchasePrice: app.dealPrice,
+          paymentType: 'Kredit',
+          paymentMethod: `Kredit ${approvedLeasing}`,
+          downPayment: finalDpNominal,
+          leasingPartner: approvedLeasing,
+          creditApplicationId: app.id,
+          vehicleStockId: stock?.id,
+          purchaseDate: todayDate,
+          warrantyUntil: `${parseInt(todayDate.slice(0, 4)) + 1}${todayDate.slice(4)}`,
+          salesId: userId,
+          salesName: userName || 'HR MOTOR',
+          notes: `Kredit disetujui (ACC) oleh ${approvedLeasing} dengan DP Final Rp ${finalDpNominal.toLocaleString('id-ID')}. ${approvalNotes || ''}`.trim(),
+          receiptNumber: newReceiptNum,
+          receiptDate: placeDate,
+          receiptReceiver: 'HR MOTOR',
+          createdAt: nowIso,
+        };
+        db.purchases.unshift(newPurchase);
+
+        // 5. Schedule Customer Follow Up (Pelanggan yang sudah membeli via Kredit ACC)
+        if (!db.followUps) db.followUps = [];
+        const dealDateObj = new Date(todayDate);
+        dealDateObj.setMonth(dealDateObj.getMonth() + 1);
+        const nextScheduleDate = dealDateObj.toISOString().split('T')[0];
+
+        const newFollowUp: FollowUp = {
+          id: `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`,
+          followUpType: 'CUSTOMER',
+          customerId: app.customerId || cust?.id,
+          customerName: app.customerName,
+          customerPhone: app.customerPhone,
+          customerAddress: app.customerAddress,
+          customerSource: app.customerSource,
+          vehicleInfo: app.vehicleName,
+          paymentType: 'Kredit',
+          leasingPartner: approvedLeasing,
+          purchaseDate: todayDate,
+          periodicStep: '1 Bulan',
+          category: 'Pelanggan Lama (1 Tahun)',
+          scheduledDate: nextScheduleDate,
+          scheduledTime: '10:00',
+          channel: 'WhatsApp',
+          status: 'Belum Dihubungi',
+          priority: 'Tinggi',
+          followUpReason: `Pengecekan berkala kepuasan 1 tahun (Kredit ${approvedLeasing}): kondisi mobil setelah digunakan, kendala kendaraan, rencana ganti unit/trade-in, dan rencana jual kembali.`,
+          notes: `Pembelian Kredit ACC via ${approvedLeasing} (DP Final: Rp ${finalDpNominal.toLocaleString('id-ID')}).`,
+          communicationLogs: [],
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+        db.followUps.unshift(newFollowUp);
+
+        // 6. Link with prospect if any
+        const linkedProspect = db.followUps.find(
+          (f) => f.followUpType === 'PROSPECT' && f.customerPhone === app.customerPhone && f.status !== 'Sudah Deal'
+        );
+        if (linkedProspect) {
+          linkedProspect.status = 'Sudah Deal';
+          linkedProspect.prospectStatus = 'Sudah Deal';
+          linkedProspect.customerId = app.customerId;
+          linkedProspect.updatedAt = nowIso;
+        }
+
+        // 7. Log Activity
+        logActivity(
+          'Persetujuan Kredit (ACC)',
+          'Deal',
+          newPurchase.id,
+          `Kredit disetujui (ACC) oleh ${approvedLeasing} atas nama ${app.customerName} (DP Final: Rp ${finalDpNominal.toLocaleString('id-ID')}). Unit ${stock?.brand || ''} ${stock?.model || ''} berstatus SOLD OUT.`
+        );
+        break;
+      }
+
+      // =========================================================================
+      // FITUR 2C: PENOLAKAN KREDIT (REJECTED / DITOLAK)
+      // =========================================================================
+      case 'REJECT_CREDIT_APPLICATION': {
+        const { applicationId, rejectionReason } = payload;
+
+        if (!applicationId) {
+          return NextResponse.json({ success: false, error: 'ID pengajuan kredit wajib diisi' }, { status: 400 });
+        }
+
+        // Role check
+        const canReject =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'CRM Administrator' ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+
+        if (!canReject) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Hanya akun Owner atau CRM Administrator yang berhak menolak pengajuan kredit.',
+          }, { status: 403 });
+        }
+
+        if (!db.creditApplications) db.creditApplications = [];
+        const app = db.creditApplications.find((a) => a.id === applicationId);
+        if (!app) {
+          return NextResponse.json({ success: false, error: 'Data pengajuan kredit tidak ditemukan' }, { status: 404 });
+        }
+
+        if (app.status !== 'PENDING') {
+          return NextResponse.json({ success: false, error: `Pengajuan kredit ini sudah berstatus ${app.status}` }, { status: 400 });
+        }
+
+        const nowIso = new Date().toISOString();
+        const todayDate = nowIso.split('T')[0];
+        const reasonText = (rejectionReason || 'Ditolak oleh pihak bank/leasing (BI Checking / Kapasitas)').trim();
+
+        // 1. Revert Stock status from Booking back to READY (Tersedia)
+        const stock = db.stocks.find((s) => s.id === app.vehicleStockId);
+        if (stock) {
+          // Safety: Only revert if the unit was booked by this application
+          if (stock.status === 'Booking' && (stock.bookingApplicationId === app.id || stock.bookingCustomerName === app.customerName || !stock.bookingApplicationId)) {
+            stock.status = 'Tersedia'; // Reverted to READY!
+            stock.bookingCustomerId = undefined;
+            stock.bookingCustomerName = undefined;
+            stock.bookingLeasing = undefined;
+            stock.bookingDp = undefined;
+            stock.bookingDate = undefined;
+            stock.bookingApplicationId = undefined;
+            stock.updatedAt = nowIso;
+          }
+        }
+
+        // 2. Update Application Status to REJECTED (Preserve permanently in history)
+        app.status = 'REJECTED';
+        app.rejectionReason = reasonText;
+        app.rejectionDate = todayDate;
+        app.updatedAt = nowIso;
+        if (!app.history) app.history = [];
+        app.history.unshift({
+          status: 'REJECTED',
+          timestamp: nowIso,
+          adminName: userName,
+          notes: `Pengajuan kredit ditolak bank: ${reasonText}`,
+          rejectionReason: reasonText,
+        });
+
+        // 3. Update Customer Status (Customer does NOT enter Customer Follow Up pembeli)
+        const cust = db.customers.find((c) => c.id === app.customerId || (c.whatsapp && c.whatsapp === app.customerPhone));
+        if (cust) {
+          cust.creditStatus = 'REJECTED';
+          cust.status = 'Prospek';
+          cust.updatedAt = nowIso;
+        }
+
+        // 4. Log Activity
+        logActivity(
+          'Penolakan Pengajuan Kredit (REJECTED)',
+          'Stok Unit',
+          app.vehicleStockId,
+          `Pengajuan kredit ${app.customerName} ditolak bank (${reasonText}). Unit ${stock?.brand || ''} ${stock?.model || ''} otomatis kembali READY di halaman stok.`
+        );
+
+        // 5. Check if any prospect waiting for this newly READY stock
+        if (stock && stock.status === 'Tersedia') {
+          triggerStockMatching(stock, db, userName);
+        }
+        break;
+      }
+
+      // =========================================================================
+      // FITUR 4: PROSPECT FOLLOW UP (CALON PELANGGAN YANG MENCARI MOBIL)
+      // =========================================================================
+      case 'ADD_PROSPECT_FOLLOW_UP': {
+        const {
+          customerName,
+          customerPhone,
+          customerAddress,
+          customerSource,
+          searchBrand,
+          searchModel,
+          searchYear,
+          searchBudget,
+          notes,
+          firstInquiryDate,
+        } = payload;
+
+        if (!customerName || !customerPhone || !searchBrand) {
+          return NextResponse.json({
+            success: false,
+            error: 'Nama calon pelanggan, nomor WhatsApp, dan merek mobil yang dicari wajib diisi',
+          }, { status: 400 });
+        }
+
+        const nowIso = new Date().toISOString();
+        const todayDate = nowIso.split('T')[0];
+        const dateInquiry = firstInquiryDate || todayDate;
+        const yearWanted = searchYear ? Number(searchYear) : undefined;
+        const budgetWanted = searchBudget ? Number(searchBudget) : undefined;
+
+        if (!db.followUps) db.followUps = [];
+
+        // Check stock matching immediately
+        let initialStatus: any = 'Menunggu Mobil Ready';
+        let matchedStock: VehicleStock | undefined;
+
+        const pBrandLower = searchBrand.toLowerCase().trim();
+        const pModelLower = (searchModel || '').toLowerCase().trim();
+
+        matchedStock = db.stocks.find((s) => {
+          if (s.status !== 'Tersedia') return false;
+          const sBrand = s.brand.toLowerCase().trim();
+          const sModel = s.model.toLowerCase().trim();
+          const sMerk = (s.merkType || '').toLowerCase().trim();
+
+          // Brand match
+          const brandOk = sBrand.includes(pBrandLower) || pBrandLower.includes(sBrand);
+          if (!brandOk) return false;
+
+          // Model / Tipe match
+          if (pModelLower) {
+            const words = pModelLower.split(' ').filter((w: string) => w.length > 1);
+            const modelOk = words.some((w: string) => sModel.includes(w) || sMerk.includes(w));
+            if (!modelOk) return false;
+          }
+
+          // Year match
+          if (yearWanted && Math.abs(s.year - yearWanted) > 1) {
+            return false;
+          }
+
+          // Budget match
+          if (budgetWanted && s.price > budgetWanted * 1.15) {
+            return false;
+          }
+
+          return true;
+        });
+
+        if (matchedStock) {
+          initialStatus = 'Mobil Sudah Ready';
+        }
+
+        const newFlwId = `FLW-2026-${String(db.followUps.length + 1).padStart(3, '0')}`;
+        const newProspect: FollowUp = {
+          id: newFlwId,
+          followUpType: 'PROSPECT',
+          category: 'Unit yang Dicari Sudah Tersedia',
+          customerName: customerName.trim(),
+          customerPhone: customerPhone.trim(),
+          customerAddress: customerAddress?.trim() || '',
+          customerSource: customerSource || 'Walk-in',
+          searchBrand: searchBrand.trim(),
+          searchModel: (searchModel || '').trim(),
+          searchYear: yearWanted,
+          searchBudget: budgetWanted,
+          firstInquiryDate: dateInquiry,
+          scheduledDate: todayDate,
+          scheduledTime: '10:00',
+          channel: 'WhatsApp',
+          status: initialStatus,
+          prospectStatus: initialStatus,
+          priority: matchedStock ? 'Tinggi' : 'Sedang',
+          vehicleStockId: matchedStock?.id,
+          matchedStockId: matchedStock?.id,
+          matchedStockInfo: matchedStock ? `${matchedStock.brand} ${matchedStock.model} (${matchedStock.year}) - Rp ${matchedStock.price.toLocaleString('id-ID')} [Plat: ${matchedStock.licensePlate || '-'}]` : undefined,
+          vehicleInfo: `${searchBrand} ${searchModel || ''} ${yearWanted ? `(${yearWanted})` : ''}`.trim(),
+          followUpReason: `Calon pelanggan mencari ${searchBrand} ${searchModel || ''} ${yearWanted ? `tahun ${yearWanted}` : ''}. Hubungi jika unit ready di showroom HR MOTOR.`,
+          notes: notes || '',
+          communicationLogs: [],
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+
+        db.followUps.unshift(newProspect);
+
+        // Also add or sync with Leads for Sales Pipeline consistency
+        if (!db.leads) db.leads = [];
+        const newLead: Lead = {
+          id: `LEAD-2026-${String(db.leads.length + 1).padStart(3, '0')}`,
+          customerName: customerName.trim(),
+          contactNumber: customerPhone.trim(),
+          customerPhone: customerPhone.trim(),
+          leadSource: customerSource || 'Walk-in',
+          interestedVehicle: newProspect.vehicleInfo,
+          estimatedBudget: budgetWanted || 150000000,
+          searchBrand: searchBrand.trim(),
+          searchModel: (searchModel || '').trim(),
+          searchYearMin: yearWanted,
+          searchYearMax: yearWanted,
+          searchBudgetMax: budgetWanted,
+          assignedSalesId: userId,
+          assignedSalesName: userName,
+          status: 'Menanyakan Unit',
+          notes: notes || 'Calon pembeli mencari unit mobil',
+          dateReceived: dateInquiry,
+          lastContactDate: nowIso,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+        db.leads.unshift(newLead);
+        newProspect.leadId = newLead.id;
+
+        // Add Notification if matched
+        if (matchedStock) {
+          if (!db.notifications) db.notifications = [];
+          db.notifications.unshift({
+            id: `NOTIF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            userId: 'USR-001',
+            title: `Mobil Tersedia: ${customerName.trim()}`,
+            message: `Unit ${matchedStock.brand} ${matchedStock.model} (${matchedStock.year}) sudah READY di showroom! Cocok dengan pencarian ${customerName.trim()}. Segera hubungi via WhatsApp.`,
+            type: 'system',
+            isRead: false,
+            link: '/follow-up?tab=prospect',
+            createdAt: nowIso,
+          });
+        }
+
+        logActivity(
+          'Input Prospek Mencari Mobil',
+          'Follow-up',
+          newProspect.id,
+          `Mencatat data calon pelanggan ${customerName.trim()} mencari ${searchBrand} ${searchModel || ''} (Status: ${initialStatus})`
+        );
+        break;
+      }
+
+      case 'UPDATE_PROSPECT_FOLLOW_UP_STATUS': {
+        const { id, status, notes } = payload;
+        if (!db.followUps) db.followUps = [];
+        const prospect = db.followUps.find((f) => f.id === id);
+        if (!prospect) {
+          return NextResponse.json({ success: false, error: 'Data prospek tidak ditemukan' }, { status: 404 });
+        }
+
+        const oldStatus = prospect.status;
+        prospect.status = status;
+        prospect.prospectStatus = status;
+        prospect.updatedAt = new Date().toISOString();
+
+        if (notes) {
+          if (!prospect.communicationLogs) prospect.communicationLogs = [];
+          prospect.communicationLogs.unshift({
+            id: `LOG-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            outcome: status,
+            notes: notes,
+            loggedByName: userName,
+          });
+        }
+
+        logActivity(
+          'Update Status Prospek',
+          'Follow-up',
+          prospect.id,
+          `Mengubah status prospek ${prospect.customerName} dari "${oldStatus}" menjadi "${status}"`
+        );
+        break;
       }
 
       case 'SYNC_TO_SUPABASE': {

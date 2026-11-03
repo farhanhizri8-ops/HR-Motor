@@ -18,6 +18,8 @@ import {
   DashboardMetrics,
   RepairClaim,
   VehicleStock,
+  CreditApplication,
+  ProspectFollowUpStatus,
 } from '@/types/crm';
 import {
   INITIAL_USERS,
@@ -34,6 +36,7 @@ import {
   MESSAGE_TEMPLATES,
   INITIAL_REPAIR_CLAIMS,
   INITIAL_STOCKS,
+  INITIAL_CREDIT_APPLICATIONS,
 } from '@/lib/seedData';
 
 interface CrmContextType {
@@ -50,6 +53,7 @@ interface CrmContextType {
   referrals: ReferralRecord[];
   repairClaims: RepairClaim[];
   stocks: VehicleStock[];
+  creditApplications: CreditApplication[];
   notifications: NotificationItem[];
   activityLogs: ActivityLog[];
   templates: MessageTemplate[];
@@ -60,6 +64,60 @@ interface CrmContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+
+  // Transactions & Credit Applications
+  createCashTransaction: (data: {
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    customerSource: any;
+    vehicleStockId: string;
+    dealPrice: number;
+    notes?: string;
+    transactionDate?: string;
+    prospectFollowUpId?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+
+  createCreditApplication: (data: {
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    customerSource: any;
+    vehicleStockId: string;
+    targetLeasing: string;
+    dealPrice: number;
+    initialDp: number;
+    notes?: string;
+    applicationDate?: string;
+    prospectFollowUpId?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+
+  approveCreditApplication: (payload: {
+    applicationId: string;
+    finalDp: number;
+    approvedLeasing: string;
+    approvalNotes?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+
+  rejectCreditApplication: (payload: {
+    applicationId: string;
+    rejectionReason: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+
+  addProspectFollowUp: (data: {
+    customerName: string;
+    customerPhone: string;
+    customerAddress?: string;
+    customerSource?: any;
+    searchBrand: string;
+    searchModel: string;
+    searchYear?: number | string;
+    searchBudget?: number | string;
+    notes?: string;
+    firstInquiryDate?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
+
+  updateProspectFollowUpStatus: (id: string, status: any, notes?: string) => Promise<{ success: boolean; error?: string }>;
 
   // Actions
   addCustomer: (data: Partial<Customer>) => Promise<{ success: boolean; error?: string }>;
@@ -120,6 +178,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   const [referrals, setReferrals] = useState<ReferralRecord[]>(INITIAL_REFERRALS);
   const [repairClaims, setRepairClaims] = useState<RepairClaim[]>(INITIAL_REPAIR_CLAIMS);
   const [stocks, setStocks] = useState<VehicleStock[]>(INITIAL_STOCKS);
+  const [creditApplications, setCreditApplications] = useState<CreditApplication[]>(INITIAL_CREDIT_APPLICATIONS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(INITIAL_ACTIVITY_LOGS);
   const [templates] = useState<MessageTemplate[]>(MESSAGE_TEMPLATES);
@@ -195,6 +254,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
             if (d.referrals) setReferrals(d.referrals);
             if (d.repairClaims) setRepairClaims(d.repairClaims);
             if (d.stocks) setStocks(d.stocks);
+            if (d.creditApplications) setCreditApplications(d.creditApplications);
             if (d.notifications) setNotifications(d.notifications);
             if (d.activityLogs) setActivityLogs(d.activityLogs);
           }
@@ -251,6 +311,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         if (d.referrals) setReferrals(d.referrals);
         if (d.repairClaims) setRepairClaims(d.repairClaims);
         if (d.stocks) setStocks(d.stocks);
+        if (d.creditApplications) setCreditApplications(d.creditApplications);
         if (d.notifications) setNotifications(d.notifications);
         if (d.activityLogs) setActivityLogs(d.activityLogs);
         return { success: true };
@@ -260,6 +321,30 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       return { success: false, error: 'Gagal terhubung ke server CRM' };
     }
+  };
+
+  const createCashTransaction = async (data: any) => {
+    return executeApiMutation('CREATE_CASH_TRANSACTION', data);
+  };
+
+  const createCreditApplication = async (data: any) => {
+    return executeApiMutation('CREATE_CREDIT_APPLICATION', data);
+  };
+
+  const approveCreditApplication = async (payload: { applicationId: string; finalDp: number; approvedLeasing: string; approvalNotes?: string }) => {
+    return executeApiMutation('APPROVE_CREDIT_APPLICATION', payload);
+  };
+
+  const rejectCreditApplication = async (payload: { applicationId: string; rejectionReason: string }) => {
+    return executeApiMutation('REJECT_CREDIT_APPLICATION', payload);
+  };
+
+  const addProspectFollowUp = async (data: any) => {
+    return executeApiMutation('ADD_PROSPECT_FOLLOW_UP', data);
+  };
+
+  const updateProspectFollowUpStatus = async (id: string, status: any, notes?: string) => {
+    return executeApiMutation('UPDATE_PROSPECT_FOLLOW_UP_STATUS', { id, status, notes });
   };
 
   const addCustomer = async (data: Partial<Customer>) => {
@@ -580,6 +665,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         referrals,
         repairClaims,
         stocks,
+        creditApplications,
         notifications,
         activityLogs,
         templates,
@@ -588,6 +674,12 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         login,
         logout,
+        createCashTransaction,
+        createCreditApplication,
+        approveCreditApplication,
+        rejectCreditApplication,
+        addProspectFollowUp,
+        updateProspectFollowUpStatus,
         addCustomer,
         updateCustomer,
         deleteCustomer,

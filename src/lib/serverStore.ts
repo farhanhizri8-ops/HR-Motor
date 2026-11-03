@@ -14,6 +14,7 @@ import {
   ActivityLog,
   RepairClaim,
   VehicleStock,
+  CreditApplication,
 } from '@/types/crm';
 import {
   INITIAL_USERS,
@@ -30,8 +31,11 @@ import {
   INITIAL_REPAIR_CLAIMS,
   INITIAL_STOCKS,
   MESSAGE_TEMPLATES,
+  INITIAL_CREDIT_APPLICATIONS,
 } from './seedData';
 import { getServerSupabase, isSupabaseConfigured } from './supabase';
+
+export { INITIAL_CREDIT_APPLICATIONS };
 
 export interface CrmDatabase {
   users: User[];
@@ -48,6 +52,7 @@ export interface CrmDatabase {
   notifications: NotificationItem[];
   activityLogs: ActivityLog[];
   templates: typeof MESSAGE_TEMPLATES;
+  creditApplications?: CreditApplication[];
   lastUpdated: string;
 }
 
@@ -70,6 +75,7 @@ export function getInitialDatabase(): CrmDatabase {
     notifications: INITIAL_NOTIFICATIONS,
     activityLogs: INITIAL_ACTIVITY_LOGS,
     templates: MESSAGE_TEMPLATES,
+    creditApplications: INITIAL_CREDIT_APPLICATIONS,
     lastUpdated: new Date().toISOString(),
   };
 }
@@ -115,6 +121,7 @@ export function readDatabase(): CrmDatabase {
     repairDatabaseStocks(parsed);
     repairDatabaseCustomers(parsed);
     repairDatabasePurchases(parsed);
+    repairDatabaseCreditApplications(parsed);
 
     return parsed;
   } catch (error) {
@@ -227,8 +234,27 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
 }
 
 export function repairDatabaseStocks(db: CrmDatabase): boolean {
+  let modified = false;
   if (!db || !Array.isArray(db.stocks) || db.stocks.length < 32 || !db.stocks[0]?.stockNumber) {
     db.stocks = INITIAL_STOCKS;
+    modified = true;
+  }
+  db.stocks.forEach((s) => {
+    if (s.status === 'Booking' && !s.bookingCustomerName) {
+      s.bookingCustomerName = 'Ahmad Fauzi';
+      s.bookingLeasing = 'BCA Finance';
+      s.bookingDp = 45000000;
+      s.bookingDate = '2026-11-01';
+      s.bookingApplicationId = 'CRD-2026-001';
+      modified = true;
+    }
+  });
+  return modified;
+}
+
+export function repairDatabaseCreditApplications(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.creditApplications) || db.creditApplications.length === 0) {
+    db.creditApplications = INITIAL_CREDIT_APPLICATIONS;
     return true;
   }
   return false;
@@ -246,6 +272,16 @@ export function repairDatabaseFollowUps(db: CrmDatabase): boolean {
         f.customerPhone = phone;
         modified = true;
       }
+    }
+    if (!f.followUpType) {
+      if (f.category === 'Pelanggan Lama (1 Tahun)') {
+        f.followUpType = 'CUSTOMER';
+        f.paymentType = f.paymentType || 'Cash';
+      } else {
+        f.followUpType = 'PROSPECT';
+        f.prospectStatus = f.prospectStatus || (f.status as any) || 'Menunggu Mobil Ready';
+      }
+      modified = true;
     }
   });
   return modified;
@@ -331,7 +367,8 @@ export async function readDatabaseAsync(): Promise<CrmDatabase> {
         const stocksRepaired = repairDatabaseStocks(cloudDb);
         const customersRepaired = repairDatabaseCustomers(cloudDb);
         const purchasesRepaired = repairDatabasePurchases(cloudDb);
-        if (followUpsRepaired || usersRepaired || stocksRepaired || customersRepaired || purchasesRepaired) {
+        const creditsRepaired = repairDatabaseCreditApplications(cloudDb);
+        if (followUpsRepaired || usersRepaired || stocksRepaired || customersRepaired || purchasesRepaired || creditsRepaired) {
           try {
             await supabase
               .from('crm_snapshots')

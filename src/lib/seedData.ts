@@ -13,6 +13,7 @@ import {
   ActivityLog,
   RepairClaim,
   VehicleStock,
+  CreditApplication,
 } from '@/types/crm';
 
 export const INITIAL_USERS: User[] = [
@@ -5323,3 +5324,36 @@ export const INITIAL_STOCKS: VehicleStock[] = [
     "updatedAt": "2026-11-03T01:00:00Z"
   }
 ];
+
+export const INITIAL_CREDIT_APPLICATIONS: CreditApplication[] = [
+  {
+    id: 'CRD-2026-001',
+    customerId: 'CUST-2026-070',
+    customerName: 'Ahmad Fauzi',
+    customerPhone: '081223344556',
+    customerAddress: 'Jl. Cimanuk No. 88, Tarogong Kidul, Garut',
+    customerSource: 'Walk-in',
+    vehicleStockId: 'STK-2026-022',
+    vehicleName: 'MITSUBISHI XPANDER CROSS 1.5L A/T (2021)',
+    plateNumber: 'Z 1209 EG',
+    targetLeasing: 'BCA Finance',
+    dealPrice: 235000000,
+    initialDp: 45000000,
+    status: 'PENDING',
+    applicationDate: '2026-11-01',
+    notes: 'Pengajuan kredit tenor 4 tahun (47x). Konsumen mengajukan via BCA Finance Garut.',
+    history: [
+      {
+        status: 'PENDING',
+        timestamp: '2026-11-01T09:30:00Z',
+        adminName: 'Deni Pratama, S.T.',
+        notes: 'Pengajuan kredit pertama kali dibuat (Status: PENDING), unit mobil otomatis dibooking.',
+        dpAmount: 45000000,
+        leasingPartner: 'BCA Finance',
+      },
+    ],
+    createdAt: '2026-11-01T09:30:00Z',
+    updatedAt: '2026-11-01T09:30:00Z',
+  },
+];
+

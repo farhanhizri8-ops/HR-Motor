@@ -83,6 +83,12 @@ export interface Customer {
   receiptDate?: string;
   receiptReceiver?: string;
   receiptNotes?: string;
+  // Transaction & Credit fields
+  paymentType?: 'Cash' | 'Kredit';
+  creditStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  creditApplicationId?: string;
+  leasingPartner?: string;
+  downPayment?: number;
 }
 
 export interface Lead {
@@ -161,6 +167,23 @@ export type CommunicationResultOutcome =
   | 'Konsumen sudah membeli dari tempat lain'
   | 'Konsumen berhasil melakukan transaksi di HR MOTOR';
 
+export type FollowUpType = 'CUSTOMER' | 'PROSPECT';
+
+export type ProspectFollowUpStatus =
+  | 'Menunggu Mobil Ready'
+  | 'Mobil Sudah Ready'
+  | 'Sudah Dihubungi'
+  | 'Tertarik'
+  | 'Tidak Tertarik'
+  | 'Sudah Deal'
+  | 'Tidak Merespons';
+
+export type CustomerFollowUpStatus =
+  | 'Belum Dihubungi'
+  | 'Sudah Dihubungi'
+  | 'Tidak Merespons'
+  | 'Selesai';
+
 export interface FollowUpLogItem {
   id: string;
   timestamp: string;
@@ -177,9 +200,12 @@ export interface FollowUpLogItem {
 
 export interface FollowUp {
   id: string; // e.g. FLW-2026-001
+  followUpType?: FollowUpType; // 'CUSTOMER' (Pelanggan yang sudah beli) | 'PROSPECT' (Calon pelanggan mencari mobil)
   customerId?: string;
   customerName: string;
   customerPhone: string;
+  customerAddress?: string;
+  customerSource?: LeadSourceType;
   leadId?: string;
   vehicleStockId?: string; // Tautan ke stok unit jika cocok
   vehicleInfo: string; // Unit yang dibeli atau dicari
@@ -188,7 +214,7 @@ export interface FollowUp {
   scheduledDate: string; // YYYY-MM-DD
   scheduledTime?: string; // HH:mm
   channel?: FollowUpChannel;
-  status: FollowUpStatus;
+  status: FollowUpStatus | ProspectFollowUpStatus | CustomerFollowUpStatus;
   priority: PriorityLevel;
   assignedSalesId?: string;
   assignedSalesName?: string;
@@ -199,6 +225,23 @@ export interface FollowUp {
   lastContactDate?: string;
   lastOutcome?: CommunicationResultOutcome | string;
   completedAt?: string;
+  // Customer Follow Up fields
+  paymentType?: 'Cash' | 'Kredit';
+  purchaseDate?: string;
+  leasingPartner?: string;
+  periodicStep?: '1 Bulan' | '3 Bulan' | '6 Bulan' | '1 Tahun';
+  // Prospect Follow Up fields
+  searchBrand?: string;
+  searchModel?: string;
+  searchYear?: number;
+  searchYearMin?: number;
+  searchYearMax?: number;
+  searchBudget?: number;
+  firstInquiryDate?: string;
+  prospectStatus?: ProspectFollowUpStatus;
+  matchedStockId?: string;
+  matchedStockInfo?: string;
+  matchedStockPrice?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -242,6 +285,51 @@ export interface VehicleStock {
   soldDate?: string;
   soldToCustomerId?: string;
   soldToCustomerName?: string;
+  // Booking info for credit application / showroom reservation
+  bookingCustomerId?: string;
+  bookingCustomerName?: string;
+  bookingLeasing?: string;
+  bookingDate?: string;
+  bookingDp?: number;
+  bookingApplicationId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreditStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface CreditApplicationHistory {
+  status: CreditStatus;
+  timestamp: string;
+  adminName: string;
+  notes?: string;
+  dpAmount?: number;
+  leasingPartner?: string;
+  rejectionReason?: string;
+}
+
+export interface CreditApplication {
+  id: string; // e.g. CRD-2026-001
+  customerId?: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  customerSource: LeadSourceType;
+  vehicleStockId: string;
+  vehicleName: string;
+  plateNumber?: string;
+  targetLeasing: string; // Bank atau leasing tujuan pengajuan kredit
+  approvedLeasing?: string; // Bank atau leasing yang memberikan persetujuan ACC
+  dealPrice: number; // Harga deal
+  initialDp: number; // DP awal pengajuan
+  finalDp?: number; // DP final disetujui (saat ACC)
+  status: CreditStatus; // PENDING, APPROVED, REJECTED
+  applicationDate: string; // Tanggal pengajuan
+  approvalDate?: string;
+  rejectionDate?: string;
+  rejectionReason?: string; // Alasan penolakan dari bank
+  notes?: string; // Keterangan tambahan
+  history: CreditApplicationHistory[];
   createdAt: string;
   updatedAt: string;
 }
@@ -294,6 +382,12 @@ export interface CustomerPurchase {
   receiptNumber?: string;
   receiptDate?: string;
   receiptReceiver?: string;
+  // Transaction and credit linkage
+  paymentType?: 'Cash' | 'Kredit';
+  creditApplicationId?: string;
+  leasingPartner?: string;
+  downPayment?: number;
+  vehicleStockId?: string;
 }
 
 export interface CustomerFeedback {

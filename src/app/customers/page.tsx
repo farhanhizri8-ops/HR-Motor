@@ -29,9 +29,17 @@ import {
   Printer,
   ChevronDown,
   Check,
+  CreditCard,
+  DollarSign,
+  CheckCircle2,
+  XCircle,
+  ShoppingBag,
+  Building2,
+  BadgePercent,
+  History,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory } from '@/types/crm';
+import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory, CreditApplication, CreditStatus } from '@/types/crm';
 
 interface KwitansiData {
   nomorKwitansi: string;
@@ -478,6 +486,11 @@ export default function CustomersPage() {
     stocks,
     users,
     currentUser,
+    creditApplications,
+    createCashTransaction,
+    createCreditApplication,
+    approveCreditApplication,
+    rejectCreditApplication,
     addCustomer,
     updateCustomer,
     deleteCustomer,
@@ -485,6 +498,70 @@ export default function CustomersPage() {
     formatDate,
     formatWhatsAppLink,
   } = useCrm();
+
+  // Active Tab: 'customers' | 'transactions'
+  const [activeTab, setActiveTab] = useState<'customers' | 'transactions'>('customers');
+  const [filterTxType, setFilterTxType] = useState<'ALL' | 'CASH' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+
+  // Modals state for Cash & Credit transactions
+  const [isCashModalOpen, setIsCashModalOpen] = useState(false);
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [isAccModalOpen, setIsAccModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedCreditApp, setSelectedCreditApp] = useState<CreditApplication | null>(null);
+
+  // Cash transaction form
+  const [cashForm, setCashForm] = useState({
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    customerSource: 'Walk-in' as LeadSourceType,
+    vehicleStockId: '',
+    dealPrice: '',
+    notes: '',
+    transactionDate: new Date().toISOString().split('T')[0],
+  });
+
+  // Credit application form
+  const [creditForm, setCreditForm] = useState({
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    customerSource: 'Walk-in' as LeadSourceType,
+    vehicleStockId: '',
+    targetLeasing: 'BCA Finance',
+    dealPrice: '',
+    initialDp: '',
+    notes: '',
+    applicationDate: new Date().toISOString().split('T')[0],
+  });
+
+  // ACC form
+  const [accForm, setAccForm] = useState({
+    finalDp: '',
+    approvedLeasing: '',
+    approvalNotes: '',
+  });
+
+  // Reject form
+  const [rejectReason, setRejectReason] = useState('');
+
+  // Dropdown search for vehicle selection
+  const [cashStockSearch, setCashStockSearch] = useState('');
+  const [isCashStockDropdownOpen, setIsCashStockDropdownOpen] = useState(false);
+  const [creditStockSearch, setCreditStockSearch] = useState('');
+  const [isCreditStockDropdownOpen, setIsCreditStockDropdownOpen] = useState(false);
+
+  // Detect URL parameter ?tab=transactions
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      if (tabParam === 'transactions') {
+        setActiveTab('transactions');
+      }
+    }
+  }, []);
 
   // Search & Filter & Sort state
   const [searchQuery, setSearchQuery] = useState('');
@@ -575,6 +652,280 @@ export default function CustomersPage() {
     setIsStockDropdownOpen(false);
     setStockSearchQuery('');
   };
+
+  const filteredCashReadyStocks = useMemo(() => {
+    const q = (cashStockSearch || '').trim().toLowerCase();
+    if (!q) return readyStocks;
+    return readyStocks.filter((s) => {
+      const brand = (s.brand || '').toLowerCase();
+      const model = (s.model || '').toLowerCase();
+      const plate = (s.licensePlate || s.plateNumber || '').toLowerCase();
+      const year = String(s.year || '');
+      return brand.includes(q) || model.includes(q) || plate.includes(q) || year.includes(q);
+    });
+  }, [readyStocks, cashStockSearch]);
+
+  const filteredCreditReadyStocks = useMemo(() => {
+    const q = (creditStockSearch || '').trim().toLowerCase();
+    if (!q) return readyStocks;
+    return readyStocks.filter((s) => {
+      const brand = (s.brand || '').toLowerCase();
+      const model = (s.model || '').toLowerCase();
+      const plate = (s.licensePlate || s.plateNumber || '').toLowerCase();
+      const year = String(s.year || '');
+      return brand.includes(q) || model.includes(q) || plate.includes(q) || year.includes(q);
+    });
+  }, [readyStocks, creditStockSearch]);
+
+  const handleSelectCashStock = (stock: any) => {
+    setCashForm((prev) => ({
+      ...prev,
+      vehicleStockId: stock.id,
+      dealPrice: String(stock.price || prev.dealPrice || ''),
+      notes: prev.notes || `Pembelian Cash: ${stock.brand} ${stock.model} (${stock.licensePlate || '-'}).`,
+    }));
+    setIsCashStockDropdownOpen(false);
+    setCashStockSearch('');
+  };
+
+  const handleSelectCreditStock = (stock: any) => {
+    const dealPrice = stock.price || 0;
+    const dp = stock.creditDp || Math.round(dealPrice * 0.2);
+    setCreditForm((prev) => ({
+      ...prev,
+      vehicleStockId: stock.id,
+      dealPrice: String(dealPrice || prev.dealPrice || ''),
+      initialDp: String(dp || prev.initialDp || ''),
+      notes: prev.notes || `Pengajuan Kredit: ${stock.brand} ${stock.model} (${stock.licensePlate || '-'}).`,
+    }));
+    setIsCreditStockDropdownOpen(false);
+    setCreditStockSearch('');
+  };
+
+  const handleOpenCashModal = () => {
+    setCashForm({
+      customerName: '',
+      customerPhone: '',
+      customerAddress: '',
+      customerSource: 'Walk-in',
+      vehicleStockId: '',
+      dealPrice: '',
+      notes: '',
+      transactionDate: new Date().toISOString().split('T')[0],
+    });
+    setFormError('');
+    setIsCashModalOpen(true);
+  };
+
+  const handleOpenCreditModal = () => {
+    setCreditForm({
+      customerName: '',
+      customerPhone: '',
+      customerAddress: '',
+      customerSource: 'Walk-in',
+      vehicleStockId: '',
+      targetLeasing: 'BCA Finance',
+      dealPrice: '',
+      initialDp: '',
+      notes: '',
+      applicationDate: new Date().toISOString().split('T')[0],
+    });
+    setFormError('');
+    setIsCreditModalOpen(true);
+  };
+
+  const handleOpenAccModal = (app: CreditApplication) => {
+    setSelectedCreditApp(app);
+    setAccForm({
+      finalDp: String(app.initialDp || ''),
+      approvedLeasing: app.targetLeasing,
+      approvalNotes: '',
+    });
+    setFormError('');
+    setIsAccModalOpen(true);
+  };
+
+  const handleOpenRejectModal = (app: CreditApplication) => {
+    setSelectedCreditApp(app);
+    setRejectReason('');
+    setFormError('');
+    setIsRejectModalOpen(true);
+  };
+
+  const handleOpenCreditHistory = (app: CreditApplication) => {
+    setSelectedCreditApp(app);
+    setIsHistoryModalOpen(true);
+  };
+
+  const handleSubmitCashTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    if (!cashForm.customerName.trim() || !cashForm.customerPhone.trim() || !cashForm.vehicleStockId) {
+      setFormError('Nama pelanggan, nomor WhatsApp, dan unit mobil wajib diisi');
+      return;
+    }
+    const chosenStock = stocks.find((s) => s.id === cashForm.vehicleStockId);
+    const nominal = Number(cashForm.dealPrice) || chosenStock?.price || 0;
+
+    const res = await createCashTransaction({
+      ...cashForm,
+      dealPrice: nominal,
+    });
+
+    if (res.success) {
+      setIsCashModalOpen(false);
+      // Auto-preview Kwitansi
+      const plateNo = chosenStock?.licensePlate || chosenStock?.plateNumber || '-';
+      const vehicleDesc = chosenStock ? `${chosenStock.brand} ${chosenStock.model} (${chosenStock.year})` : '1 UNIT KENDARAAN';
+      const todayStr = new Date(cashForm.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+      setSelectedKwitansi({
+        nomorKwitansi: `No. ${customers.length + 1}`,
+        terimaDari: cashForm.customerName,
+        sejumlahUang: nominal,
+        terbilang: `${formatRupiahWords(nominal)} Rupiah`,
+        untukPembayaran: vehicleDesc,
+        nomorPolisi: plateNo,
+        tempatTanggal: `GARUT, ${todayStr}`,
+        keterangan: cashForm.notes || 'Lunas (Cash)',
+        penerima: 'HR MOTOR',
+      });
+    } else {
+      setFormError(res.error || 'Gagal menyimpan transaksi cash');
+    }
+  };
+
+  const handleSubmitCreditApplication = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    if (!creditForm.customerName.trim() || !creditForm.customerPhone.trim() || !creditForm.vehicleStockId || !creditForm.targetLeasing) {
+      setFormError('Nama pelanggan, nomor WhatsApp, unit mobil, dan bank/leasing tujuan wajib diisi');
+      return;
+    }
+    const chosenStock = stocks.find((s) => s.id === creditForm.vehicleStockId);
+    const dealPrice = Number(creditForm.dealPrice) || chosenStock?.price || 0;
+    const initialDp = Number(creditForm.initialDp) || chosenStock?.creditDp || Math.round(dealPrice * 0.2);
+
+    const res = await createCreditApplication({
+      ...creditForm,
+      dealPrice,
+      initialDp,
+    });
+
+    if (res.success) {
+      setIsCreditModalOpen(false);
+      setActiveTab('transactions');
+    } else {
+      setFormError(res.error || 'Gagal menyimpan pengajuan kredit');
+    }
+  };
+
+  const handleSubmitAcc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCreditApp) return;
+    setFormError('');
+    const finalDp = Number(accForm.finalDp) || selectedCreditApp.initialDp;
+
+    const res = await approveCreditApplication({
+      applicationId: selectedCreditApp.id,
+      finalDp,
+      approvedLeasing: accForm.approvedLeasing,
+      approvalNotes: accForm.approvalNotes,
+    });
+
+    if (res.success) {
+      setIsAccModalOpen(false);
+      // Auto-preview Kwitansi DP resmi Showroom HR MOTOR
+      const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+      const leasingName = accForm.approvedLeasing || selectedCreditApp.approvedLeasing || selectedCreditApp.targetLeasing;
+      setSelectedKwitansi({
+        nomorKwitansi: `DP-${selectedCreditApp.id}`,
+        terimaDari: selectedCreditApp.customerName,
+        sejumlahUang: finalDp,
+        terbilang: `${formatRupiahWords(finalDp)} Rupiah`,
+        untukPembayaran: `Uang Muka (DP) Kredit Unit ${selectedCreditApp.vehicleName} via ${leasingName}`,
+        nomorPolisi: selectedCreditApp.plateNumber || '-',
+        tempatTanggal: `GARUT, ${todayStr}`,
+        keterangan: accForm.approvalNotes || `Persetujuan Kredit (ACC) ${leasingName}`,
+        penerima: 'HR MOTOR',
+      });
+      setSelectedCreditApp(null);
+    } else {
+      setFormError(res.error || 'Gagal memproses persetujuan kredit');
+    }
+  };
+
+  const handleSubmitReject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCreditApp) return;
+    setFormError('');
+    const reason = rejectReason.trim() || 'Ditolak oleh pihak bank/leasing (BI Checking / Kapasitas)';
+
+    const res = await rejectCreditApplication({
+      applicationId: selectedCreditApp.id,
+      rejectionReason: reason,
+    });
+
+    if (res.success) {
+      setIsRejectModalOpen(false);
+      setSelectedCreditApp(null);
+    } else {
+      setFormError(res.error || 'Gagal memproses penolakan kredit');
+    }
+  };
+
+  // Filtered Transactions
+  const pendingCreditCount = useMemo(() => {
+    return (creditApplications || []).filter((a) => a.status === 'PENDING').length;
+  }, [creditApplications]);
+
+  const filteredTransactions = useMemo(() => {
+    const creditApps = creditApplications || [];
+    const cashPurchases = (purchases || []).filter((p) => p.paymentType === 'Cash' || !p.paymentType);
+
+    let allItems: Array<
+      | { type: 'CASH'; data: CustomerPurchase; date: string }
+      | { type: 'CREDIT'; data: CreditApplication; date: string }
+    > = [];
+
+    if (filterTxType === 'ALL' || filterTxType === 'CASH') {
+      cashPurchases.forEach((p) => allItems.push({ type: 'CASH', data: p, date: p.purchaseDate }));
+    }
+
+    if (filterTxType === 'ALL' || filterTxType !== 'CASH') {
+      creditApps.forEach((app) => {
+        if (filterTxType === 'PENDING' && app.status !== 'PENDING') return;
+        if (filterTxType === 'APPROVED' && app.status !== 'APPROVED') return;
+        if (filterTxType === 'REJECTED' && app.status !== 'REJECTED') return;
+        allItems.push({ type: 'CREDIT', data: app, date: app.applicationDate });
+      });
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      allItems = allItems.filter((item) => {
+        if (item.type === 'CASH') {
+          const p = item.data;
+          return (
+            p.customerName.toLowerCase().includes(q) ||
+            p.vehicleModel.toLowerCase().includes(q) ||
+            (p.plateNumber && p.plateNumber.toLowerCase().includes(q))
+          );
+        } else {
+          const a = item.data;
+          return (
+            a.customerName.toLowerCase().includes(q) ||
+            a.customerPhone.includes(q) ||
+            a.vehicleName.toLowerCase().includes(q) ||
+            a.targetLeasing.toLowerCase().includes(q) ||
+            (a.approvedLeasing && a.approvedLeasing.toLowerCase().includes(q))
+          );
+        }
+      });
+    }
+
+    allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return allItems;
+  }, [creditApplications, purchases, filterTxType, searchQuery]);
 
   // Form input state
   const [formData, setFormData] = useState({
@@ -770,8 +1121,44 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+      {/* Sub-Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#EAE8E3] pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('customers')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${
+            activeTab === 'customers'
+              ? 'bg-charcoal-900 text-gold-400 shadow-sm'
+              : 'bg-[#F8F7F4] text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Data Pelanggan & Kwitansi ({customers.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('transactions')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${
+            activeTab === 'transactions'
+              ? 'bg-charcoal-900 text-gold-400 shadow-sm'
+              : 'bg-[#F8F7F4] text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Transaksi Penjualan (Cash & Kredit)</span>
+          {pendingCreditCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-charcoal-950 text-[10px] font-black animate-pulse shadow-xs">
+              {pendingCreditCount} Butuh ACC
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'customers' && (
+        <>
+          {/* Page Header */}
+          <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -1024,6 +1411,442 @@ export default function CustomersPage() {
           </table>
         </div>
       </div>
+        </>
+      )}
+
+      {/* TAB 2: TRANSAKSI PENJUALAN (CASH & KREDIT) */}
+      {activeTab === 'transactions' && (
+        <div className="space-y-6">
+          {/* Transactions Header */}
+          <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="badge-gold">Transaksi & Pembiayaan</span>
+                  <span className="text-xs text-charcoal-300">•</span>
+                  <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
+                </div>
+                <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+                  Transaksi Penjualan (Cash & Kredit)
+                </h1>
+                <p className="text-xs text-charcoal-500 mt-0.5">
+                  Kelola transaksi penjualan mobil tunai (Cash) dan persetujuan pengajuan kredit (ACC / Ditolak) dengan integrasi otomatis ke data stok showroom.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormError('');
+                    setIsCashModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  <span>+ Transaksi Cash Baru</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormError('');
+                    setIsCreditModalOpen(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <CreditCard className="w-4 h-4 text-gold-400" />
+                  <span>+ Pengajuan Kredit Baru</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick KPI Bar for Transactions */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 pt-5 border-t border-[#EAE8E3]">
+              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Penjualan Deal</p>
+                <p className="text-xl font-black text-charcoal-900 mt-0.5">{purchases.length} Unit</p>
+              </div>
+              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Nilai Penjualan</p>
+                <p className="text-lg font-black text-gold-600 mt-0.5 truncate">
+                  {formatRupiah(purchases.reduce((s, p) => s + (p.purchasePrice || 0), 0))}
+                </p>
+              </div>
+              <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-300">
+                <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-amber-600" /> Menunggu ACC
+                </p>
+                <p className="text-xl font-black text-amber-950 mt-0.5">{pendingCreditCount} Pengajuan</p>
+              </div>
+              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Kredit Disetujui (ACC)</p>
+                <p className="text-xl font-black text-emerald-600 mt-0.5">
+                  {(creditApplications || []).filter((a) => a.status === 'APPROVED').length} Unit
+                </p>
+              </div>
+              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80 col-span-2 md:col-span-1">
+                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Kredit Ditolak Bank</p>
+                <p className="text-xl font-black text-rose-600 mt-0.5">
+                  {(creditApplications || []).filter((a) => a.status === 'REJECTED').length} Riwayat
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Bar */}
+          <div className="crm-card p-4 space-y-3">
+            <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+              {/* Search box */}
+              <div className="w-full md:w-96 relative">
+                <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari transaksi: nama pemohon, leasing, unit mobil..."
+                  className="w-full text-xs pl-9 pr-4 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 placeholder-charcoal-400 transition-all font-medium"
+                />
+              </div>
+
+              {/* Status Filter Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+                {[
+                  { key: 'ALL', label: 'Semua Data' },
+                  { key: 'PENDING', label: `Menunggu ACC (${pendingCreditCount})` },
+                  { key: 'APPROVED', label: 'Kredit Approved' },
+                  { key: 'REJECTED', label: 'Kredit Ditolak' },
+                  { key: 'CASH', label: 'Penjualan Cash' },
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFilterTxType(f.key as any)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      filterTxType === f.key
+                        ? 'bg-charcoal-900 text-gold-400 shadow-xs'
+                        : 'bg-[#F8F7F4] text-charcoal-700 hover:text-charcoal-900 border border-[#EAE8E3]'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 1: PENGAJUAN KREDIT (PENDING, APPROVED, REJECTED) */}
+          {(filterTxType === 'ALL' || filterTxType === 'PENDING' || filterTxType === 'APPROVED' || filterTxType === 'REJECTED') && (
+            <div className="crm-card overflow-hidden space-y-3">
+              <div className="p-4 bg-gradient-to-r from-charcoal-900 to-charcoal-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-gold-400" />
+                    <span>Daftar Pengajuan Kredit Showroom (ACC & DITOLAK Engine)</span>
+                  </h3>
+                  <p className="text-[11px] text-charcoal-300 mt-0.5">
+                    Tombol ACC mengubah status mobil menjadi SOLD OUT dan menerbitkan kwitansi. Tombol DITOLAK mengembalikan mobil menjadi READY.
+                  </p>
+                </div>
+                {pendingCreditCount > 0 && (
+                  <span className="px-3 py-1 rounded-full bg-amber-400 text-charcoal-950 text-xs font-black shrink-0">
+                    {pendingCreditCount} Pengajuan Menunggu Keputusan
+                  </span>
+                )}
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="crm-table w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
+                      <th className="py-3 px-4 font-bold text-charcoal-700">No. Pengajuan & Tgl</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Pemohon Kredit</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Unit Mobil</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Bank / Leasing</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Harga Deal & DP</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Status</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Tindakan Persetujuan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EAE8E3]">
+                    {creditApplications
+                      .filter((app) => {
+                        if (filterTxType === 'PENDING') return app.status === 'PENDING';
+                        if (filterTxType === 'APPROVED') return app.status === 'APPROVED';
+                        if (filterTxType === 'REJECTED') return app.status === 'REJECTED';
+                        return true;
+                      })
+                      .map((app) => {
+                        return (
+                          <tr key={app.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
+                            {/* ID & Date */}
+                            <td className="py-3.5 px-4 font-mono font-bold text-charcoal-900">
+                              <span className="bg-charcoal-100 text-charcoal-800 px-2 py-0.5 rounded text-[11px]">
+                                {app.id}
+                              </span>
+                              <span className="text-[10px] text-charcoal-400 block mt-1 font-sans">
+                                {formatDate(app.applicationDate)}
+                              </span>
+                            </td>
+
+                            {/* Customer */}
+                            <td className="py-3.5 px-4">
+                              <p className="font-bold text-charcoal-900 text-sm">{app.customerName}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <a
+                                  href={formatWhatsAppLink(app.customerPhone, `Halo Bapak/Ibu ${app.customerName}, mengenai pengajuan kredit unit ${app.vehicleName} di HR MOTOR Garut...`)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] text-emerald-700 font-semibold hover:underline inline-flex items-center gap-1"
+                                >
+                                  <MessageCircle className="w-3 h-3 text-emerald-600" />
+                                  {app.customerPhone}
+                                </a>
+                                <span className="text-[10px] text-charcoal-400">• {app.customerSource}</span>
+                              </div>
+                              <p className="text-[10px] text-charcoal-500 mt-0.5">{app.customerAddress}</p>
+                            </td>
+
+                            {/* Vehicle */}
+                            <td className="py-3.5 px-4 font-semibold text-charcoal-900">
+                              <p className="font-bold text-xs">{app.vehicleName}</p>
+                              {app.plateNumber && (
+                                <span className="text-[10px] font-mono font-bold bg-charcoal-50 px-1.5 py-0.5 rounded border border-charcoal-200 text-charcoal-700 mt-1 inline-block">
+                                  {app.plateNumber}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Leasing */}
+                            <td className="py-3.5 px-4">
+                              <span className="px-2.5 py-1 rounded-lg bg-gold-50 text-gold-950 border border-gold-300 font-bold text-xs inline-block">
+                                {app.approvedLeasing || app.targetLeasing}
+                              </span>
+                              {app.approvedLeasing && app.approvedLeasing !== app.targetLeasing && (
+                                <span className="text-[10px] text-charcoal-400 block mt-0.5">
+                                  Tujuan awal: {app.targetLeasing}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Deal & DP */}
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold text-charcoal-900 block">{formatRupiah(app.dealPrice)}</span>
+                              <span className="text-[11px] font-bold text-gold-700 block mt-0.5">
+                                DP: {formatRupiah(app.finalDp || app.initialDp)}
+                                {app.finalDp && <span className="text-[10px] text-emerald-600 font-normal ml-1">(Final ACC)</span>}
+                              </span>
+                            </td>
+
+                            {/* Status */}
+                            <td className="py-3.5 px-4 text-center">
+                              {app.status === 'PENDING' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-300 shadow-xs">
+                                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                  PENDING (BOKING)
+                                </span>
+                              )}
+                              {app.status === 'APPROVED' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-xs">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                                  APPROVED (SOLD OUT)
+                                </span>
+                              )}
+                              {app.status === 'REJECTED' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-950 border border-rose-300 shadow-xs">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-700" />
+                                  REJECTED (READY)
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Actions: ACC & DITOLAK */}
+                            <td className="py-3.5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                {app.status === 'PENDING' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCreditApp(app);
+                                        setAccForm({
+                                          finalDp: String(app.initialDp),
+                                          approvedLeasing: app.targetLeasing,
+                                          approvalNotes: '',
+                                        });
+                                        setFormError('');
+                                        setIsAccModalOpen(true);
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                      title="Setujui Kredit (ACC) - Ubah stok jadi SOLD OUT"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                      <span>ACC</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCreditApp(app);
+                                        setRejectReason('');
+                                        setFormError('');
+                                        setIsRejectModalOpen(true);
+                                      }}
+                                      className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-black text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                      title="Tolak Pengajuan Kredit - Kembalikan stok jadi READY"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                      <span>Ditolak</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {app.status === 'APPROVED' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const kwNum = `KWT-KRD-${app.id.replace('CRD-', '')}`;
+                                      const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+                                      setSelectedKwitansi({
+                                        nomorKwitansi: kwNum,
+                                        terimaDari: app.customerName,
+                                        sejumlahUang: app.finalDp || app.initialDp,
+                                        terbilang: `${formatRupiahWords(app.finalDp || app.initialDp)} Rupiah`,
+                                        untukPembayaran: `DP Kredit ${app.approvedLeasing || app.targetLeasing} - ${app.vehicleName}`,
+                                        nomorPolisi: app.plateNumber || '-',
+                                        tempatTanggal: `GARUT, ${todayStr}`,
+                                        keterangan: `DP ACC Kredit (${app.approvedLeasing || app.targetLeasing}). Total Deal: Rp ${app.dealPrice.toLocaleString('id-ID')}`,
+                                        penerima: 'HR MOTOR',
+                                      });
+                                    }}
+                                    className="px-2.5 py-1.5 rounded-lg bg-gold-50 hover:bg-gold-100 text-gold-900 border border-gold-300 font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                                    title="Cetak Kwitansi DP Kredit"
+                                  >
+                                    <FileText className="w-3.5 h-3.5 text-gold-600" />
+                                    <span>Kwitansi DP</span>
+                                  </button>
+                                )}
+
+                                {app.status === 'REJECTED' && (
+                                  <span className="text-[11px] text-rose-700 font-medium italic max-w-[150px] truncate" title={app.rejectionReason}>
+                                    {app.rejectionReason || 'Ditolak bank'}
+                                  </span>
+                                )}
+
+                                {/* Riwayat Audit Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedCreditApp(app);
+                                    setIsHistoryModalOpen(true);
+                                  }}
+                                  className="p-1.5 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-warm-100 transition-colors cursor-pointer"
+                                  title="Lihat Riwayat Perjalanan Pengajuan"
+                                >
+                                  <History className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 2: LAPORAN PENJUALAN BERHASIL (CASH & KREDIT ACC) */}
+          {(filterTxType === 'ALL' || filterTxType === 'CASH' || filterTxType === 'APPROVED') && (
+            <div className="crm-card overflow-hidden space-y-3">
+              <div className="p-4 bg-charcoal-900 text-white flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-gold-400" />
+                    <span>Laporan Transaksi Penjualan Berhasil (Cash & Kredit)</span>
+                  </h3>
+                  <p className="text-[11px] text-charcoal-300 mt-0.5">
+                    Data transaksi resmi yang telah lunas (Cash) atau disetujui leasing (ACC) lengkap dengan kwitansi kasir.
+                  </p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-gold-500/20 text-gold-400 border border-gold-500/30 text-xs font-bold">
+                  {purchases.length} Transaksi Terkonfirmasi
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="crm-table w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
+                      <th className="py-3 px-4 font-bold text-charcoal-700">No. Kwitansi</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Tgl Transaksi</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Pelanggan Pembeli</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Unit Kendaraan</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">No. Polisi</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Metode Pembayaran</th>
+                      <th className="py-3 px-4 font-bold text-right text-charcoal-700">Harga Deal</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Kwitansi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EAE8E3]">
+                    {purchases.map((pur) => {
+                      const isKredit = pur.paymentType === 'Kredit' || pur.paymentMethod.toLowerCase().includes('kredit');
+                      return (
+                        <tr key={pur.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-bold text-charcoal-800">
+                            {pur.receiptNumber || pur.id}
+                          </td>
+                          <td className="py-3.5 px-4 text-charcoal-600">
+                            {formatDate(pur.purchaseDate)}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-charcoal-900 text-sm">
+                            {pur.customerName}
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-charcoal-900">
+                            {pur.vehicleModel} ({pur.vehicleYear})
+                          </td>
+                          <td className="py-3.5 px-4 font-mono font-bold">
+                            <span className="bg-charcoal-900 text-gold-400 px-2 py-0.5 rounded text-[11px]">
+                              {pur.plateNumber}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                              isKredit
+                                ? 'bg-indigo-50 text-indigo-900 border border-indigo-200'
+                                : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                            }`}>
+                              {pur.paymentMethod}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-black text-gold-600 text-sm">
+                            {formatRupiah(pur.purchasePrice)}
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const matchedCust = customers.find((c) => c.id === pur.customerId || c.fullName.toLowerCase() === pur.customerName.toLowerCase());
+                                const kw = getKwitansiForCustomer(matchedCust || { id: pur.customerId, fullName: pur.customerName } as any, [pur]);
+                                setSelectedKwitansi(kw);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-gold-50 hover:bg-gold-100 text-gold-900 border border-gold-300 font-bold text-xs inline-flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
+                              title="Lihat Kwitansi Resmi"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-gold-600" />
+                              <span>Kwitansi</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ADD / EDIT CUSTOMER MODAL */}
       {isAddModalOpen && (
@@ -1948,6 +2771,849 @@ export default function CustomersPage() {
                 className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
               >
                 Tutup Kwitansi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 1: TRANSAKSI PENJUALAN CASH */}
+      {isCashModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40">
+            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 mb-1">
+                  <DollarSign className="w-3 h-3" /> Transaksi Penjualan Cash Showroom
+                </span>
+                <h2 className="text-base font-black text-white tracking-tight">
+                  Input Transaksi Penjualan Cash
+                </h2>
+                <p className="text-xs text-charcoal-300">
+                  Unit mobil otomatis berstatus SOLD OUT & Kwitansi resmi otomatis diterbitkan
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCashModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+                {formError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitCashTransaction} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Nama Pembeli <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={cashForm.customerName}
+                    onChange={(e) => setCashForm({ ...cashForm, customerName: e.target.value })}
+                    placeholder="Contoh: Budi Santoso"
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Nomor WhatsApp <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={cashForm.customerPhone}
+                    onChange={(e) => setCashForm({ ...cashForm, customerPhone: e.target.value })}
+                    placeholder="Contoh: 08123456789"
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Alamat Domisili Garut / Jabar <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={cashForm.customerAddress}
+                    onChange={(e) => setCashForm({ ...cashForm, customerAddress: e.target.value })}
+                    placeholder="Contoh: Tarogong Kidul, Garut"
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Sumber Penjualan
+                  </label>
+                  <select
+                    value={cashForm.customerSource}
+                    onChange={(e) => setCashForm({ ...cashForm, customerSource: e.target.value as LeadSourceType })}
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  >
+                    <option value="Walk-in">Walk-in Showroom</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="Other">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Pilih Mobil Ready */}
+              <div className="relative">
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Pilih Mobil dari Stok READY Showroom <span className="text-rose-500">*</span>
+                </label>
+                <div
+                  onClick={() => setIsCashStockDropdownOpen(!isCashStockDropdownOpen)}
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl cursor-pointer flex items-center justify-between text-charcoal-900 font-medium"
+                >
+                  {cashForm.vehicleStockId ? (
+                    <span className="font-bold text-charcoal-900">
+                      {(() => {
+                        const s = stocks.find((st) => st.id === cashForm.vehicleStockId);
+                        return s ? `${s.brand} ${s.model} (${s.year}) - [${s.licensePlate || s.plateNumber || 'No Plat'}] - Rp ${s.price.toLocaleString('id-ID')}` : 'Unit Terpilih';
+                      })()}
+                    </span>
+                  ) : (
+                    <span className="text-charcoal-400">-- Klik untuk cari dan pilih mobil ready showroom --</span>
+                  )}
+                  <ChevronDown className="w-4 h-4 text-charcoal-400" />
+                </div>
+
+                {isCashStockDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#EAE8E3] rounded-xl shadow-xl z-20 overflow-hidden max-h-60 flex flex-col">
+                    <div className="p-2 border-b border-[#EAE8E3] bg-[#FAF9F5]">
+                      <input
+                        type="text"
+                        value={cashStockSearch}
+                        onChange={(e) => setCashStockSearch(e.target.value)}
+                        placeholder="Ketik nama mobil, tipe, atau plat..."
+                        className="w-full text-xs px-3 py-1.5 bg-white border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="overflow-y-auto divide-y divide-[#EAE8E3]">
+                      {filteredCashReadyStocks.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-charcoal-400">
+                          Tidak ada stok mobil ready yang cocok
+                        </div>
+                      ) : (
+                        filteredCashReadyStocks.map((stock) => (
+                          <div
+                            key={stock.id}
+                            onClick={() => handleSelectCashStock(stock)}
+                            className="p-3 hover:bg-gold-50/50 cursor-pointer flex items-center justify-between transition-colors text-xs"
+                          >
+                            <div>
+                              <p className="font-bold text-charcoal-900">{stock.brand} {stock.model} ({stock.year})</p>
+                              <p className="text-[11px] text-charcoal-500 font-mono mt-0.5">
+                                Plat: {stock.licensePlate || stock.plateNumber || '-'} • Warna: {stock.color} • {stock.transmission}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-bold text-emerald-700">{formatRupiah(stock.price)}</span>
+                              <span className="block text-[10px] text-emerald-600 font-semibold">READY</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Harga Deal & Tanggal */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Harga Deal Penjualan (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={cashForm.dealPrice}
+                    onChange={(e) => setCashForm({ ...cashForm, dealPrice: e.target.value })}
+                    placeholder="Contoh: 185000000"
+                    className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                  />
+                  {Number(cashForm.dealPrice) > 0 && (
+                    <p className="text-[11px] text-emerald-700 font-medium mt-1">
+                      {formatRupiah(Number(cashForm.dealPrice))}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Tanggal Transaksi <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={cashForm.transactionDate}
+                    onChange={(e) => setCashForm({ ...cashForm, transactionDate: e.target.value })}
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Keterangan / Catatan Pembayaran
+                </label>
+                <input
+                  type="text"
+                  value={cashForm.notes}
+                  onChange={(e) => setCashForm({ ...cashForm, notes: e.target.value })}
+                  placeholder="Contoh: Pembayaran transfer BCA lunas, serah terima BPKB dan unit hari ini."
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                />
+              </div>
+
+              <div className="p-3 bg-emerald-50/70 border border-emerald-300 rounded-xl text-[11px] text-emerald-950 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-bold">Otomatisasi Sistem Showroom:</strong>
+                  Unit mobil yang dipilih akan langsung berubah status menjadi <strong>SOLD OUT (Terjual)</strong>, kwitansi pembayaran resmi langsung terbit siap cetak, dan jadwal berkala Customer Follow Up (1 tahun) otomatis terbuat.
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+                <button
+                  type="button"
+                  onClick={() => setIsCashModalOpen(false)}
+                  className="btn-outline-warm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Simpan Transaksi & Terbitkan Kwitansi</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: PENGAJUAN KREDIT BARU */}
+      {isCreditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40">
+            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-600/50 mb-1">
+                  <CreditCard className="w-3 h-3" /> Pengajuan Kredit Baru Showroom
+                </span>
+                <h2 className="text-base font-black text-white tracking-tight">
+                  Input Pengajuan Kredit (Leasing)
+                </h2>
+                <p className="text-xs text-charcoal-300">
+                  Unit mobil di stok otomatis berstatus BOOKING (BOKING) dan terkunci dari pemesanan lain
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreditModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+                {formError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitCreditApplication} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Nama Calon Pembeli <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={creditForm.customerName}
+                    onChange={(e) => setCreditForm({ ...creditForm, customerName: e.target.value })}
+                    placeholder="Contoh: Rahmat Hidayat"
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Nomor WhatsApp <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={creditForm.customerPhone}
+                    onChange={(e) => setCreditForm({ ...creditForm, customerPhone: e.target.value })}
+                    placeholder="Contoh: 0852xxxxxxx"
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Alamat Domisili <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={creditForm.customerAddress}
+                    onChange={(e) => setCreditForm({ ...creditForm, customerAddress: e.target.value })}
+                    placeholder="Contoh: Tarogong Kaler, Garut"
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Sumber Lead
+                  </label>
+                  <select
+                    value={creditForm.customerSource}
+                    onChange={(e) => setCreditForm({ ...creditForm, customerSource: e.target.value as LeadSourceType })}
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  >
+                    <option value="Walk-in">Walk-in Showroom</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="Other">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Pilih Mobil Ready */}
+              <div className="relative">
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Pilih Mobil dari Stok READY Showroom <span className="text-rose-500">*</span>
+                </label>
+                <div
+                  onClick={() => setIsCreditStockDropdownOpen(!isCreditStockDropdownOpen)}
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl cursor-pointer flex items-center justify-between text-charcoal-900 font-medium"
+                >
+                  {creditForm.vehicleStockId ? (
+                    <span className="font-bold text-charcoal-900">
+                      {(() => {
+                        const s = stocks.find((st) => st.id === creditForm.vehicleStockId);
+                        return s ? `${s.brand} ${s.model} (${s.year}) - [${s.licensePlate || s.plateNumber || 'No Plat'}] - Rp ${s.price.toLocaleString('id-ID')}` : 'Unit Terpilih';
+                      })()}
+                    </span>
+                  ) : (
+                    <span className="text-charcoal-400">-- Klik untuk cari dan pilih mobil ready showroom --</span>
+                  )}
+                  <ChevronDown className="w-4 h-4 text-charcoal-400" />
+                </div>
+
+                {isCreditStockDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#EAE8E3] rounded-xl shadow-xl z-20 overflow-hidden max-h-60 flex flex-col">
+                    <div className="p-2 border-b border-[#EAE8E3] bg-[#FAF9F5]">
+                      <input
+                        type="text"
+                        value={creditStockSearch}
+                        onChange={(e) => setCreditStockSearch(e.target.value)}
+                        placeholder="Ketik nama mobil, tipe, atau plat..."
+                        className="w-full text-xs px-3 py-1.5 bg-white border border-[#EAE8E3] rounded-lg outline-none focus:border-gold-500"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="overflow-y-auto divide-y divide-[#EAE8E3]">
+                      {filteredCreditReadyStocks.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-charcoal-400">
+                          Tidak ada stok mobil ready yang cocok
+                        </div>
+                      ) : (
+                        filteredCreditReadyStocks.map((stock) => (
+                          <div
+                            key={stock.id}
+                            onClick={() => handleSelectCreditStock(stock)}
+                            className="p-3 hover:bg-gold-50/50 cursor-pointer flex items-center justify-between transition-colors text-xs"
+                          >
+                            <div>
+                              <p className="font-bold text-charcoal-900">{stock.brand} {stock.model} ({stock.year})</p>
+                              <p className="text-[11px] text-charcoal-500 font-mono mt-0.5">
+                                Plat: {stock.licensePlate || stock.plateNumber || '-'} • Warna: {stock.color} • {stock.transmission}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className="font-bold text-charcoal-900">{formatRupiah(stock.price)}</span>
+                              <span className="block text-[10px] text-gold-600 font-semibold">DP Estimasi: {formatRupiah(stock.creditDp || Math.round(stock.price * 0.2))}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bank/Leasing Tujuan */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Bank / Leasing Tujuan <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={creditForm.targetLeasing}
+                    onChange={(e) => setCreditForm({ ...creditForm, targetLeasing: e.target.value })}
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  >
+                    <option value="BCA Finance">BCA Finance</option>
+                    <option value="Mandiri Utama Finance">Mandiri Utama Finance (MUF)</option>
+                    <option value="Adira Finance">Adira Finance</option>
+                    <option value="OTO Multiartha">OTO Multiartha</option>
+                    <option value="Maybank Finance">Maybank Finance</option>
+                    <option value="CIMB Niaga Auto Finance">CIMB Niaga Auto Finance</option>
+                    <option value="BSI Oto">BSI Oto (Syariah)</option>
+                    <option value="Mega Finance">Mega Finance</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Estimasi Harga Deal (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={creditForm.dealPrice}
+                    onChange={(e) => setCreditForm({ ...creditForm, dealPrice: e.target.value })}
+                    placeholder="Contoh: 195000000"
+                    className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                  />
+                  {Number(creditForm.dealPrice) > 0 && (
+                    <p className="text-[11px] text-charcoal-500 font-medium mt-1">
+                      {formatRupiah(Number(creditForm.dealPrice))}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Uang Muka / DP Awal (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={creditForm.initialDp}
+                    onChange={(e) => setCreditForm({ ...creditForm, initialDp: e.target.value })}
+                    placeholder="Contoh: 35000000"
+                    className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                  />
+                  {Number(creditForm.initialDp) > 0 && (
+                    <p className="text-[11px] text-gold-600 font-medium mt-1">
+                      {formatRupiah(Number(creditForm.initialDp))}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Tanggal & Keterangan */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Tanggal Pengajuan <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={creditForm.applicationDate}
+                    onChange={(e) => setCreditForm({ ...creditForm, applicationDate: e.target.value })}
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                    Keterangan / Catatan Pengajuan
+                  </label>
+                  <input
+                    type="text"
+                    value={creditForm.notes}
+                    onChange={(e) => setCreditForm({ ...creditForm, notes: e.target.value })}
+                    placeholder="Contoh: Berkas KTP, KK, Rekening koran 3 bulan sudah masuk surveyor."
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Callout Info Booking */}
+              <div className="p-3 bg-amber-50/70 border border-amber-300 rounded-xl text-[11px] text-amber-950 flex items-start gap-2">
+                <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-bold">Status Booking Unit Aktif:</strong>
+                  Unit mobil yang dipilih otomatis berubah menjadi status <strong>BOOKING (BOKING)</strong>, menampilkan nama konsumen dan leasing tujuan di kartu stok, serta <strong>terkunci dan tidak dapat dipilih</strong> untuk transaksi atau booking lain sampai status pengajuan ini disetujui (ACC) atau ditolak.
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+                <button
+                  type="button"
+                  onClick={() => setIsCreditModalOpen(false)}
+                  className="btn-outline-warm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-gold"
+                >
+                  Simpan Pengajuan Kredit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: TOMBOL ACC (PERSETUJUAN KREDIT) */}
+      {isAccModalOpen && selectedCreditApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40">
+            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 mb-1">
+                  <Check className="w-3 h-3" /> Konfirmasi Keputusan Kredit
+                </span>
+                <h2 className="text-base font-black text-white tracking-tight">
+                  Persetujuan Kredit (ACC)
+                </h2>
+                <p className="text-xs text-charcoal-300">
+                  Ubah status unit menjadi Terjual (SOLD OUT) dan catat data penjualan resmi
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAccModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+                {formError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitAcc} className="p-6 space-y-4">
+              {/* Ringkasan Pengajuan */}
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">Pemohon:</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.customerName} ({selectedCreditApp.customerPhone})</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">Unit Kendaraan:</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.vehicleName} [{selectedCreditApp.plateNumber || '-'}]</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">Harga Deal:</span>
+                  <span className="font-black text-charcoal-900">{formatRupiah(selectedCreditApp.dealPrice)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">DP Pengajuan Awal:</span>
+                  <span className="font-semibold text-charcoal-700">{formatRupiah(selectedCreditApp.initialDp)}</span>
+                </div>
+              </div>
+
+              {/* Form Input ACC */}
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Nominal DP Final Disetujui (Rp) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={accForm.finalDp}
+                  onChange={(e) => setAccForm({ ...accForm, finalDp: e.target.value })}
+                  placeholder="Contoh: 35000000"
+                  className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900"
+                />
+                {Number(accForm.finalDp) > 0 && (
+                  <p className="text-[11px] text-emerald-700 font-medium mt-1">
+                    {formatRupiah(Number(accForm.finalDp))}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Bank / Leasing yang ACC <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={accForm.approvedLeasing}
+                  onChange={(e) => setAccForm({ ...accForm, approvedLeasing: e.target.value })}
+                  placeholder="BCA Finance / OTO Multiartha / Adira..."
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Catatan Persetujuan (Opsional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={accForm.approvalNotes}
+                  onChange={(e) => setAccForm({ ...accForm, approvalNotes: e.target.value })}
+                  placeholder="Contoh: PO terbit, tenor 48 bulan, asuransi all-risk tahun pertama."
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                />
+              </div>
+
+              <div className="p-3 bg-emerald-50/80 border border-emerald-300 rounded-xl text-[11px] text-emerald-950 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-bold">Hasil Eksekusi ACC:</strong>
+                  Unit mobil resmi berstatus <strong>SOLD OUT</strong>, masuk ke Laporan Penjualan Kredit, dan konsumen otomatis terjadwal dalam <strong>Customer Follow Up CRM</strong>.
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+                <button
+                  type="button"
+                  onClick={() => setIsAccModalOpen(false)}
+                  className="btn-outline-warm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Konfirmasi ACC & Proses Penjualan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: TOMBOL DITOLAK (PENOLAKAN KREDIT) */}
+      {isRejectModalOpen && selectedCreditApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-rose-500/40">
+            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-rose-500/30 text-white">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-600/50 mb-1">
+                  <XCircle className="w-3 h-3" /> Konfirmasi Penolakan Pengajuan
+                </span>
+                <h2 className="text-base font-black text-white tracking-tight">
+                  Tolak Pengajuan Kredit
+                </h2>
+                <p className="text-xs text-charcoal-300">
+                  Unit mobil akan otomatis dikembalikan ke status TERSEDIA (READY) di showroom
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRejectModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {formError && (
+              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+                {formError}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmitReject} className="p-6 space-y-4">
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">Pemohon:</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.customerName} ({selectedCreditApp.customerPhone})</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">Unit Kendaraan:</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.vehicleName}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-charcoal-500">Leasing Tujuan:</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.targetLeasing}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Alasan Penolakan <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Contoh: Ditolak oleh analis bank/leasing karena riwayat BI Checking SLIK Kol 4 / Kapasitas angsuran tidak mencukupi."
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-rose-500 text-charcoal-900 font-medium"
+                />
+              </div>
+
+              <div className="p-3 bg-rose-50/80 border border-rose-300 rounded-xl text-[11px] text-rose-950 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-bold">Penting: Pemulihan Stok Unit:</strong>
+                  Setelah dikonfirmasi ditolak, unit mobil <strong>{selectedCreditApp.vehicleName}</strong> akan langsung dibebaskan dari status BOKING dan kembali menjadi <strong>TERSEDIA (READY)</strong> di stok showroom untuk calon pembeli lain. Konsumen ini <strong>tidak</strong> akan dimasukkan ke follow up pembeli.
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+                <button
+                  type="button"
+                  onClick={() => setIsRejectModalOpen(false)}
+                  className="btn-outline-warm"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Konfirmasi Tolak Pengajuan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: RIWAYAT AUDIT PENGAJUAN KREDIT */}
+      {isHistoryModalOpen && selectedCreditApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700">
+            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-charcoal-800 text-white">
+              <div>
+                <span className="badge-gold text-[10px] mb-1 inline-block">Audit Trail & Timeline</span>
+                <h2 className="text-base font-black text-white tracking-tight">
+                  Riwayat Pengajuan: {selectedCreditApp.customerName}
+                </h2>
+                <p className="text-xs text-charcoal-300">
+                  ID: {selectedCreditApp.id} • Unit: {selectedCreditApp.vehicleName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-charcoal-400 block text-[10px] uppercase font-bold">Harga Deal</span>
+                  <span className="font-bold text-charcoal-900">{formatRupiah(selectedCreditApp.dealPrice)}</span>
+                </div>
+                <div>
+                  <span className="text-charcoal-400 block text-[10px] uppercase font-bold">Status Saat Ini</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.status}</span>
+                </div>
+                <div>
+                  <span className="text-charcoal-400 block text-[10px] uppercase font-bold">Leasing Tujuan</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.targetLeasing}</span>
+                </div>
+                <div>
+                  <span className="text-charcoal-400 block text-[10px] uppercase font-bold">Leasing ACC</span>
+                  <span className="font-bold text-charcoal-900">{selectedCreditApp.approvedLeasing || '-'}</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-charcoal-900 mb-3 flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-gold-600" />
+                  <span>Timeline Perubahan Status</span>
+                </h4>
+
+                <div className="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#EAE8E3]">
+                  {(selectedCreditApp.history || []).map((h, idx) => (
+                    <div key={idx} className="relative flex items-start gap-3 pl-1">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 text-[10px] font-bold ${
+                        h.status === 'PENDING'
+                          ? 'bg-amber-100 text-amber-900 border border-amber-400'
+                          : h.status === 'APPROVED'
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-400'
+                          : 'bg-rose-100 text-rose-900 border border-rose-400'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3] text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            h.status === 'PENDING'
+                              ? 'bg-amber-100 text-amber-900'
+                              : h.status === 'APPROVED'
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : 'bg-rose-100 text-rose-900'
+                          }`}>
+                            {h.status}
+                          </span>
+                          <span className="text-[10px] text-charcoal-400">
+                            {formatDate(h.timestamp)}
+                          </span>
+                        </div>
+                        <p className="text-charcoal-800 font-medium mt-1.5 leading-relaxed">{h.notes}</p>
+                        {h.dpAmount && (
+                          <p className="text-[11px] text-gold-700 font-bold mt-1">
+                            DP: {formatRupiah(h.dpAmount)}
+                          </p>
+                        )}
+                        {h.leasingPartner && (
+                          <p className="text-[10px] text-charcoal-500">
+                            Leasing: {h.leasingPartner}
+                          </p>
+                        )}
+                        {h.rejectionReason && (
+                          <p className="text-[11px] text-rose-600 font-medium mt-1">
+                            Alasan: {h.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-3 bg-[#FAF9F5] border-t border-[#EAE8E3] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
+              >
+                Tutup
               </button>
             </div>
           </div>
