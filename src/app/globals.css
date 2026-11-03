@@ -174,12 +174,32 @@ body {
   backdrop-filter: blur(12px);
 }
 
-/* Print styling for Kwitansi Showroom HR MOTOR */
+/* Print styling for Kwitansi Showroom HR MOTOR - Strictly 1 Page Only */
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Sembunyikan seluruh elemen lain di halaman web */
   body * {
     visibility: hidden !important;
   }
 
+  /* Tampilkan hanya wadah kwitansi dan seluruh isinya */
   #printable-kwitansi,
   #printable-kwitansi * {
     visibility: visible !important;
@@ -187,23 +207,25 @@ body {
 
   #printable-kwitansi {
     position: fixed !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 24px 32px !important;
-    border: 2px solid #202020 !important;
-    border-radius: 12px !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 220mm !important;
+    max-width: 96vw !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: 1.5px solid #000000 !important;
+    border-radius: 0 !important;
     background: #ffffff !important;
     box-shadow: none !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    z-index: 999999 !important;
-  }
-
-  @page {
-    size: auto;
-    margin: 10mm 15mm 10mm 15mm;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
+    z-index: 9999999 !important;
+    overflow: hidden !important;
   }
 }
+

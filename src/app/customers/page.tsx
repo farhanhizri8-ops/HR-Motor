@@ -1527,119 +1527,109 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            {/* Printable Kwitansi Sheet */}
-            <div className="p-4 sm:p-6 overflow-y-auto bg-[#FAF8F5]">
-              <div id="printable-kwitansi" className="bg-white border-2 border-[#D4C3A3] rounded-xl p-5 sm:p-7 shadow-sm relative overflow-hidden text-charcoal-900">
-                {/* Watermark HR MOTOR */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
-                  <span className="text-7xl sm:text-8xl font-black rotate-[-22deg] tracking-widest text-charcoal-950">
-                    HR MOTOR
-                  </span>
-                </div>
+            {/* Printable Kwitansi Sheet (Presisi 100% Sesuai Template Excel Showroom HR MOTOR) */}
+            <div className="p-4 sm:p-6 overflow-y-auto bg-[#FAF8F5] flex justify-center">
+              <div
+                id="printable-kwitansi"
+                className="bg-white border border-black shadow-lg relative overflow-hidden text-black w-full max-w-2xl select-none"
+              >
+                {/* Top Yellow Bar */}
+                <div className="w-full h-3 sm:h-3.5 bg-[#FFEE00] border-b border-black/20"></div>
 
-                {/* Kop Surat Showroom */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b-2 border-charcoal-900 gap-3">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-black tracking-wider text-charcoal-950">
-                      SHOWROOM HR MOTOR GARUT
-                    </h2>
-                    <p className="text-[11px] text-charcoal-600 font-medium mt-0.5">
-                      Pusat Jual Beli Mobil Bekas Berkualitas, Bergaransi Resmi & Terpercaya
-                    </p>
-                    <p className="text-[10px] text-charcoal-500">
-                      Garut, Jawa Barat • Telepon / WA: 0812-2345-0001
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right shrink-0">
-                    <span className="inline-block px-2.5 py-1 bg-charcoal-900 text-gold-400 font-black text-[11px] uppercase tracking-wider rounded">
-                      KWITANSI PEMBAYARAN
-                    </span>
-                    <p className="text-xs font-mono font-bold text-charcoal-700 mt-1">
-                      {selectedKwitansi.nomorKwitansi}
-                    </p>
-                    <div className="inline-block mt-1 px-2.5 py-0.5 border border-charcoal-800 rounded bg-[#FAF9F5] font-mono font-black text-xs text-charcoal-900 shadow-2xs">
-                      Plat: {selectedKwitansi.nomorPolisi}
+                <div className="relative flex min-h-[300px] sm:min-h-[340px]">
+                  {/* Main Voucher Body */}
+                  <div className="flex-1 p-5 sm:p-7 border-r-2 border-dashed border-gray-400 relative flex flex-col justify-between">
+                    {/* Watermark Logo HR MOTOR in Center Background */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/logo-hr-motor.png"
+                        alt=""
+                        className="w-64 sm:w-80 object-contain opacity-15"
+                      />
                     </div>
-                  </div>
-                </div>
 
-                {/* Isi Kwitansi (Sesuai Layout Excel Resmi HR MOTOR) */}
-                <div className="py-5 space-y-3.5 text-xs sm:text-sm">
-                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
-                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
-                      Terima Dari
-                    </span>
-                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
-                    <span className="col-span-7 sm:col-span-8 font-black text-charcoal-950 text-sm sm:text-base uppercase tracking-tight">
-                      {selectedKwitansi.terimaDari}
-                    </span>
-                  </div>
+                    {/* Logo Header in Top Center */}
+                    <div className="flex justify-center mb-4 sm:mb-5 relative z-10">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/logo-hr-motor.png"
+                        alt="HR MOTOR"
+                        className="h-16 sm:h-20 object-contain drop-shadow-xs"
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
-                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
-                      Sejumlah Uang
-                    </span>
-                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
-                    <span className="col-span-7 sm:col-span-8 font-bold italic text-charcoal-900 bg-[#FAF7F0] px-3 py-1.5 rounded-lg border border-[#E8DFC8]">
-                      &ldquo;{selectedKwitansi.terbilang}&rdquo;
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
-                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
-                      Untuk Pembayaran
-                    </span>
-                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
-                    <span className="col-span-7 sm:col-span-8 font-black text-charcoal-950 uppercase">
-                      {selectedKwitansi.untukPembayaran}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
-                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
-                      Plat No
-                    </span>
-                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
-                    <span className="col-span-7 sm:col-span-8 font-mono font-black text-charcoal-950 text-xs sm:text-sm bg-charcoal-100/70 px-2 py-0.5 rounded border border-charcoal-300 inline-block w-fit">
-                      {selectedKwitansi.nomorPolisi || '-'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 items-baseline py-1 border-b border-charcoal-200 gap-2">
-                    <span className="col-span-4 sm:col-span-3 font-bold text-charcoal-800 uppercase tracking-wide text-[11px] sm:text-xs">
-                      Keterangan
-                    </span>
-                    <span className="col-span-1 text-center font-bold text-charcoal-500">:</span>
-                    <span className="col-span-7 sm:col-span-8 font-medium text-charcoal-800">
-                      {selectedKwitansi.keterangan || 'Walk in'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bagian Bawah: Jumlah Uang & Tanda Tangan */}
-                <div className="pt-4 border-t-2 border-charcoal-900 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  {/* Kotak Jumlah Rp */}
-                  <div className="w-full sm:w-auto p-3.5 bg-charcoal-950 text-gold-400 rounded-xl border border-gold-500/40 text-center sm:text-left shadow-xs">
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-white/70 block">Jumlah Rp</span>
-                    <span className="text-lg sm:text-xl font-black tracking-tight font-mono text-gold-400">
-                      Rp {selectedKwitansi.sejumlahUang.toLocaleString('id-ID')} ,-
-                    </span>
-                  </div>
-
-                  {/* Tanda Tangan & Cap Kasir Showroom */}
-                  <div className="text-center sm:text-right shrink-0">
-                    <p className="text-xs sm:text-sm font-black text-charcoal-900 uppercase">{selectedKwitansi.tempatTanggal}</p>
-                    <p className="text-[11px] font-bold text-charcoal-500 mt-0.5">Penerima,</p>
-                    <div className="my-1.5 flex justify-center sm:justify-end">
-                      <div className="w-26 h-10 border-2 border-dashed border-emerald-600/70 rounded-lg flex items-center justify-center rotate-[-3deg] bg-emerald-50/70 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2 shadow-2xs">
-                        ✓ LUNAS HR MOTOR
+                    {/* Main Receipt Content Rows */}
+                    <div className="relative z-10 space-y-1 sm:space-y-1.5 text-xs sm:text-sm font-sans text-black">
+                      <div className="flex items-baseline">
+                        <span className="w-36 sm:w-40 font-bold shrink-0">Terima Dari</span>
+                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="font-bold uppercase tracking-tight">
+                          {selectedKwitansi.terimaDari}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="w-36 sm:w-40 font-bold shrink-0">Sejumlah Uang</span>
+                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="font-medium text-black">
+                          {selectedKwitansi.terbilang}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="w-36 sm:w-40 font-bold shrink-0">Untuk Pembayaran</span>
+                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="font-bold uppercase text-black">
+                          {selectedKwitansi.untukPembayaran}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="w-36 sm:w-40 font-bold shrink-0">Plat No</span>
+                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="font-bold font-mono uppercase text-black">
+                          {selectedKwitansi.nomorPolisi || '-'}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline">
+                        <span className="w-36 sm:w-40 font-bold shrink-0">Keterangan</span>
+                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="font-medium text-black">
+                          {selectedKwitansi.keterangan || 'Walk in'}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-xs sm:text-sm font-black text-charcoal-950 underline underline-offset-2 uppercase">
-                      {selectedKwitansi.penerima || 'HR MOTOR'}
-                    </p>
+
+                    {/* Bottom Row: Jumlah Rp & Tanda Tangan */}
+                    <div className="mt-6 sm:mt-8 pt-2 flex items-end justify-between gap-4 relative z-10">
+                      {/* Left: Jumlah Rp with Slanted Parallelogram Box */}
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <span className="font-bold text-xs sm:text-sm text-black shrink-0">
+                          Jumlah Rp
+                        </span>
+                        <div className="border-2 border-black transform -skew-x-[25deg] px-6 sm:px-8 py-0.5 sm:py-1 bg-white">
+                          <span className="inline-block transform skew-x-[25deg] font-bold text-xs sm:text-sm font-mono text-black">
+                            {selectedKwitansi.sejumlahUang.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Signature & Date */}
+                      <div className="text-right text-[11px] sm:text-xs text-black shrink-0 pr-1">
+                        <div>{selectedKwitansi.tempatTanggal}</div>
+                        <div className="mt-0.5">Penerima</div>
+                        <div className="h-10 sm:h-12"></div>
+                        <div className="font-bold uppercase tracking-wide">
+                          {selectedKwitansi.penerima || 'HR MOTOR'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Right Perforated Stub Area */}
+                  <div className="w-8 sm:w-12 bg-white shrink-0"></div>
                 </div>
+
+                {/* Bottom Yellow Bar */}
+                <div className="w-full h-3 sm:h-3.5 bg-[#FFEE00] border-t border-black/20"></div>
               </div>
             </div>
 
