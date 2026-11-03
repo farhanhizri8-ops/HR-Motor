@@ -113,6 +113,8 @@ export function readDatabase(): CrmDatabase {
     repairDatabaseFollowUps(parsed);
     repairDatabaseUsers(parsed);
     repairDatabaseStocks(parsed);
+    repairDatabaseCustomers(parsed);
+    repairDatabasePurchases(parsed);
 
     return parsed;
   } catch (error) {
@@ -174,6 +176,43 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
     modified = true;
   }
 
+  // Ensure Dani Muhammad Ramdani and Andika exist as sales/staff
+  const dani = db.users.find((u) => u.name.toLowerCase().includes('dani') || u.id === 'USR-008');
+  if (!dani) {
+    db.users.push({
+      id: 'USR-008',
+      name: 'Dani Muhammad Ramdani',
+      email: 'dani.ramdani@hrmotor.id',
+      role: 'Sales Representative',
+      phone: '081223450008',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80',
+      password: 'Garut2005',
+      isApproved: true,
+      isActive: true,
+      createdAt: '2026-05-01T08:00:00Z',
+      updatedAt: '2026-05-01T08:00:00Z',
+    });
+    modified = true;
+  }
+
+  const andika = db.users.find((u) => u.name.toLowerCase().includes('andika') || u.id === 'USR-009');
+  if (!andika) {
+    db.users.push({
+      id: 'USR-009',
+      name: 'Andika',
+      email: 'andika@hrmotor.id',
+      role: 'Sales Representative',
+      phone: '081223450009',
+      avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=120&auto=format&fit=crop&q=80',
+      password: 'Garut2005',
+      isApproved: true,
+      isActive: true,
+      createdAt: '2026-05-01T08:00:00Z',
+      updatedAt: '2026-05-01T08:00:00Z',
+    });
+    modified = true;
+  }
+
   // Ensure every repair claim is Garansi (HR MOTOR guarantees 100% warranty on every vehicle sold)
   if (db.repairClaims && Array.isArray(db.repairClaims)) {
     db.repairClaims.forEach((r) => {
@@ -212,6 +251,207 @@ export function repairDatabaseFollowUps(db: CrmDatabase): boolean {
   return modified;
 }
 
+export function repairDatabaseCustomers(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.customers)) return false;
+  let modified = false;
+
+  const kwitansiCustomers: Customer[] = [
+    {
+      id: 'CUST-2026-011',
+      fullName: 'Wildan Fitriadi',
+      whatsapp: '081221177001',
+      email: 'wildan.fitriadi@gmail.com',
+      address: 'Jl. Cimanuk No. 128, Garut Kota',
+      district: 'Garut Kota',
+      source: 'Walk-in',
+      interestedVehicle: 'Honda Jazz 2005 (Z 1770 AD)',
+      vehicleType: 'Hatchback',
+      budget: 70000000,
+      assignedSalesId: 'USR-008',
+      assignedSalesName: 'Dani Muhammad Ramdani',
+      notes: 'Kwitansi No. 1 (Garut, 19 Mei 2026): Uang sejumlah Rp 60.000.000 untuk 1 UNIT MOBIL JAZZ 2005 (Plat Z 1770 AD). Keterangan: sisa sepuluh juta di bayar pihak bank otto. Penerima: Dani Muhammad Ramdani.',
+      registeredDate: '2026-05-19',
+      status: 'Sudah Beli',
+      updatedAt: '2026-05-19T10:00:00Z',
+    },
+    {
+      id: 'CUST-2026-012',
+      fullName: 'Udin',
+      whatsapp: '081320123402',
+      email: 'udin.garut@gmail.com',
+      address: 'Tarogong Kidul, Garut',
+      district: 'Tarogong Kidul',
+      source: 'Walk-in',
+      interestedVehicle: '1 Sepedah (D 1234 PAH)',
+      vehicleType: 'City Car',
+      budget: 10000000,
+      assignedSalesId: 'USR-009',
+      assignedSalesName: 'Andika',
+      notes: 'Kwitansi No. 2 (Garut, 15 Mei 2026): Uang sejumlah Rp 10.000.000 untuk pembayaran 1 Sepedah (Plat D 1234 PAH). Keterangan: Sisa di bayar tanggal 10 Mei. Yang menerima: Andika.',
+      registeredDate: '2026-05-15',
+      status: 'Sudah Beli',
+      updatedAt: '2026-05-15T11:00:00Z',
+    },
+    {
+      id: 'CUST-2026-013',
+      fullName: 'Baoa',
+      whatsapp: '081322000003',
+      email: 'baoa@gmail.com',
+      address: 'Garut',
+      district: 'Tarogong Kaler',
+      source: 'Walk-in',
+      interestedVehicle: '1 Sepda (UDHUIEHIE)',
+      vehicleType: 'City Car',
+      budget: 10000000,
+      assignedSalesId: 'USR-001',
+      assignedSalesName: 'Hahah',
+      notes: 'Kwitansi Bantu No. 3: Uang sejumlah Rp 10.000.000 untuk pembayaran 1 Sepda (Plat UDHUIEHIE). Yang menerima: Hahah.',
+      registeredDate: '2026-05-16',
+      status: 'Sudah Beli',
+      updatedAt: '2026-05-16T14:00:00Z',
+    },
+    {
+      id: 'CUST-2026-014',
+      fullName: 'Neng Tian',
+      whatsapp: '081223412344',
+      email: 'neng.tian@gmail.com',
+      address: 'Jl. Raya Samarang, Garut',
+      district: 'Samarang',
+      source: 'Walk-in',
+      interestedVehicle: '1 Unit Brio (Z 1234 AH)',
+      vehicleType: 'City Car',
+      budget: 120000000,
+      assignedSalesId: 'USR-008',
+      assignedSalesName: 'Dani Muhammad Ramdani',
+      notes: 'Kwitansi No. 4 (Garut, 19 Mei 2026): Uang sejumlah Rp 120.000.000 untuk pembayaran 1 Unit Brio (Plat Z 1234 AH). Diterima oleh HR MOTOR.',
+      registeredDate: '2026-05-19',
+      status: 'Sudah Beli',
+      updatedAt: '2026-05-19T15:30:00Z',
+    },
+  ];
+
+  kwitansiCustomers.forEach((kc) => {
+    const idx = db.customers.findIndex((c) => c.fullName.toLowerCase() === kc.fullName.toLowerCase());
+    if (idx === -1) {
+      db.customers.unshift(kc);
+      modified = true;
+    } else {
+      if (db.customers[idx].id !== kc.id) {
+        db.customers[idx].id = kc.id;
+        modified = true;
+      }
+      if (!db.customers[idx].notes.includes('Kwitansi')) {
+        db.customers[idx].notes = kc.notes;
+        db.customers[idx].interestedVehicle = kc.interestedVehicle;
+        db.customers[idx].budget = kc.budget;
+        db.customers[idx].status = 'Sudah Beli';
+        modified = true;
+      }
+    }
+  });
+
+  return modified;
+}
+
+export function repairDatabasePurchases(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.purchases)) return false;
+  let modified = false;
+
+  const kwitansiPurchases: CustomerPurchase[] = [
+    {
+      id: 'DEAL-2026-010',
+      customerId: 'CUST-2026-011',
+      customerName: 'Wildan Fitriadi',
+      vehicleBrand: 'Honda',
+      vehicleModel: 'Honda Jazz 1.5 i-DSI / VTEC',
+      vehicleYear: 2005,
+      plateNumber: 'Z 1770 AD',
+      color: 'Silver Metalik',
+      mileageKm: 142000,
+      purchasePrice: 70000000,
+      paymentMethod: 'Kredit OTO Multiartha',
+      purchaseDate: '2026-05-19',
+      warrantyUntil: '2027-05-19',
+      salesId: 'USR-008',
+      salesName: 'Dani Muhammad Ramdani',
+      notes: 'Kwitansi No. 1 (Garut, 19 Mei 2026): Uang sejumlah Rp 60.000.000 untuk 1 UNIT MOBIL JAZZ 2005 (Plat Z 1770 AD). Keterangan: sisa sepuluh juta di bayar pihak bank otto. Penerima: Dani Muhammad Ramdani.',
+      createdAt: '2026-05-19T10:00:00Z',
+    },
+    {
+      id: 'DEAL-2026-011',
+      customerId: 'CUST-2026-012',
+      customerName: 'Udin',
+      vehicleBrand: 'Sepedah Motor / Unit',
+      vehicleModel: '1 Sepedah',
+      vehicleYear: 2020,
+      plateNumber: 'D 1234 PAH',
+      color: 'Hitam',
+      mileageKm: 20000,
+      purchasePrice: 10000000,
+      paymentMethod: 'Cash Bertahap',
+      purchaseDate: '2026-05-15',
+      warrantyUntil: '2027-05-15',
+      salesId: 'USR-009',
+      salesName: 'Andika',
+      notes: 'Kwitansi No. 2 (Garut, 15 Mei 2026): Uang sejumlah Rp 10.000.000 untuk pembayaran 1 Sepedah (Plat D 1234 PAH). Keterangan: Sisa di bayar tanggal 10 Mei. Yang menerima: Andika.',
+      createdAt: '2026-05-15T11:00:00Z',
+    },
+    {
+      id: 'DEAL-2026-012',
+      customerId: 'CUST-2026-013',
+      customerName: 'Baoa',
+      vehicleBrand: 'Unit Kendaraan',
+      vehicleModel: '1 Sepda',
+      vehicleYear: 2021,
+      plateNumber: 'UDHUIEHIE',
+      color: 'Merah',
+      mileageKm: 10000,
+      purchasePrice: 10000000,
+      paymentMethod: 'Cash Keras',
+      purchaseDate: '2026-05-16',
+      warrantyUntil: '2027-05-16',
+      salesId: 'USR-001',
+      salesName: 'Hahah',
+      notes: 'Kwitansi Bantu No. 3: Uang sejumlah Rp 10.000.000 untuk pembayaran 1 Sepda (Plat UDHUIEHIE). Yang menerima: Hahah.',
+      createdAt: '2026-05-16T14:00:00Z',
+    },
+    {
+      id: 'DEAL-2026-013',
+      customerId: 'CUST-2026-014',
+      customerName: 'Neng Tian',
+      vehicleBrand: 'Honda',
+      vehicleModel: 'Honda Brio 1.2',
+      vehicleYear: 2018,
+      plateNumber: 'Z 1234 AH',
+      color: 'Putih',
+      mileageKm: 58000,
+      purchasePrice: 120000000,
+      paymentMethod: 'Cash Keras',
+      purchaseDate: '2026-05-19',
+      warrantyUntil: '2027-05-19',
+      salesId: 'USR-008',
+      salesName: 'Dani Muhammad Ramdani',
+      notes: 'Kwitansi No. 4 (Garut, 19 Mei 2026): Uang sejumlah Rp 120.000.000 untuk pembayaran 1 Unit Brio (Plat Z 1234 AH). Diterima oleh HR MOTOR.',
+      createdAt: '2026-05-19T15:30:00Z',
+    },
+  ];
+
+  kwitansiPurchases.forEach((kp) => {
+    const idx = db.purchases.findIndex((p) => p.plateNumber === kp.plateNumber);
+    if (idx === -1) {
+      db.purchases.unshift(kp);
+      modified = true;
+    } else {
+      if (db.purchases[idx].id !== kp.id || db.purchases[idx].customerId !== kp.customerId) {
+        db.purchases[idx] = { ...db.purchases[idx], ...kp };
+        modified = true;
+      }
+    }
+  });
+
+  return modified;
+}
+
 export function writeDatabase(data: CrmDatabase): void {
   try {
     if (!fs.existsSync(DATA_DIR)) {
@@ -242,7 +482,9 @@ export async function readDatabaseAsync(): Promise<CrmDatabase> {
         const followUpsRepaired = repairDatabaseFollowUps(cloudDb);
         const usersRepaired = repairDatabaseUsers(cloudDb);
         const stocksRepaired = repairDatabaseStocks(cloudDb);
-        if (followUpsRepaired || usersRepaired || stocksRepaired) {
+        const customersRepaired = repairDatabaseCustomers(cloudDb);
+        const purchasesRepaired = repairDatabasePurchases(cloudDb);
+        if (followUpsRepaired || usersRepaired || stocksRepaired || customersRepaired || purchasesRepaired) {
           try {
             await supabase
               .from('crm_snapshots')

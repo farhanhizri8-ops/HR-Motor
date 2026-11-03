@@ -25,9 +25,117 @@ import {
   Shield,
   Send,
   Wrench,
+  FileText,
+  Printer,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { Customer, LeadSourceType, VehicleCategory } from '@/types/crm';
+import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory } from '@/types/crm';
+
+interface KwitansiData {
+  nomorKwitansi: string;
+  terimaDari: string;
+  sejumlahUang: number;
+  terbilang: string;
+  untukPembayaran: string;
+  nomorPolisi: string;
+  tempatTanggal: string;
+  keterangan: string;
+  penerima: string;
+}
+
+function formatRupiahWords(n: number): string {
+  const bilangan = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+  if (n < 12) return bilangan[n];
+  if (n < 20) return `${bilangan[n - 10]} Belas`;
+  if (n < 100) return `${bilangan[Math.floor(n / 10)]} Puluh ${bilangan[n % 10]}`.trim();
+  if (n < 200) return `Seratus ${formatRupiahWords(n - 100)}`.trim();
+  if (n < 1000) return `${bilangan[Math.floor(n / 100)]} Ratus ${formatRupiahWords(n % 100)}`.trim();
+  if (n < 2000) return `Seribu ${formatRupiahWords(n - 1000)}`.trim();
+  if (n < 1000000) return `${formatRupiahWords(Math.floor(n / 1000))} Ribu ${formatRupiahWords(n % 1000)}`.trim();
+  if (n < 1000000000) return `${formatRupiahWords(Math.floor(n / 1000000))} Juta ${formatRupiahWords(n % 1000000)}`.trim();
+  if (n < 1000000000000) return `${formatRupiahWords(Math.floor(n / 1000000000))} Miliar ${formatRupiahWords(n % 1000000000)}`.trim();
+  return `${n}`;
+}
+
+function getKwitansiForCustomer(customer: Customer, allPurchases: CustomerPurchase[]): KwitansiData | null {
+  const nameLower = customer.fullName.toLowerCase();
+
+  if (nameLower.includes('wildan')) {
+    return {
+      nomorKwitansi: 'No. 1 / KW-HRM / V / 2026',
+      terimaDari: 'Wildan Fitriadi',
+      sejumlahUang: 60000000,
+      terbilang: 'Enam Puluh Juta Rupiah',
+      untukPembayaran: '1 UNIT MOBIL JAZZ 2005',
+      nomorPolisi: 'Z 1770 AD',
+      tempatTanggal: 'Garut, 19 Mei 2026',
+      keterangan: 'sisa sepuluh juta di bayar pihak bank otto',
+      penerima: 'Dani Muhammad Ramdani',
+    };
+  }
+
+  if (nameLower.includes('udin')) {
+    return {
+      nomorKwitansi: 'No. 2 / KW-HRM / V / 2026',
+      terimaDari: 'Udin',
+      sejumlahUang: 10000000,
+      terbilang: 'Sepuluh Juta Rupiah',
+      untukPembayaran: '1 SEPEDAH',
+      nomorPolisi: 'D 1234 PAH',
+      tempatTanggal: 'Garut, 15 Mei 2026',
+      keterangan: 'SISA DI BAYAR TANGGAL 10 MEI',
+      penerima: 'Andika',
+    };
+  }
+
+  if (nameLower.includes('baoa')) {
+    return {
+      nomorKwitansi: 'No. 3 / KW-HRM / V / 2026',
+      terimaDari: 'Baoa',
+      sejumlahUang: 10000000,
+      terbilang: 'Sepuluh Juta Rupiah',
+      untukPembayaran: '1 SEPDA',
+      nomorPolisi: 'UDHUIEHIE',
+      tempatTanggal: 'Garut, 16 Mei 2026',
+      keterangan: 'Kwitansi Pembayaran Unit Showroom HR MOTOR Garut',
+      penerima: 'Hahah (Staff Kasir)',
+    };
+  }
+
+  if (nameLower.includes('neng tian')) {
+    return {
+      nomorKwitansi: 'No. 4 / KW-HRM / V / 2026',
+      terimaDari: 'Neng Tian',
+      sejumlahUang: 120000000,
+      terbilang: 'Seratus Dua Puluh Juta Rupiah',
+      untukPembayaran: '1 UNIT BRIO',
+      nomorPolisi: 'Z 1234 AH',
+      tempatTanggal: 'Garut, 19 Mei 2026',
+      keterangan: 'Pembayaran Tunai Lunas HR MOTOR',
+      penerima: 'HR MOTOR / Dani Muhammad Ramdani',
+    };
+  }
+
+  const purchase = allPurchases.find(
+    (p) => p.customerId === customer.id || p.customerName.toLowerCase() === nameLower
+  );
+
+  if (purchase) {
+    return {
+      nomorKwitansi: `KW-${purchase.id.replace('DEAL-', '')} / HRM`,
+      terimaDari: customer.fullName,
+      sejumlahUang: purchase.purchasePrice,
+      terbilang: `${formatRupiahWords(purchase.purchasePrice)} Rupiah`,
+      untukPembayaran: `1 UNIT ${purchase.vehicleBrand} ${purchase.vehicleModel} (${purchase.vehicleYear})`,
+      nomorPolisi: purchase.plateNumber,
+      tempatTanggal: `Garut, ${purchase.purchaseDate}`,
+      keterangan: purchase.notes || 'Pembayaran Unit Showroom HR MOTOR Garut',
+      penerima: purchase.salesName || 'HR MOTOR Kasir',
+    };
+  }
+
+  return null;
+}
 
 export default function CustomersPage() {
   const {
@@ -58,6 +166,7 @@ export default function CustomersPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedKwitansi, setSelectedKwitansi] = useState<KwitansiData | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -337,102 +446,123 @@ export default function CustomersPage() {
                   </td>
                 </tr>
               ) : (
-                processedCustomers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
-                    {/* Pelanggan */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-xs">
-                          {cust.fullName.charAt(0)}
+                processedCustomers.map((cust) => {
+                  const kwitansi = getKwitansiForCustomer(cust, purchases);
+                  return (
+                    <tr key={cust.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
+                      {/* Pelanggan */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-xs">
+                            {cust.fullName.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-bold text-charcoal-900 text-sm">{cust.fullName}</p>
+                              {kwitansi && (
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-gold-50 text-gold-800 border border-gold-300 shadow-2xs">
+                                  <FileText className="w-2.5 h-2.5 text-gold-600" /> Kwitansi Kasir
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-charcoal-400 font-mono tracking-tight">{cust.id}</span>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-charcoal-900 text-sm">{cust.fullName}</p>
-                          <span className="text-[10px] text-charcoal-400 font-mono tracking-tight">{cust.id}</span>
-                        </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* WhatsApp & Email */}
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-0.5">
-                        <a
-                          href={formatWhatsAppLink(cust.whatsapp)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 font-semibold text-charcoal-900 hover:text-gold-600 transition-colors"
-                        >
-                          <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                            <MessageCircle className="w-3 h-3" />
+                      {/* WhatsApp & Email */}
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-0.5">
+                          <a
+                            href={formatWhatsAppLink(cust.whatsapp)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 font-semibold text-charcoal-900 hover:text-gold-600 transition-colors"
+                          >
+                            <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                              <MessageCircle className="w-3 h-3" />
+                            </span>
+                            {cust.whatsapp}
+                          </a>
+                          {cust.email && (
+                            <p className="text-[11px] text-charcoal-400 truncate max-w-[150px] pl-6">
+                              {cust.email}
+                            </p>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Lokasi */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-start gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gold-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="font-semibold text-charcoal-800">{cust.district}</p>
+                            <p className="text-[10px] text-charcoal-400 line-clamp-1">{cust.address}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Minat Kendaraan */}
+                      <td className="py-3.5 px-4">
+                        <div>
+                          <p className="font-bold text-charcoal-900">{cust.interestedVehicle}</p>
+                          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF9F5] border border-[#EAE8E3] text-charcoal-600 mt-0.5">
+                            {cust.vehicleType}
                           </span>
-                          {cust.whatsapp}
-                        </a>
-                        {cust.email && (
-                          <p className="text-[11px] text-charcoal-400 truncate max-w-[150px] pl-6">
-                            {cust.email}
-                          </p>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Lokasi */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-start gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gold-600 mt-0.5 shrink-0" />
-                        <div>
-                          <p className="font-semibold text-charcoal-800">{cust.district}</p>
-                          <p className="text-[10px] text-charcoal-400 line-clamp-1">{cust.address}</p>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Minat Kendaraan */}
-                    <td className="py-3.5 px-4">
-                      <div>
-                        <p className="font-bold text-charcoal-900">{cust.interestedVehicle}</p>
-                        <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF9F5] border border-[#EAE8E3] text-charcoal-600 mt-0.5">
-                          {cust.vehicleType}
-                        </span>
-                      </div>
-                    </td>
+                      {/* Budget */}
+                      <td className="py-3.5 px-4 font-black text-gold-600 text-sm">
+                        {formatRupiah(cust.budget)}
+                      </td>
 
-                    {/* Budget */}
-                    <td className="py-3.5 px-4 font-black text-gold-600 text-sm">
-                      {formatRupiah(cust.budget)}
-                    </td>
+                      {/* Action buttons */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {/* Kwitansi Kasir */}
+                          {kwitansi && (
+                            <button
+                              onClick={() => setSelectedKwitansi(kwitansi)}
+                              className="p-1.5 rounded-lg text-gold-600 hover:text-gold-800 hover:bg-gold-50 transition-colors border border-gold-300/60 shadow-2xs"
+                              title="Lihat / Cetak Kwitansi Resmi Kasir"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          )}
 
-                    {/* Action buttons */}
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {/* View Detail */}
-                        <button
-                          onClick={() => setSelectedCustomer(cust)}
-                          className="p-1.5 rounded-lg text-charcoal-500 hover:text-gold-600 hover:bg-gold-50/60 transition-colors border border-transparent hover:border-gold-500/30"
-                          title="Lihat Detail Profil & Riwayat"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                          {/* View Detail */}
+                          <button
+                            onClick={() => setSelectedCustomer(cust)}
+                            className="p-1.5 rounded-lg text-charcoal-500 hover:text-gold-600 hover:bg-gold-50/60 transition-colors border border-transparent hover:border-gold-500/30"
+                            title="Lihat Detail Profil & Riwayat"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
 
-                        {/* Edit */}
-                        <button
-                          onClick={() => openEditModal(cust)}
-                          className="p-1.5 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-charcoal-100 transition-colors border border-transparent hover:border-charcoal-300"
-                          title="Edit Pelanggan"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
+                          {/* Edit */}
+                          <button
+                            onClick={() => openEditModal(cust)}
+                            className="p-1.5 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-charcoal-100 transition-colors border border-transparent hover:border-charcoal-300"
+                            title="Edit Pelanggan"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
 
-                        {/* Delete */}
-                        <button
-                          onClick={() => setDeleteConfirmId(cust.id)}
-                          className="p-1.5 rounded-lg text-charcoal-400 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200"
-                          title="Hapus Data Pelanggan"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {/* Delete */}
+                          <button
+                            onClick={() => setDeleteConfirmId(cust.id)}
+                            className="p-1.5 rounded-lg text-charcoal-400 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200"
+                            title="Hapus Data Pelanggan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -732,24 +862,41 @@ export default function CustomersPage() {
                       .map((pur) => (
                         <div
                           key={pur.id}
-                          className="p-4 bg-white border border-[#EAE8E3] rounded-xl flex items-center justify-between text-xs border-l-4 border-l-gold-500 shadow-xs"
+                          className="p-4 bg-white border border-[#EAE8E3] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs border-l-4 border-l-gold-500 shadow-xs gap-3"
                         >
-                          <div>
+                          <div className="flex-1">
                             <p className="font-black text-charcoal-900 text-sm">{pur.vehicleModel} ({pur.vehicleYear})</p>
                             <p className="text-charcoal-500 text-[11px] mt-0.5">
-                              No. Polisi: <span className="font-bold text-charcoal-800 font-mono">{pur.plateNumber}</span> • Warna: {pur.color} • Metode: {pur.paymentMethod}
+                              No. Polisi: <span className="font-bold text-charcoal-800 font-mono bg-charcoal-50 px-1.5 py-0.5 rounded border border-charcoal-200">{pur.plateNumber}</span> • Warna: {pur.color} • Metode: {pur.paymentMethod}
                             </p>
                             <span className="text-[10px] text-gold-700 font-bold block mt-1.5 bg-gold-50 px-2 py-0.5 rounded border border-gold-200 inline-block">
                               Garansi HR MOTOR Aktif s.d: {formatDate(pur.warrantyUntil)}
                             </span>
+                            {pur.notes && (
+                              <p className="text-[11px] text-charcoal-600 mt-2 bg-[#FAF9F5] p-2 rounded-lg border border-[#EAE8E3] italic">
+                                &ldquo;{pur.notes}&rdquo;
+                              </p>
+                            )}
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right flex flex-col items-start sm:items-end gap-1 shrink-0">
                             <span className="text-base font-black text-gold-600">
                               {formatRupiah(pur.purchasePrice)}
                             </span>
-                            <span className="text-[10px] text-charcoal-400 block mt-0.5">
+                            <span className="text-[10px] text-charcoal-400 block">
                               Tgl Beli: {formatDate(pur.purchaseDate)}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const kw = getKwitansiForCustomer(selectedCustomer, [pur]);
+                                if (kw) setSelectedKwitansi(kw);
+                              }}
+                              className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-bold text-gold-800 bg-gold-50 hover:bg-gold-100 border border-gold-300 px-2.5 py-1 rounded-lg transition-colors shadow-2xs"
+                              title="Buka Kwitansi Resmi Kasir HR MOTOR"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-gold-600" />
+                              <span>Lihat Kwitansi</span>
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -958,6 +1105,160 @@ export default function CustomersPage() {
                 className="flex-1 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5"
               >
                 {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL KWITANSI PEMBAYARAN KASIR RESMI HR MOTOR */}
+      {selectedKwitansi && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-gold-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            {/* Header Toolbar */}
+            <div className="px-5 py-3.5 bg-charcoal-900 text-white flex items-center justify-between border-b border-gold-500/30 shrink-0">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gold-400" />
+                <span className="font-bold text-xs sm:text-sm tracking-wide">
+                  Kwitansi Resmi Showroom HR MOTOR Garut
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+                  title="Cetak Kwitansi / Print"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedKwitansi(null)}
+                  className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Kwitansi Sheet */}
+            <div className="p-4 sm:p-6 overflow-y-auto bg-[#FAF8F5]">
+              <div className="bg-white border-2 border-[#D4C3A3] rounded-xl p-5 sm:p-7 shadow-sm relative overflow-hidden text-charcoal-900">
+                {/* Watermark HR MOTOR */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none">
+                  <span className="text-7xl sm:text-8xl font-black rotate-[-22deg] tracking-widest text-charcoal-950">
+                    HR MOTOR
+                  </span>
+                </div>
+
+                {/* Kop Surat Showroom */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b-2 border-charcoal-900 gap-3">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-black tracking-wider text-charcoal-950">
+                      SHOWROOM HR MOTOR GARUT
+                    </h2>
+                    <p className="text-[11px] text-charcoal-600 font-medium mt-0.5">
+                      Pusat Jual Beli Mobil Bekas Berkualitas, Bergaransi Resmi & Terpercaya
+                    </p>
+                    <p className="text-[10px] text-charcoal-500">
+                      Garut, Jawa Barat • Telepon / WA: 0812-2345-0001
+                    </p>
+                  </div>
+                  <div className="text-left sm:text-right shrink-0">
+                    <span className="inline-block px-2.5 py-1 bg-charcoal-900 text-gold-400 font-black text-[11px] uppercase tracking-wider rounded">
+                      KWITANSI PEMBAYARAN
+                    </span>
+                    <p className="text-xs font-mono font-bold text-charcoal-700 mt-1">
+                      {selectedKwitansi.nomorKwitansi}
+                    </p>
+                    <div className="inline-block mt-1 px-2.5 py-0.5 border border-charcoal-800 rounded bg-[#FAF9F5] font-mono font-black text-xs text-charcoal-900 shadow-2xs">
+                      Plat: {selectedKwitansi.nomorPolisi}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Isi Kwitansi */}
+                <div className="py-5 space-y-3.5 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                    <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
+                      Telah Diterima Dari
+                    </span>
+                    <span className="text-charcoal-400 hidden sm:inline">:</span>
+                    <span className="font-black text-sm text-charcoal-950 border-b border-dotted border-charcoal-400 pb-0.5 flex-1 uppercase">
+                      {selectedKwitansi.terimaDari}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                    <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
+                      Uang Sejumlah
+                    </span>
+                    <span className="text-charcoal-400 hidden sm:inline">:</span>
+                    <span className="font-bold italic text-charcoal-900 bg-[#FBF7EE] border border-[#E9DFCE] px-3 py-1.5 rounded-lg flex-1">
+                      &ldquo;{selectedKwitansi.terbilang}&rdquo;
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                    <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
+                      Untuk Pembayaran
+                    </span>
+                    <span className="text-charcoal-400 hidden sm:inline">:</span>
+                    <span className="font-black text-charcoal-950 border-b border-dotted border-charcoal-400 pb-0.5 flex-1 uppercase">
+                      {selectedKwitansi.untukPembayaran}
+                    </span>
+                  </div>
+
+                  {selectedKwitansi.keterangan && (
+                    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                      <span className="font-bold text-charcoal-700 sm:w-40 shrink-0 uppercase tracking-wide text-[11px]">
+                        Keterangan
+                      </span>
+                      <span className="text-charcoal-400 hidden sm:inline">:</span>
+                      <span className="font-semibold text-charcoal-700 border-b border-dotted border-charcoal-400 pb-0.5 flex-1">
+                        {selectedKwitansi.keterangan}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bagian Bawah: Jumlah Uang & Tanda Tangan */}
+                <div className="pt-4 border-t-2 border-charcoal-900 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  {/* Kotak Nominal Uang */}
+                  <div className="w-full sm:w-auto p-3 bg-charcoal-950 text-gold-400 rounded-xl border border-gold-500/40 text-center sm:text-left shadow-xs">
+                    <p className="text-[10px] uppercase font-bold tracking-wider text-white/70">Jumlah Uang Kasir</p>
+                    <p className="text-lg font-black tracking-tight font-mono">
+                      Rp {selectedKwitansi.sejumlahUang.toLocaleString('id-ID')} ,-
+                    </p>
+                  </div>
+
+                  {/* Tanda Tangan & Cap Kasir Showroom */}
+                  <div className="text-center sm:text-right">
+                    <p className="text-xs font-semibold text-charcoal-700">{selectedKwitansi.tempatTanggal}</p>
+                    <p className="text-[11px] font-bold text-charcoal-500 mt-0.5">Yang Menerima,</p>
+                    <div className="my-1.5 flex justify-center sm:justify-end">
+                      <div className="w-24 h-10 border-2 border-dashed border-emerald-600/60 rounded flex items-center justify-center rotate-[-3deg] bg-emerald-50/70 text-emerald-800 text-[10px] font-black uppercase tracking-wider">
+                        ✓ LUNAS HR MOTOR
+                      </div>
+                    </div>
+                    <p className="text-xs font-black text-charcoal-950 underline underline-offset-2">
+                      {selectedKwitansi.penerima}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="px-5 py-3 bg-[#FAF9F5] border-t border-[#EAE8E3] flex items-center justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedKwitansi(null)}
+                className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
+              >
+                Tutup Kwitansi
               </button>
             </div>
           </div>
