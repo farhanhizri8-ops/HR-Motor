@@ -40,6 +40,7 @@ import {
 } from 'recharts';
 import { useCrm } from '@/context/CrmContext';
 import { ReportsAnalyticsView } from '@/components/ReportsAnalyticsView';
+import { CorePipelineStage, normalizePipelineStage } from '@/types/crm';
 
 type DateFilterType =
   | 'hari_ini'
@@ -253,18 +254,26 @@ export default function DashboardPage() {
 
   // Pipeline Stage Distribution Chart Data (Dynamic based on selected period)
   const pipelineDistribution = useMemo(() => {
-    const stages = [
-      'Menanyakan Unit',
-      'Tertarik',
-      'Cek Unit',
+    const stages: CorePipelineStage[] = [
+      'Hanya Menanyakan',
       'Negosiasi',
-      'Deal',
-      'Lost',
+      'Cek Unit',
     ];
+
+    const counts: Record<CorePipelineStage, number> = {
+      'Hanya Menanyakan': 0,
+      'Negosiasi': 0,
+      'Cek Unit': 0,
+    };
+
+    filteredLeads.forEach((l) => {
+      const core = normalizePipelineStage(l.status);
+      counts[core] = (counts[core] || 0) + 1;
+    });
 
     return stages.map((st) => ({
       stage: st,
-      jumlah: filteredLeads.filter((l) => l.status === st).length,
+      jumlah: counts[st] || 0,
     }));
   }, [filteredLeads]);
 

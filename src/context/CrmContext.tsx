@@ -127,6 +127,7 @@ interface CrmContextType {
   addLead: (data: Partial<Lead>) => Promise<{ success: boolean; error?: string }>;
   updateLead: (data: Partial<Lead> & { id: string }) => Promise<{ success: boolean; error?: string }>;
   updateLeadStage: (id: string, stage: PipelineStage, extras?: Record<string, any>) => Promise<{ success: boolean; error?: string }>;
+  deleteLead: (id: string) => Promise<{ success: boolean; error?: string }>;
   
   addFollowUp: (data: Partial<FollowUp>) => Promise<{ success: boolean; error?: string }>;
   updateFollowUp: (data: Partial<FollowUp> & { id: string }) => Promise<{ success: boolean; error?: string }>;
@@ -370,6 +371,11 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
 
   const updateLeadStage = async (id: string, stage: PipelineStage, extras: Record<string, any> = {}) => {
     return executeApiMutation('UPDATE_LEAD_STAGE', { id, stage, ...extras });
+  };
+
+  const deleteLead = async (id: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== id));
+    return executeApiMutation('DELETE_LEAD', { id });
   };
 
   const addFollowUp = async (data: Partial<FollowUp>) => {
@@ -686,6 +692,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         addLead,
         updateLead,
         updateLeadStage,
+        deleteLead,
         addFollowUp,
         updateFollowUp,
         deleteFollowUp,

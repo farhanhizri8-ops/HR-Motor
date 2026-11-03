@@ -341,11 +341,15 @@ export async function POST(request: Request) {
 
       // LEADS
       case 'ADD_LEAD': {
-        const initialStage = payload.status || 'Menanyakan Unit';
+        const initialStage = payload.status || 'Hanya Menanyakan';
         const now = new Date().toISOString();
+        const contactNum = payload.contactNumber || payload.customerPhone || '';
         const lead: Lead = {
           ...payload,
           id: payload.id || `LEAD-2026-${String(db.leads.length + 1).padStart(3, '0')}`,
+          contactNumber: contactNum,
+          customerPhone: contactNum,
+          leadSource: payload.leadSource || 'WhatsApp',
           status: initialStage,
           dateReceived: payload.dateReceived || now.split('T')[0],
           lastContactDate: now,
@@ -353,7 +357,7 @@ export async function POST(request: Request) {
             {
               stage: initialStage,
               timestamp: now,
-              notes: payload.notes || 'Prospek pertama kali tercatat di sistem showroom',
+              notes: payload.notes || 'Calon konsumen tercatat di sistem Sales Pipeline WhatsApp',
               updatedByName: userName,
             },
           ],
@@ -361,7 +365,7 @@ export async function POST(request: Request) {
           updatedAt: now,
         };
         db.leads.unshift(lead);
-        logActivity('Menerima Prospek Baru', 'Prospek', lead.id, `Prospek baru ${lead.customerName} sumber ${lead.leadSource} (Unit: ${lead.interestedVehicle})`);
+        logActivity('Menerima Prospek Baru', 'Prospek', lead.id, `Prospek baru ${lead.customerName} sumber ${lead.leadSource} (Unit: ${lead.interestedVehicle || 'Belum spesifik'})`);
         break;
       }
 
@@ -370,10 +374,30 @@ export async function POST(request: Request) {
         if (index === -1) {
           return NextResponse.json({ success: false, error: 'Prospek tidak ditemukan' }, { status: 404 });
         }
+        const oldLead = db.leads[index];
+        const oldStage = oldLead.status;
+        const newStage = payload.status && payload.status !== oldStage ? payload.status : oldStage;
+        const now = new Date().toISOString();
+        const contactNum = payload.contactNumber || payload.customerPhone || oldLead.contactNumber || oldLead.customerPhone || '';
+
+        let stageHistory = [...(oldLead.stageHistory || [])];
+        if (payload.status && payload.status !== oldStage) {
+          stageHistory.push({
+            stage: newStage,
+            timestamp: now,
+            notes: payload.notes || `Tahapan komunikasi diubah menjadi "${newStage}"`,
+            updatedByName: userName,
+          });
+        }
+
         db.leads[index] = {
-          ...db.leads[index],
+          ...oldLead,
           ...payload,
-          updatedAt: new Date().toISOString(),
+          contactNumber: contactNum,
+          customerPhone: contactNum,
+          status: newStage,
+          stageHistory,
+          updatedAt: now,
         };
         logActivity('Memperbarui Data Prospek', 'Prospek', payload.id, `Memperbarui info prospek ${db.leads[index].customerName}`);
         break;
@@ -520,6 +544,22 @@ export async function POST(request: Request) {
           'Prospek',
           lead.id,
           `Mengubah tahapan prospek ${lead.customerName} dari "${oldStage}" ke "${newStage}"`
+        );
+        break;
+      }
+
+      case 'DELETE_LEAD': {
+        const leadIndex = db.leads.findIndex((l) => l.id === payload.id);
+        if (leadIndex === -1) {
+          return NextResponse.json({ success: false, error: 'Lead tidak ditemukan' }, { status: 404 });
+        }
+        const deletedLead = db.leads[leadIndex];
+        db.leads.splice(leadIndex, 1);
+        logActivity(
+          'Menghapus Data Lead',
+          'Prospek',
+          payload.id,
+          `Menghapus data calon konsumen ${deletedLead.customerName} (${deletedLead.contactNumber || deletedLead.customerPhone || '-'})`
         );
         break;
       }

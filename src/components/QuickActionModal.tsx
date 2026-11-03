@@ -184,7 +184,7 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
       ...leadForm,
       estimatedBudget: Number(leadForm.estimatedBudget) || 0,
       assignedSalesName: assignedUser?.name || 'Asep Kurniawan',
-      status: 'Menanyakan Unit',
+      status: 'Hanya Menanyakan',
     });
 
     setSubmitting(false);

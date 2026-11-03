@@ -122,6 +122,12 @@ export function readDatabase(): CrmDatabase {
     repairDatabaseCustomers(parsed);
     repairDatabasePurchases(parsed);
     repairDatabaseCreditApplications(parsed);
+    const leadsRepaired = repairDatabaseLeads(parsed);
+    if (leadsRepaired) {
+      try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+      } catch (e) {}
+    }
 
     return parsed;
   } catch (error) {
@@ -262,6 +268,48 @@ export function repairDatabaseCreditApplications(db: CrmDatabase): boolean {
     return true;
   }
   return false;
+}
+
+export function repairDatabaseLeads(db: CrmDatabase): boolean {
+  if (!db || !Array.isArray(db.leads)) return false;
+  let modified = false;
+
+  db.leads.forEach((lead) => {
+    // Synchronize contactNumber and customerPhone
+    const phone = lead.contactNumber || lead.customerPhone || '';
+    if (!lead.contactNumber && phone) {
+      lead.contactNumber = phone;
+      modified = true;
+    }
+    if (!lead.customerPhone && phone) {
+      lead.customerPhone = phone;
+      modified = true;
+    }
+
+    // Backwards compatibility mapping for legacy stages
+    if (lead.status === 'Menanyakan Unit') {
+      lead.status = 'Hanya Menanyakan';
+      modified = true;
+    } else if (lead.status === 'Tertarik') {
+      lead.status = 'Negosiasi';
+      modified = true;
+    }
+
+    // Ensure stageHistory has at least the current status
+    if (!lead.stageHistory || !Array.isArray(lead.stageHistory) || lead.stageHistory.length === 0) {
+      lead.stageHistory = [
+        {
+          stage: lead.status,
+          timestamp: lead.createdAt || new Date().toISOString(),
+          notes: lead.notes || 'Riwayat awal calon konsumen tercatat di sistem',
+          updatedByName: lead.assignedSalesName || 'Admin HR MOTOR',
+        },
+      ];
+      modified = true;
+    }
+  });
+
+  return modified;
 }
 
 export function repairDatabaseFollowUps(db: CrmDatabase): boolean {

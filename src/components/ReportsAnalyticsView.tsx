@@ -289,26 +289,29 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
   // 4. ANALISIS SALES PIPELINE (FUNNEL TAHAPAN AKTUAL)
   const pipelineFunnel = useMemo(() => {
     const stages: PipelineStage[] = [
-      'Menanyakan Unit',
-      'Tertarik',
-      'Cek Unit',
+      'Hanya Menanyakan',
       'Negosiasi',
+      'Cek Unit',
       'Deal',
       'Lost',
     ];
 
-    const counts: Record<PipelineStage, number> = {
-      'Menanyakan Unit': 0,
-      'Tertarik': 0,
-      'Cek Unit': 0,
+    const counts: Record<string, number> = {
+      'Hanya Menanyakan': 0,
       'Negosiasi': 0,
+      'Cek Unit': 0,
       'Deal': 0,
       'Lost': 0,
     };
 
     filteredLeads.forEach((l) => {
-      if (counts[l.status] !== undefined) {
-        counts[l.status] += 1;
+      let stg: string = l.status;
+      if (stg === 'Menanyakan Unit') stg = 'Hanya Menanyakan';
+      if (stg === 'Tertarik') stg = 'Negosiasi';
+      if (counts[stg] !== undefined) {
+        counts[stg] += 1;
+      } else {
+        counts['Hanya Menanyakan'] = (counts['Hanya Menanyakan'] || 0) + 1;
       }
     });
 

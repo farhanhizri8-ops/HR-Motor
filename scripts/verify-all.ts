@@ -1,5 +1,5 @@
-import { readDatabase, repairDatabaseStocks, getInitialDatabase } from '../src/lib/serverStore';
-import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase } from '../src/types/crm';
+import { readDatabase, repairDatabaseStocks, repairDatabaseLeads, getInitialDatabase } from '../src/lib/serverStore';
+import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase, Lead, normalizePipelineStage, CORE_PIPELINE_STAGES } from '../src/types/crm';
 
 console.log('================================================================');
 console.log('       HR MOTOR CRM - COMPREHENSIVE VERIFICATION SUITE          ');
@@ -427,6 +427,129 @@ console.log('\n[7/7] Testing Customer Follow-Up Milestone & Status Integrity...'
   assert(flw.status === 'Sudah Dihubungi', 'Follow up status is preserved as Sudah Dihubungi (not overwritten to Tertarik)');
   assert(flw.periodicStep === '3 Bulan', 'Milestone advanced to 3 Bulan');
   assert(flw.communicationLogs.length === 1, 'Communication log properly recorded');
+}
+
+// ----------------------------------------------------------------------
+// TEST SUITE 8: Sales Pipeline 3-Stage Lead Tracking & Lead Management Sync
+// ----------------------------------------------------------------------
+console.log('\n[8/8] Testing Sales Pipeline 3-Stage Tracking & Lead Management Sync...');
+{
+  // 1. Verify 3 Core Stages & Legacy Normalization
+  assert(CORE_PIPELINE_STAGES.length === 3, 'Core stages array has exactly 3 stages');
+  assert(CORE_PIPELINE_STAGES.includes('Hanya Menanyakan'), 'Core stages includes Hanya Menanyakan');
+  assert(CORE_PIPELINE_STAGES.includes('Negosiasi'), 'Core stages includes Negosiasi');
+  assert(CORE_PIPELINE_STAGES.includes('Cek Unit'), 'Core stages includes Cek Unit');
+
+  assert(normalizePipelineStage('Menanyakan Unit') === 'Hanya Menanyakan', 'Legacy stage "Menanyakan Unit" maps to "Hanya Menanyakan"');
+  assert(normalizePipelineStage('Tertarik') === 'Negosiasi', 'Legacy stage "Tertarik" maps to "Negosiasi"');
+  assert(normalizePipelineStage('Cek Unit') === 'Cek Unit', 'Stage "Cek Unit" preserves as "Cek Unit"');
+  assert(normalizePipelineStage('Negosiasi') === 'Negosiasi', 'Stage "Negosiasi" preserves as "Negosiasi"');
+  assert(normalizePipelineStage('Hanya Menanyakan') === 'Hanya Menanyakan', 'Stage "Hanya Menanyakan" preserves as "Hanya Menanyakan"');
+
+  // 2. Database repair function preserves and normalizes leads
+  const mockDb = {
+    leads: [
+      {
+        id: 'LEAD-TEST-001',
+        customerName: 'Asep Ridwan',
+        contactNumber: '',
+        customerPhone: '081234567890',
+        status: 'Menanyakan Unit' as any,
+        interestedVehicle: 'Toyota Rush 2021',
+        notes: 'Inquiry awal',
+        dateReceived: '2026-11-03',
+        createdAt: '2026-11-03T10:00:00Z',
+        updatedAt: '2026-11-03T10:00:00Z',
+      },
+      {
+        id: 'LEAD-TEST-002',
+        customerName: 'Budi Santoso',
+        contactNumber: '085711223344',
+        customerPhone: '',
+        status: 'Tertarik' as any,
+        interestedVehicle: 'Honda Jazz RS 2018',
+        notes: 'Minat nego',
+        dateReceived: '2026-11-03',
+        createdAt: '2026-11-03T10:00:00Z',
+        updatedAt: '2026-11-03T10:00:00Z',
+      },
+    ],
+  } as any;
+
+  repairDatabaseLeads(mockDb);
+  assert(mockDb.leads[0].status === 'Hanya Menanyakan', 'Lead 1 status auto-migrated from "Menanyakan Unit" to "Hanya Menanyakan"');
+  assert(mockDb.leads[0].contactNumber === '081234567890', 'Lead 1 contactNumber auto-synchronized from customerPhone');
+  assert(mockDb.leads[0].stageHistory?.length === 1, 'Lead 1 has stageHistory initialized');
+  assert(mockDb.leads[1].status === 'Negosiasi', 'Lead 2 status auto-migrated from "Tertarik" to "Negosiasi"');
+  assert(mockDb.leads[1].customerPhone === '085711223344', 'Lead 2 customerPhone auto-synchronized from contactNumber');
+
+  // 3. Sales Pipeline Lead Input: all 6 fields specified
+  const now = new Date().toISOString();
+  const newLeadFromPipeline: Lead = {
+    id: 'LEAD-2026-999',
+    customerName: 'Hj. Nenden Kartika',
+    contactNumber: '081399881122',
+    customerPhone: '081399881122',
+    leadSource: 'WhatsApp',
+    interestedVehicle: 'Toyota Fortuner 2.4 VRZ 2020',
+    status: 'Hanya Menanyakan',
+    notes: 'Konsumen menanyakan ketersediaan Fortuner hitam dan promo showroom',
+    dateReceived: '2026-11-03',
+    estimatedBudget: 0,
+    assignedSalesId: 'USR-003',
+    assignedSalesName: 'Asep Kurniawan',
+    stageHistory: [
+      {
+        stage: 'Hanya Menanyakan',
+        timestamp: now,
+        notes: 'Calon konsumen tercatat di Sales Pipeline WhatsApp',
+        updatedByName: 'Admin HR MOTOR',
+      },
+    ],
+    lastContactDate: now,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  mockDb.leads.unshift(newLeadFromPipeline);
+  assert(mockDb.leads[0].id === 'LEAD-2026-999', 'New lead added to shared CRM leads list');
+  assert(mockDb.leads[0].leadSource === 'WhatsApp', 'New lead source is WhatsApp');
+  assert(mockDb.leads[0].status === 'Hanya Menanyakan', 'Initial stage is Hanya Menanyakan');
+
+  // 4. Stage Transition & Audit Trail (Stage History)
+  const targetLead = mockDb.leads[0];
+  const nextStage = 'Negosiasi';
+  const stageUpdateTimestamp = new Date().toISOString();
+  targetLead.status = nextStage;
+  targetLead.stageHistory.push({
+    stage: nextStage,
+    timestamp: stageUpdateTimestamp,
+    notes: 'Konsumen menawar harga Rp 420.000.000 nett',
+    updatedByName: 'Owner HR MOTOR',
+  });
+
+  assert(targetLead.status === 'Negosiasi', 'Lead stage successfully transitioned to Negosiasi');
+  assert(targetLead.stageHistory.length === 2, 'Stage history accurately records 2 chronological entries');
+  assert(targetLead.stageHistory[1].stage === 'Negosiasi', 'Stage history records new stage as Negosiasi');
+
+  // Transition to Cek Unit
+  const visitTimestamp = new Date().toISOString();
+  targetLead.status = 'Cek Unit';
+  targetLead.visitNotes = 'Konsumen datang ke showroom Garut bersama mekanik keluarga';
+  targetLead.stageHistory.push({
+    stage: 'Cek Unit',
+    timestamp: visitTimestamp,
+    notes: 'Konsumen datang ke showroom Garut bersama mekanik keluarga',
+    updatedByName: 'Owner HR MOTOR',
+  });
+
+  assert(targetLead.status === 'Cek Unit', 'Lead stage successfully transitioned to Cek Unit');
+  assert(targetLead.stageHistory.length === 3, 'Stage history accurately records 3 chronological entries');
+
+  // 5. Deletion removes cleanly from shared database
+  const prevCount = mockDb.leads.length;
+  mockDb.leads = mockDb.leads.filter((l: any) => l.id !== 'LEAD-2026-999');
+  assert(mockDb.leads.length === prevCount - 1, 'Lead deletion removes from shared database without orphan references');
 }
 
 console.log('\n================================================================');

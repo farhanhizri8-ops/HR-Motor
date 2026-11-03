@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 import { Lead, LeadSourceType, PipelineStage, VehicleCategory } from '@/types/crm';
@@ -34,6 +35,7 @@ export default function LeadsPage() {
     addLead,
     updateLead,
     updateLeadStage,
+    deleteLead,
     addCustomer,
     customers,
     formatRupiah,
@@ -66,7 +68,7 @@ export default function LeadsPage() {
     vehicleType: 'MPV' as VehicleCategory,
     estimatedBudget: '',
     assignedSalesId: 'USR-003',
-    status: 'Menanyakan Unit' as PipelineStage,
+    status: 'Hanya Menanyakan' as PipelineStage,
     notes: '',
     searchBrand: '',
     searchModel: '',
@@ -118,7 +120,7 @@ export default function LeadsPage() {
       vehicleType: 'MPV',
       estimatedBudget: '',
       assignedSalesId: currentUser.role === 'Sales Representative' ? currentUser.id : 'USR-003',
-      status: 'Menanyakan Unit',
+      status: 'Hanya Menanyakan',
       notes: '',
       searchBrand: '',
       searchModel: '',
@@ -223,6 +225,15 @@ export default function LeadsPage() {
     }
   };
 
+  const handleDeleteLead = async (lead: Lead) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus calon konsumen ${lead.customerName} (${lead.contactNumber || '-'})? Data akan dihapus dari Sales Pipeline dan Lead Management.`)) {
+      const res = await deleteLead(lead.id);
+      if (!res.success) {
+        alert(res.error || 'Gagal menghapus lead');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -324,10 +335,11 @@ export default function LeadsPage() {
               className="text-xs px-3 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl text-charcoal-800 font-medium outline-none focus:border-gold-500"
             >
               <option value="ALL">Semua Tahapan</option>
-              <option value="Menanyakan Unit">Menanyakan Unit</option>
-              <option value="Tertarik">Tertarik</option>
-              <option value="Cek Unit">Cek Unit (Showroom)</option>
+              <option value="Hanya Menanyakan">Hanya Menanyakan</option>
               <option value="Negosiasi">Negosiasi</option>
+              <option value="Cek Unit">Cek Unit (Showroom)</option>
+              <option value="Menanyakan Unit">Menanyakan Unit (Legacy)</option>
+              <option value="Tertarik">Tertarik (Legacy)</option>
               <option value="Deal">Deal (Selesai)</option>
               <option value="Lost">Lost (Tidak Jadi)</option>
             </select>
@@ -386,6 +398,8 @@ export default function LeadsPage() {
                         ? 'bg-gold-50 text-gold-800 border border-gold-300 font-black'
                         : lead.status === 'Cek Unit'
                         ? 'bg-amber-50 text-amber-800 border border-amber-300'
+                        : lead.status === 'Hanya Menanyakan' || lead.status === 'Menanyakan Unit'
+                        ? 'bg-blue-50 text-blue-800 border border-blue-200 font-semibold'
                         : lead.status === 'Tertarik'
                         ? 'bg-charcoal-100 text-charcoal-800 border border-charcoal-200'
                         : 'bg-warm-100 text-charcoal-700 border border-warm-200'
@@ -398,7 +412,7 @@ export default function LeadsPage() {
                 <div className="grid grid-cols-2 gap-2 text-xs bg-[#FAF9F5] p-2.5 rounded-xl border border-[#EAE8E3]">
                   <div>
                     <span className="text-[10px] text-charcoal-400 block">Unit Minat:</span>
-                    <p className="font-bold text-charcoal-900 truncate">{lead.interestedVehicle}</p>
+                    <p className="font-bold text-charcoal-900 truncate">{lead.interestedVehicle || 'Belum spesifik'}</p>
                     <p className="text-[10px] text-charcoal-500 line-clamp-1 italic">{lead.notes || '-'}</p>
                   </div>
                   <div>
@@ -412,7 +426,7 @@ export default function LeadsPage() {
                   <a
                     href={formatWhatsAppLink(
                       lead.contactNumber,
-                      `Sampurasun Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut mengenai unit ${lead.interestedVehicle}.`
+                      `Sampurasun Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut mengenai unit ${lead.interestedVehicle || 'yang Anda tanyakan'}.`
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -437,6 +451,14 @@ export default function LeadsPage() {
                     title="Edit"
                   >
                     <Edit className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteLead(lead)}
+                    className="p-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50"
+                    title="Hapus Lead"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -530,6 +552,8 @@ export default function LeadsPage() {
                               ? 'bg-gold-50 text-gold-800 border border-gold-300 font-black'
                               : lead.status === 'Cek Unit'
                               ? 'bg-amber-50 text-amber-800 border border-amber-300'
+                              : lead.status === 'Hanya Menanyakan' || lead.status === 'Menanyakan Unit'
+                              ? 'bg-blue-50 text-blue-800 border border-blue-200 font-semibold'
                               : lead.status === 'Tertarik'
                               ? 'bg-charcoal-100 text-charcoal-800 border border-charcoal-200'
                               : 'bg-warm-100 text-charcoal-700 border border-warm-200'
@@ -551,7 +575,7 @@ export default function LeadsPage() {
                           <a
                             href={formatWhatsAppLink(
                               lead.contactNumber,
-                              `Sampurasun Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut mengenai unit ${lead.interestedVehicle}.`
+                              `Sampurasun Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut mengenai unit ${lead.interestedVehicle || 'yang Anda tanyakan'}.`
                             )}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -577,6 +601,15 @@ export default function LeadsPage() {
                             title="Edit Prospek"
                           >
                             <Edit className="w-4 h-4" />
+                          </button>
+
+                          {/* Delete Lead */}
+                          <button
+                            onClick={() => handleDeleteLead(lead)}
+                            className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200"
+                            title="Hapus Prospek"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -674,10 +707,11 @@ export default function LeadsPage() {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as PipelineStage })}
                     className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-semibold"
                   >
-                    <option value="Menanyakan Unit">Menanyakan Unit</option>
-                    <option value="Tertarik">Tertarik</option>
-                    <option value="Cek Unit">Cek Unit (Kunjungan Showroom)</option>
+                    <option value="Hanya Menanyakan">Hanya Menanyakan</option>
                     <option value="Negosiasi">Negosiasi</option>
+                    <option value="Cek Unit">Cek Unit (Kunjungan Showroom)</option>
+                    <option value="Menanyakan Unit">Menanyakan Unit (Legacy)</option>
+                    <option value="Tertarik">Tertarik (Legacy)</option>
                     <option value="Deal">Deal (Transaksi Berhasil)</option>
                     <option value="Lost">Lost (Tidak Jadi)</option>
                   </select>

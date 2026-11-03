@@ -28,13 +28,41 @@ export type LeadSourceType =
   | 'Referral'
   | 'Other';
 
+export type CorePipelineStage = 'Hanya Menanyakan' | 'Negosiasi' | 'Cek Unit';
+
 export type PipelineStage =
+  | 'Hanya Menanyakan'
+  | 'Negosiasi'
+  | 'Cek Unit'
   | 'Menanyakan Unit'
   | 'Tertarik'
-  | 'Cek Unit'
-  | 'Negosiasi'
   | 'Deal'
   | 'Lost';
+
+export const CORE_PIPELINE_STAGES: CorePipelineStage[] = [
+  'Hanya Menanyakan',
+  'Negosiasi',
+  'Cek Unit',
+];
+
+export const LEGACY_STAGE_MAPPING: Record<string, CorePipelineStage> = {
+  'Hanya Menanyakan': 'Hanya Menanyakan',
+  'Menanyakan Unit': 'Hanya Menanyakan',
+  'Negosiasi': 'Negosiasi',
+  'Tertarik': 'Negosiasi',
+  'Cek Unit': 'Cek Unit',
+  'Deal': 'Negosiasi',
+  'Lost': 'Hanya Menanyakan',
+};
+
+export function getCorePipelineStage(stage?: string | null): CorePipelineStage {
+  if (!stage) return 'Hanya Menanyakan';
+  return LEGACY_STAGE_MAPPING[stage] || 'Hanya Menanyakan';
+}
+
+export function normalizePipelineStage(stage?: string | null): CorePipelineStage {
+  return getCorePipelineStage(stage);
+}
 
 export type LostReasonType =
   | 'Harga tidak cocok'
