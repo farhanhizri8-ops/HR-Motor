@@ -11,7 +11,9 @@ interface QuickActionModalProps {
 }
 
 export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onClose }) => {
-  const { addCustomer, addLead, addFollowUp, logCommunication, addRepairClaim, customers, leads, users, currentUser } = useCrm();
+  const { addCustomer, addLead, addFollowUp, logCommunication, addRepairClaim, customers, leads, users, currentUser, stocks } = useCrm();
+
+  const readyStocks = (stocks || []).filter((s) => s.status === 'Tersedia');
 
   const [activeTab, setActiveTab] = useState<'customer' | 'lead' | 'followup' | 'comm' | 'repair'>('customer');
   const [submitting, setSubmitting] = useState(false);
@@ -397,15 +399,46 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Mobil Diminati</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700">Mobil Diminati</label>
+                    {readyStocks.length > 0 && (
+                      <span className="text-[10px] text-emerald-600 font-semibold">{readyStocks.length} unit ready</span>
+                    )}
+                  </div>
                   <input
                     type="text"
+                    list="quick-ready-stocks"
                     required
                     value={custForm.interestedVehicle}
-                    onChange={(e) => setCustForm({ ...custForm, interestedVehicle: e.target.value })}
-                    placeholder="Contoh: Innova Reborn 2020"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const matched = readyStocks.find(
+                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase() === val.toLowerCase()
+                      );
+                      if (matched) {
+                        setCustForm((prev) => ({
+                          ...prev,
+                          interestedVehicle: `${matched.brand} ${matched.model} ${matched.year}`,
+                          budget: String(matched.price || prev.budget),
+                          notes: prev.notes || `Unit Ready Stok: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
+                        }));
+                      } else {
+                        setCustForm({ ...custForm, interestedVehicle: val });
+                      }
+                    }}
+                    placeholder="Pilih dari stok ready atau ketik..."
                     className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
                   />
+                  <datalist id="quick-ready-stocks">
+                    {readyStocks.map((s) => (
+                      <option
+                        key={s.id}
+                        value={`${s.brand} ${s.model} ${s.year}`}
+                      >
+                        {s.licensePlate || s.plateNumber ? `[${s.licensePlate || s.plateNumber}] ` : ''}Rp {s.price?.toLocaleString('id-ID')} • {s.color}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Budget (Rp)</label>
@@ -499,13 +532,34 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Unit Mobil Diminati</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-700">Unit Mobil Diminati</label>
+                    {readyStocks.length > 0 && (
+                      <span className="text-[10px] text-emerald-600 font-semibold">{readyStocks.length} unit ready</span>
+                    )}
+                  </div>
                   <input
                     type="text"
+                    list="quick-ready-stocks"
                     required
                     value={leadForm.interestedVehicle}
-                    onChange={(e) => setLeadForm({ ...leadForm, interestedVehicle: e.target.value })}
-                    placeholder="Avanza 1.3 G M/T 2019"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const matched = readyStocks.find(
+                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase() === val.toLowerCase()
+                      );
+                      if (matched) {
+                        setLeadForm((prev) => ({
+                          ...prev,
+                          interestedVehicle: `${matched.brand} ${matched.model} ${matched.year}`,
+                          estimatedBudget: String(matched.price || prev.estimatedBudget),
+                          notes: prev.notes || `Unit Ready Stok: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
+                        }));
+                      } else {
+                        setLeadForm({ ...leadForm, interestedVehicle: val });
+                      }
+                    }}
+                    placeholder="Pilih dari stok ready atau ketik..."
                     className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
                   />
                 </div>

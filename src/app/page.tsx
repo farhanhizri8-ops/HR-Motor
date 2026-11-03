@@ -39,7 +39,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { useCrm } from '@/context/CrmContext';
-import { ReportsAnalyticsView } from '@/app/reports/page';
+import { ReportsAnalyticsView } from '@/components/ReportsAnalyticsView';
 
 type DateFilterType =
   | 'hari_ini'

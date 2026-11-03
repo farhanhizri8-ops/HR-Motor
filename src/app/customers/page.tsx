@@ -125,8 +125,8 @@ function printKwitansiToIframe(kwitansi: KwitansiData) {
   <title>Kwitansi - ${kwitansi.terimaDari || 'HR MOTOR'}</title>
   <style>
     @page {
-      size: A4 portrait;
-      margin: 12mm 10mm 12mm 10mm;
+      size: portrait;
+      margin: 0;
     }
     * {
       box-sizing: border-box;

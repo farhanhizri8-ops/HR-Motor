@@ -177,8 +177,8 @@ body {
 /* Print styling for Kwitansi Showroom HR MOTOR - Strictly 1 Page Portrait Only */
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 10mm 10mm 10mm 10mm;
+    size: portrait;
+    margin: 0;
   }
 
   html,
