@@ -178,17 +178,11 @@ function printKwitansiToIframe(kwitansi: KwitansiData) {
     }
     .main-section {
       flex: 1;
-      padding: 16px 20px 14px 20px;
-      border-right: 2px dashed #999999;
+      padding: 16px 24px 14px 24px;
       position: relative;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-    }
-    .stub-section {
-      width: 32px;
-      background: #ffffff;
-      flex-shrink: 0;
     }
     .watermark-img {
       position: absolute;
@@ -351,7 +345,6 @@ function printKwitansiToIframe(kwitansi: KwitansiData) {
             </div>
           </div>
         </div>
-        <div class="stub-section"></div>
       </div>
       <div class="yellow-band bottom"></div>
     </div>
@@ -1828,9 +1821,7 @@ export default function CustomersPage() {
                 {/* Top Yellow Bar */}
                 <div className="w-full h-3 sm:h-3.5 bg-[#FFEE00] border-b border-black/20"></div>
 
-                <div className="relative flex min-h-[300px] sm:min-h-[340px]">
-                  {/* Main Voucher Body */}
-                  <div className="flex-1 p-5 sm:p-7 border-r-2 border-dashed border-gray-400 relative flex flex-col justify-between">
+                <div className="relative min-h-[300px] sm:min-h-[340px] p-5 sm:p-7 flex flex-col justify-between">
                     {/* Watermark Logo HR MOTOR in Center Background */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1914,10 +1905,6 @@ export default function CustomersPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Right Perforated Stub Area */}
-                  <div className="w-8 sm:w-12 bg-white shrink-0"></div>
                 </div>
 
                 {/* Bottom Yellow Bar */}
