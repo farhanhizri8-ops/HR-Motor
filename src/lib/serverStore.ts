@@ -251,27 +251,49 @@ export function repairDatabaseFollowUps(db: CrmDatabase): boolean {
   return modified;
 }
 
+const OLD_DEMO_NAMES = new Set([
+  'Wildan Fitriadi',
+  'Dr. Hj. Nina Marlina',
+  'Neng Tian',
+  'Baoa',
+  'Udin',
+  'Agus Gunawan',
+  'H. Dadan Wildan',
+  'Wawan Hermawan',
+  'Siska Oktaviani, S.Pd.',
+  'Tatang Hendrawan',
+  'Yudi Karyadi',
+]);
+
 export function repairDatabaseCustomers(db: CrmDatabase): boolean {
-  if (
-    !db ||
-    !Array.isArray(db.customers) ||
-    db.customers.length < 60 ||
-    db.customers.some((c) => c.fullName === 'Wildan Fitriadi' || c.fullName === 'Dr. Hj. Nina Marlina')
-  ) {
+  if (!db || !Array.isArray(db.customers)) {
     db.customers = INITIAL_CUSTOMERS;
+    return true;
+  }
+  const hasOldTrash = db.customers.some((c) => OLD_DEMO_NAMES.has(c.fullName));
+  if (hasOldTrash || db.customers.length < 60) {
+    const filtered = db.customers.filter((c) => !OLD_DEMO_NAMES.has(c.fullName));
+    const map = new Map<string, Customer>();
+    INITIAL_CUSTOMERS.forEach((c) => map.set(c.id, c));
+    filtered.forEach((c) => map.set(c.id, c));
+    db.customers = Array.from(map.values());
     return true;
   }
   return false;
 }
 
 export function repairDatabasePurchases(db: CrmDatabase): boolean {
-  if (
-    !db ||
-    !Array.isArray(db.purchases) ||
-    db.purchases.length < 60 ||
-    db.purchases.some((p) => p.customerName === 'Wildan Fitriadi' || p.customerName === 'Dr. Hj. Nina Marlina')
-  ) {
+  if (!db || !Array.isArray(db.purchases)) {
     db.purchases = INITIAL_PURCHASES;
+    return true;
+  }
+  const hasOldTrash = db.purchases.some((p) => OLD_DEMO_NAMES.has(p.customerName));
+  if (hasOldTrash || db.purchases.length < 60) {
+    const filtered = db.purchases.filter((p) => !OLD_DEMO_NAMES.has(p.customerName));
+    const map = new Map<string, CustomerPurchase>();
+    INITIAL_PURCHASES.forEach((p) => map.set(p.id, p));
+    filtered.forEach((p) => map.set(p.id, p));
+    db.purchases = Array.from(map.values());
     return true;
   }
   return false;
