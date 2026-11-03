@@ -96,6 +96,292 @@ function getKwitansiForCustomer(customer: Customer, allPurchases: CustomerPurcha
   };
 }
 
+function printKwitansiToIframe(kwitansi: KwitansiData) {
+  if (typeof window === 'undefined') return;
+
+  const oldIframe = document.getElementById('kwitansi-print-frame');
+  if (oldIframe) {
+    oldIframe.remove();
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'kwitansi-print-frame';
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-9999px';
+  iframe.style.left = '-9999px';
+  iframe.style.width = '1px';
+  iframe.style.height = '1px';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Kwitansi - ${kwitansi.terimaDari || 'HR MOTOR'}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 10mm 12mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html, body {
+      width: 100%;
+      height: auto;
+      background: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000000;
+      overflow: hidden;
+    }
+    .print-wrapper {
+      width: 100%;
+      max-width: 190mm;
+      margin: 0 auto;
+      page-break-after: avoid !important;
+      page-break-inside: avoid !important;
+      break-after: avoid !important;
+      break-inside: avoid !important;
+    }
+    .kwitansi-card {
+      position: relative;
+      background: #ffffff;
+      border: 1.5px solid #000000;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .yellow-band {
+      width: 100%;
+      height: 12px;
+      background-color: #FFEE00 !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    }
+    .yellow-band.bottom {
+      border-bottom: none;
+      border-top: 1px solid rgba(0, 0, 0, 0.2);
+    }
+    .card-body {
+      position: relative;
+      display: flex;
+      min-height: 290px;
+    }
+    .main-section {
+      flex: 1;
+      padding: 16px 20px 14px 20px;
+      border-right: 2px dashed #999999;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .stub-section {
+      width: 32px;
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+    .watermark-img {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      opacity: 0.12;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+    .top-logo-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 2;
+    }
+    .top-logo-wrap img {
+      height: 60px;
+      width: auto;
+      object-fit: contain;
+    }
+    .content-table {
+      position: relative;
+      z-index: 2;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .content-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .c-label {
+      width: 140px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .c-colon {
+      font-weight: bold;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .c-val {
+      flex: 1;
+      font-weight: normal;
+    }
+    .c-val.bold {
+      font-weight: bold;
+    }
+    .c-val.uppercase {
+      text-transform: uppercase;
+    }
+    .bottom-row {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 18px;
+    }
+    .amount-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .amount-title {
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .amount-parallelogram {
+      border: 2px solid #000000;
+      transform: skewX(-25deg);
+      padding: 3px 24px;
+      background: #ffffff;
+      display: inline-block;
+    }
+    .amount-number {
+      display: inline-block;
+      transform: skewX(25deg);
+      font-family: Arial, monospace;
+      font-weight: bold;
+      font-size: 14px;
+      color: #000000;
+    }
+    .signature-wrap {
+      text-align: right;
+      font-size: 12px;
+      padding-right: 4px;
+    }
+    .sig-date {
+      font-size: 12px;
+      color: #000000;
+    }
+    .sig-label {
+      margin-top: 2px;
+      color: #000000;
+    }
+    .sig-space {
+      height: 44px;
+    }
+    .sig-name {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+  <div class="print-wrapper">
+    <div class="kwitansi-card">
+      <div class="yellow-band"></div>
+      <div class="card-body">
+        <div class="main-section">
+          <img src="/logo-hr-motor.png" class="watermark-img" alt="" />
+          <div class="top-logo-wrap">
+            <img src="/logo-hr-motor.png" alt="HR MOTOR" />
+          </div>
+          <div class="content-table">
+            <div class="content-row">
+              <span class="c-label">Terima Dari</span>
+              <span class="c-colon">:</span>
+              <span class="c-val bold uppercase">${kwitansi.terimaDari || '-'}</span>
+            </div>
+            <div class="content-row">
+              <span class="c-label">Sejumlah Uang</span>
+              <span class="c-colon">:</span>
+              <span class="c-val bold">${kwitansi.terbilang || '-'}</span>
+            </div>
+            <div class="content-row">
+              <span class="c-label">Untuk Pembayaran</span>
+              <span class="c-colon">:</span>
+              <span class="c-val bold uppercase">${kwitansi.untukPembayaran || '-'}</span>
+            </div>
+            <div class="content-row">
+              <span class="c-label">Plat No</span>
+              <span class="c-colon">:</span>
+              <span class="c-val bold uppercase">${kwitansi.nomorPolisi || '-'}</span>
+            </div>
+            <div class="content-row">
+              <span class="c-label">Keterangan</span>
+              <span class="c-colon">:</span>
+              <span class="c-val">${kwitansi.keterangan || 'Walk in'}</span>
+            </div>
+          </div>
+          <div class="bottom-row">
+            <div class="amount-wrap">
+              <span class="amount-title">Jumlah Rp</span>
+              <div class="amount-parallelogram">
+                <span class="amount-number">${(kwitansi.sejumlahUang || 0).toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+            <div class="signature-wrap">
+              <div class="sig-date">${kwitansi.tempatTanggal || 'GARUT'}</div>
+              <div class="sig-label">Penerima</div>
+              <div class="sig-space"></div>
+              <div class="sig-name">${kwitansi.penerima || 'HR MOTOR'}</div>
+            </div>
+          </div>
+        </div>
+        <div class="stub-section"></div>
+      </div>
+      <div class="yellow-band bottom"></div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const triggerPrint = () => {
+    try {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    } catch {
+      window.print();
+    }
+  };
+
+  const img = doc.querySelector('.top-logo-wrap img') as HTMLImageElement;
+  if (img && !img.complete) {
+    img.onload = () => setTimeout(triggerPrint, 200);
+    img.onerror = () => setTimeout(triggerPrint, 200);
+  } else {
+    setTimeout(triggerPrint, 200);
+  }
+}
+
 function guessVehicleCategory(brand: string, model: string): VehicleCategory {
   const combined = `${brand} ${model}`.toLowerCase();
   if (
@@ -1510,12 +1796,18 @@ export default function CustomersPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.print()}
-                  className="px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
-                  title="Cetak Kwitansi / Print"
+                  onClick={() => {
+                    if (selectedKwitansi) {
+                      printKwitansiToIframe(selectedKwitansi);
+                    } else {
+                      window.print();
+                    }
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                  title="Cetak Kwitansi (1 Halaman Portrait)"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Cetak</span>
+                  <span>Cetak Kwitansi</span>
                 </button>
                 <button
                   type="button"

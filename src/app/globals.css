@@ -174,18 +174,18 @@ body {
   backdrop-filter: blur(12px);
 }
 
-/* Print styling for Kwitansi Showroom HR MOTOR - Strictly 1 Page Only */
+/* Print styling for Kwitansi Showroom HR MOTOR - Strictly 1 Page Portrait Only */
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 5mm;
+    size: A4 portrait;
+    margin: 10mm 10mm 10mm 10mm;
   }
 
   html,
   body {
     width: 100% !important;
     height: 100% !important;
-    max-height: 100vh !important;
+    max-height: 100% !important;
     overflow: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -206,12 +206,12 @@ body {
   }
 
   #printable-kwitansi {
-    position: fixed !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 220mm !important;
-    max-width: 96vw !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 190mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
     border: 1.5px solid #000000 !important;
