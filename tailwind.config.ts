@@ -9,6 +9,9 @@ const config: Config = {
   darkMode: "class",
   theme: {
     extend: {
+      screens: {
+        xs: "420px",
+      },
       colors: {
         // HR MOTOR Official Luxury Brand Palette
         gold: {

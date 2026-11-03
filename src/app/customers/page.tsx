@@ -1312,8 +1312,110 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Customer Data Table */}
-      <div className="crm-card overflow-hidden">
+      {/* MOBILE CARDS: Customer List (< 768px) */}
+      <div className="space-y-3 md:hidden">
+        {processedCustomers.length === 0 ? (
+          <div className="crm-card p-8 text-center text-charcoal-400">
+            <Users className="w-9 h-9 mx-auto mb-2 text-charcoal-300" />
+            <p className="font-semibold text-charcoal-700">Tidak ada data konsumen yang sesuai</p>
+            <p className="text-[11px] text-charcoal-400 mt-0.5">Ubah kata kunci pencarian atau sesuaikan filter sumber.</p>
+          </div>
+        ) : (
+          processedCustomers.map((cust) => {
+            const kwitansi = getKwitansiForCustomer(cust, purchases);
+            return (
+              <div key={cust.id} className="crm-card p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-xs">
+                      {cust.fullName.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-bold text-sm text-charcoal-900">{cust.fullName}</h4>
+                        {kwitansi && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-gold-50 text-gold-800 border border-gold-300">
+                            <FileText className="w-2.5 h-2.5 text-gold-600" /> Kwitansi Kasir
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-charcoal-400 font-mono">{cust.id}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-bold text-charcoal-400 block uppercase">Budget:</span>
+                    <span className="font-black text-gold-600 text-xs sm:text-sm">{formatRupiah(cust.budget)}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-[#FAF9F5] p-2.5 rounded-xl border border-[#EAE8E3]">
+                  <div>
+                    <span className="text-[10px] text-charcoal-400 block">Minat Unit:</span>
+                    <p className="font-bold text-charcoal-900 truncate">{cust.interestedVehicle}</p>
+                    <span className="text-[10px] text-charcoal-500">{cust.vehicleType}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-charcoal-400 block">Domisili:</span>
+                    <p className="font-semibold text-charcoal-800 truncate">{cust.district}</p>
+                    <p className="text-[10px] text-charcoal-400 truncate">{cust.address}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#EAE8E3]">
+                  <a
+                    href={formatWhatsAppLink(cust.whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
+
+                  {kwitansi && (
+                    <button
+                      onClick={() => setSelectedKwitansi(kwitansi)}
+                      className="py-2 px-2.5 rounded-xl bg-gold-50 text-gold-800 border border-gold-300 text-xs font-bold inline-flex items-center justify-center gap-1 shadow-2xs"
+                      title="Kwitansi Kasir"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-gold-600" />
+                      <span>Kwitansi</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setSelectedCustomer(cust)}
+                    className="p-2 rounded-xl bg-white border border-[#EAE8E3] text-charcoal-600 hover:text-gold-600 hover:bg-warm-50"
+                    title="Lihat Detail"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => openEditModal(cust)}
+                    className="p-2 rounded-xl bg-white border border-[#EAE8E3] text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-50"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setDeleteConfirmId(cust.id)}
+                    className="p-2 rounded-xl bg-white border border-[#EAE8E3] text-rose-500 hover:text-rose-700 hover:bg-rose-50"
+                    title="Hapus"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Customer Data Table (Desktop/Laptop) */}
+      <div className="crm-card overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="crm-table w-full text-left min-w-[700px]">
             <thead>
@@ -1602,7 +1704,123 @@ export default function CustomersPage() {
                 )}
               </div>
 
-              <div className="overflow-x-auto">
+              {/* MOBILE CARDS: Credit Applications (< 768px) */}
+              <div className="space-y-3 p-3 md:hidden">
+                {creditApplications
+                  .filter((app) => {
+                    if (filterTxType === 'PENDING') return app.status === 'PENDING';
+                    if (filterTxType === 'APPROVED') return app.status === 'APPROVED';
+                    if (filterTxType === 'REJECTED') return app.status === 'REJECTED';
+                    return true;
+                  })
+                  .map((app) => {
+                    return (
+                      <div key={app.id} className="p-3.5 bg-white rounded-xl border border-[#EAE8E3] space-y-2.5">
+                        <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2">
+                          <div>
+                            <span className="bg-charcoal-100 text-charcoal-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                              {app.id}
+                            </span>
+                            <h4 className="font-bold text-sm text-charcoal-900 mt-1">{app.customerName}</h4>
+                            <span className="text-[10px] text-charcoal-400 font-sans">
+                              {formatDate(app.applicationDate)} • {app.customerSource}
+                            </span>
+                          </div>
+                          <div>
+                            {app.status === 'PENDING' && (
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
+                                MENUNGGU ACC
+                              </span>
+                            )}
+                            {app.status === 'APPROVED' && (
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                ACC LEASING
+                              </span>
+                            )}
+                            {app.status === 'REJECTED' && (
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
+                                DITOLAK
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-[#FAF9F5] p-2.5 rounded-lg border border-[#EAE8E3] grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-[10px] text-charcoal-400 block">Unit Mobil:</span>
+                            <p className="font-bold text-charcoal-900 truncate">{app.vehicleName}</p>
+                            {app.plateNumber && <span className="text-[10px] text-charcoal-500 font-mono">{app.plateNumber}</span>}
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-charcoal-400 block">Leasing:</span>
+                            <p className="font-bold text-indigo-700 truncate">{app.approvedLeasing || app.targetLeasing}</p>
+                            <span className="text-[10px] text-charcoal-500">Tujuan: {app.targetLeasing}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <div>
+                            <span className="text-[10px] text-charcoal-400 block">Deal:</span>
+                            <span className="font-bold text-charcoal-900">{formatRupiah(app.dealPrice)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] text-charcoal-400 block">DP:</span>
+                            <span className="font-bold text-emerald-700">DP {formatRupiah(app.finalDp || app.initialDp)}</span>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 pt-2 border-t border-[#EAE8E3]">
+                          {app.status === 'PENDING' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCreditApp(app);
+                                  setIsAccModalOpen(true);
+                                }}
+                                className="flex-1 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                <span>Setujui (ACC)</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCreditApp(app);
+                                  setIsRejectModalOpen(true);
+                                }}
+                                className="flex-1 py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span>Tolak</span>
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex-1 text-[11px] text-charcoal-500 italic truncate">
+                              {app.status === 'APPROVED' ? `Disetujui: ${formatDate(app.approvalDate || app.updatedAt)}` : `Ditolak: ${app.rejectionReason || 'Bank'}`}
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCreditApp(app);
+                              setIsHistoryModalOpen(true);
+                            }}
+                            className="p-2 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-warm-100 border border-[#EAE8E3] shrink-0"
+                            title="Riwayat"
+                          >
+                            <History className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* TABLE: Credit Applications (Desktop/Laptop) */}
+              <div className="overflow-x-auto hidden md:block">
                 <table className="crm-table w-full text-left text-xs min-w-[780px]">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
@@ -1821,7 +2039,65 @@ export default function CustomersPage() {
                 </span>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* MOBILE CARDS: Cash/Approved Purchases (< 768px) */}
+              <div className="space-y-3 p-3 md:hidden">
+                {purchases.map((pur) => {
+                  const isKredit = pur.paymentType === 'Kredit' || pur.paymentMethod.toLowerCase().includes('kredit');
+                  return (
+                    <div key={pur.id} className="p-3.5 bg-white rounded-xl border border-[#EAE8E3] space-y-2.5">
+                      <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2">
+                        <div>
+                          <span className="font-mono font-bold text-charcoal-800 text-[11px]">
+                            {pur.receiptNumber || pur.id}
+                          </span>
+                          <h4 className="font-bold text-sm text-charcoal-900 mt-0.5">{pur.customerName}</h4>
+                          <span className="text-[10px] text-charcoal-400 font-sans">
+                            {formatDate(pur.purchaseDate)}
+                          </span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          isKredit
+                            ? 'bg-indigo-50 text-indigo-900 border border-indigo-200'
+                            : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                        }`}>
+                          {pur.paymentMethod}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs bg-[#FAF9F5] p-2 rounded-lg border border-[#EAE8E3]">
+                        <div>
+                          <p className="font-bold text-charcoal-900">{pur.vehicleModel} ({pur.vehicleYear})</p>
+                          <span className="text-[10px] font-mono text-gold-700 font-bold bg-charcoal-900 px-1.5 py-0.2 rounded mt-0.5 inline-block">
+                            {pur.plateNumber}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-charcoal-400 block">Harga Deal:</span>
+                          <span className="font-black text-gold-600 text-xs sm:text-sm">{formatRupiah(pur.purchasePrice)}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const matchedCust = customers.find((c) => c.id === pur.customerId || c.fullName.toLowerCase() === pur.customerName.toLowerCase());
+                            const kw = getKwitansiForCustomer(matchedCust || { id: pur.customerId, fullName: pur.customerName } as any, [pur]);
+                            setSelectedKwitansi(kw);
+                          }}
+                          className="w-full py-2 px-3 rounded-lg bg-gold-50 hover:bg-gold-100 text-gold-900 border border-gold-300 font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-gold-600" />
+                          <span>Lihat & Cetak Kwitansi Kasir</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* TABLE: Cash/Approved Purchases (Desktop/Laptop) */}
+              <div className="overflow-x-auto hidden md:block">
                 <table className="crm-table w-full text-left text-xs min-w-[780px]">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
@@ -2678,14 +2954,14 @@ export default function CustomersPage() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-2xl w-full border border-gold-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
             {/* Header Toolbar */}
-            <div className="px-5 py-3.5 bg-charcoal-900 text-white flex items-center justify-between border-b border-gold-500/30 shrink-0">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-gold-400" />
-                <span className="font-bold text-xs sm:text-sm tracking-wide">
-                  Kwitansi Resmi Showroom HR MOTOR Garut
+            <div className="px-3.5 sm:px-5 py-3 sm:py-3.5 bg-charcoal-900 text-white flex items-center justify-between border-b border-gold-500/30 shrink-0 gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <FileText className="w-4 h-4 text-gold-400 shrink-0" />
+                <span className="font-bold text-xs sm:text-sm tracking-wide truncate max-w-[150px] xs:max-w-none">
+                  Kwitansi Resmi Showroom
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -2695,11 +2971,12 @@ export default function CustomersPage() {
                       window.print();
                     }
                   }}
-                  className="px-3.5 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                  className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                   title="Cetak Kwitansi (1 Halaman Portrait)"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Cetak Kwitansi</span>
+                  <span className="hidden xs:inline">Cetak Kwitansi</span>
+                  <span className="xs:hidden">Cetak</span>
                 </button>
                 <button
                   type="button"

@@ -663,7 +663,7 @@ export default function StokUnitPage() {
       </div>
 
       {/* DASHBOARD RINGKASAN STOK UNIT (6 KPI Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
         {/* Total Unit */}
         <div className="crm-card p-3 sm:p-4">
           <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
@@ -1225,7 +1225,7 @@ export default function StokUnitPage() {
               <p className="text-xs text-charcoal-500 mt-1">Coba ubah kata kunci pencarian atau sesuaikan filter showroom.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
               {filteredStocks.map((stock) => {
                 const thumbnail =
                   stock.photos && stock.photos.length > 0

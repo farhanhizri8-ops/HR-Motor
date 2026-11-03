@@ -359,8 +359,94 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* Leads Table */}
-      <div className="crm-card overflow-hidden">
+      {/* MOBILE CARDS: Leads (< 768px) */}
+      <div className="space-y-3 md:hidden">
+        {filteredLeads.length === 0 ? (
+          <div className="crm-card p-8 text-center text-charcoal-400">
+            <Target className="w-9 h-9 mx-auto mb-2 text-charcoal-300" />
+            <p className="font-semibold text-charcoal-700">Tidak ada prospek yang sesuai kriteria pencarian</p>
+            <p className="text-[11px] text-charcoal-400 mt-0.5">Coba ubah filter tahapan atau hapus kata kunci pencarian.</p>
+          </div>
+        ) : (
+          filteredLeads.map((lead) => {
+            return (
+              <div key={lead.id} className="crm-card p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2.5">
+                  <div>
+                    <h4 className="font-bold text-sm text-charcoal-900">{lead.customerName}</h4>
+                    <span className="text-[10px] text-charcoal-400 font-mono">{lead.id} • {lead.leadSource}</span>
+                  </div>
+                  <span
+                    className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      lead.status === 'Deal'
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
+                        : lead.status === 'Lost'
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                        : lead.status === 'Negosiasi'
+                        ? 'bg-gold-50 text-gold-800 border border-gold-300 font-black'
+                        : lead.status === 'Cek Unit'
+                        ? 'bg-amber-50 text-amber-800 border border-amber-300'
+                        : lead.status === 'Tertarik'
+                        ? 'bg-charcoal-100 text-charcoal-800 border border-charcoal-200'
+                        : 'bg-warm-100 text-charcoal-700 border border-warm-200'
+                    }`}
+                  >
+                    {lead.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs bg-[#FAF9F5] p-2.5 rounded-xl border border-[#EAE8E3]">
+                  <div>
+                    <span className="text-[10px] text-charcoal-400 block">Unit Minat:</span>
+                    <p className="font-bold text-charcoal-900 truncate">{lead.interestedVehicle}</p>
+                    <p className="text-[10px] text-charcoal-500 line-clamp-1 italic">{lead.notes || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-charcoal-400 block">Budget & Sales:</span>
+                    <p className="font-bold text-gold-600">{formatRupiah(lead.estimatedBudget)}</p>
+                    <span className="text-[10px] text-charcoal-500 truncate block">PJ: {lead.assignedSalesName || 'Sales'}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#EAE8E3]">
+                  <a
+                    href={formatWhatsAppLink(
+                      lead.contactNumber,
+                      `Sampurasun Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut mengenai unit ${lead.interestedVehicle}.`
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
+
+                  <button
+                    onClick={() => handleConvertToCustomer(lead)}
+                    className="py-2 px-2.5 rounded-xl bg-gold-50 text-gold-800 border border-gold-300 text-xs font-bold inline-flex items-center justify-center gap-1 shadow-2xs"
+                    title="Konversi ke Pelanggan"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-gold-600" />
+                    <span>Konversi</span>
+                  </button>
+
+                  <button
+                    onClick={() => openEditModal(lead)}
+                    className="p-2 rounded-xl bg-white border border-[#EAE8E3] text-charcoal-600 hover:text-charcoal-900"
+                    title="Edit"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Leads Table (Desktop/Laptop) */}
+      <div className="crm-card overflow-hidden hidden md:block">
         <div className="overflow-x-auto w-full">
           <table className="crm-table w-full min-w-[850px] text-left">
             <thead>

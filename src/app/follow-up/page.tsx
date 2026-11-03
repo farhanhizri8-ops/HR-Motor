@@ -1125,8 +1125,186 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             </div>
           </div>
 
-          {/* TABLE CUSTOMER FOLLOW UP */}
-          <div className="crm-card overflow-hidden">
+          {/* MOBILE CARDS: CUSTOMER FOLLOW UP (HP screens < 768px) */}
+          <div className="space-y-3.5 md:hidden">
+            {filteredCustomerList.length === 0 ? (
+              <div className="crm-card p-8 text-center text-charcoal-400">
+                <Users className="w-10 h-10 mx-auto text-charcoal-300 mb-2 stroke-[1.5]" />
+                <p className="text-sm font-bold text-charcoal-700">Tidak ada data jadwal follow-up pembeli</p>
+                <p className="text-xs text-charcoal-400 mt-1">
+                  Data otomatis bertambah saat ada transaksi penjualan cash atau ACC kredit mobil.
+                </p>
+              </div>
+            ) : (
+              filteredCustomerList.map((item, idx) => {
+                const isOverdue = item.scheduledDate < todayStr && item.status !== 'Selesai';
+                const isToday = item.scheduledDate === todayStr && item.status !== 'Selesai';
+                const step = item.periodicStep || '1 Bulan';
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`crm-card p-4 space-y-3 border transition-all ${
+                      isOverdue
+                        ? 'border-rose-300 bg-gradient-to-r from-rose-50/30 via-white to-white'
+                        : isToday
+                        ? 'border-amber-300 bg-gradient-to-r from-amber-50/30 via-white to-white'
+                        : 'border-[#EAE8E3]'
+                    }`}
+                  >
+                    {/* Top Row: Customer Name, Milestone Pill & Status Badge */}
+                    <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2.5">
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="font-bold text-sm text-charcoal-900">{item.customerName}</h4>
+                          <span className="text-[10px] text-charcoal-400 font-mono">#{idx + 1}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-charcoal-500 mt-0.5">
+                          <a
+                            href={formatWhatsAppLink(item.customerPhone, getCustomerWhatsAppMessage(item))}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                          >
+                            <Phone className="w-3 h-3 text-emerald-600" />
+                            <span>{item.customerPhone || '-'}</span>
+                          </a>
+                          <span>•</span>
+                          <span className="text-[11px] truncate max-w-[140px]">{item.customerAddress || 'Garut / Jabar'}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                          <BadgeCheck className="w-3 h-3 text-amber-700" />
+                          <span>{step}</span>
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${
+                            item.status === 'Selesai'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : item.status === 'Sudah Dihubungi'
+                              ? 'bg-blue-50 text-blue-800 border-blue-300'
+                              : item.status === 'Tidak Merespons'
+                              ? 'bg-rose-50 text-rose-700 border-rose-200'
+                              : 'bg-charcoal-100 text-charcoal-700 border-charcoal-200'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Vehicle & Payment Info */}
+                    <div className="flex items-center justify-between text-xs bg-[#FAF9F5] p-2.5 rounded-xl border border-[#EAE8E3]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Car className="w-4 h-4 text-gold-600 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-bold text-charcoal-900 truncate text-xs">{item.vehicleInfo || 'Mobil Showroom'}</p>
+                          {item.purchaseDate && (
+                            <p className="text-[10px] text-charcoal-500">Beli: {formatDate(item.purchaseDate)}</p>
+                          )}
+                        </div>
+                      </div>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                          item.paymentType === 'Cash'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'bg-blue-50 text-blue-800 border border-blue-200'
+                        }`}
+                      >
+                        {item.paymentType === 'Cash' ? <DollarSign className="w-3 h-3" /> : <CreditCard className="w-3 h-3" />}
+                        <span>{item.paymentType || 'Cash'} {item.leasingPartner ? `(${item.leasingPartner})` : ''}</span>
+                      </span>
+                    </div>
+
+                    {/* Schedule status */}
+                    <div className="flex items-center justify-between text-xs px-1">
+                      <span className="text-[11px] text-charcoal-500 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-gold-600" />
+                        Jadwal: <strong className="text-charcoal-800">{formatDate(item.scheduledDate)}</strong>
+                      </span>
+                      {isOverdue && (
+                        <span className="px-2 py-0.5 text-[10px] font-black bg-rose-100 text-rose-700 rounded-md border border-rose-200 animate-pulse">
+                          Lewat Jadwal
+                        </span>
+                      )}
+                      {isToday && (
+                        <span className="px-2 py-0.5 text-[10px] font-black bg-amber-100 text-amber-800 rounded-md border border-amber-200">
+                          Jadwal Hari Ini
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 5 Questions Checklist Preview Box */}
+                    <div className="bg-[#FCFBF9] p-2.5 rounded-xl border border-[#EAE8E3] text-[11px] space-y-1.5">
+                      <div className="flex items-center justify-between text-charcoal-600 font-bold text-[10px] uppercase tracking-wider">
+                        <span>Checklist 5 Pertanyaan SOP 1 Tahun:</span>
+                        <span className="text-gold-700 font-semibold">{step}</span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-1 text-[10px] text-charcoal-700">
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>1. Kondisi mesin & performa pasca serah terima unit</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>2. Kepuasan kenyamanan berkendara konsumen</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>3. Kelengkapan surat & dokumen kendaraan</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>4. Status garansi mesin showroom aktif</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>5. Rekomendasi showroom & saran layanan</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Actions: thumb-friendly touch targets */}
+                    <div className="flex items-center gap-2 pt-1 border-t border-[#EAE8E3]">
+                      <a
+                        href={formatWhatsAppLink(item.customerPhone, getCustomerWhatsAppMessage(item))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Kirim WA 5Q</span>
+                      </a>
+
+                      <button
+                        onClick={() => handleOpenCustomerMilestoneModal(item)}
+                        className="flex-1 py-2 px-3 bg-charcoal-900 hover:bg-black text-gold-400 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Catat Respon</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setShowHistoryModal(true);
+                        }}
+                        className="p-2 text-charcoal-500 hover:text-charcoal-900 rounded-xl bg-white border border-[#EAE8E3] hover:bg-warm-100 transition-colors shrink-0"
+                        title="Lihat Riwayat Komunikasi"
+                      >
+                        <History className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* TABLE CUSTOMER FOLLOW UP (Desktop/Laptop) */}
+          <div className="crm-card overflow-hidden hidden md:block">
             <div className="overflow-x-auto w-full">
               <table className="crm-table w-full min-w-[960px]">
                 <thead>
