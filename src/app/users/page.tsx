@@ -93,7 +93,7 @@ export default function UserManagementPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+      <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export default function UserManagementPage() {
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs text-charcoal-400 font-medium tracking-wide">RBAC (Role-Based Access Control)</span>
             </div>
-            <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
               Manajemen Pengguna & Otorisasi RBAC
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
@@ -113,7 +113,7 @@ export default function UserManagementPage() {
 
           <button
             onClick={() => setIsRegisterModalOpen(true)}
-            className="btn-gold flex items-center gap-2"
+            className="btn-gold flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <UserPlus className="w-4 h-4" />
             <span>Daftarkan Karyawan Baru</span>
@@ -169,8 +169,8 @@ export default function UserManagementPage() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="crm-table w-full text-left">
+        <div className="overflow-x-auto w-full">
+          <table className="crm-table w-full min-w-[750px] text-left">
             <thead>
               <tr>
                 <th className="py-3 px-3">Peran / Jabatan</th>
@@ -251,8 +251,8 @@ export default function UserManagementPage() {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="crm-table w-full text-left">
+        <div className="overflow-x-auto w-full">
+          <table className="crm-table w-full min-w-[750px] text-left">
             <thead>
               <tr>
                 <th className="py-3.5 px-4">Nama Staf</th>
@@ -373,10 +373,10 @@ export default function UserManagementPage() {
 
       {/* MODAL: REGISTER EMPLOYEE */}
       {isRegisterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="crm-card w-full max-w-md overflow-hidden flex flex-col shadow-luxury border-gold-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
+          <div className="crm-card w-full max-w-md my-auto max-h-[90vh] overflow-hidden flex flex-col shadow-luxury border-gold-500/30">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">Registrasi Akun</span>
                 <h3 className="text-base font-black text-white">Daftarkan Karyawan Baru</h3>
@@ -391,12 +391,12 @@ export default function UserManagementPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium shrink-0">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleRegisterSubmit} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleRegisterSubmit} className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1">
               <div>
                 <label className="block font-bold text-charcoal-800 mb-1">
                   Nama Lengkap <span className="text-rose-500">*</span>
@@ -457,17 +457,17 @@ export default function UserManagementPage() {
                 </p>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setIsRegisterModalOpen(false)}
-                  className="btn-outline-warm text-xs"
+                  className="btn-outline-warm text-xs w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="btn-gold text-xs"
+                  className="btn-gold text-xs w-full sm:w-auto"
                 >
                   Ajukan Pendaftaran
                 </button>

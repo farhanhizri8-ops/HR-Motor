@@ -841,8 +841,8 @@ export default function RiwayatPerbaikanGaransiPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="badge-gold">
@@ -851,7 +851,7 @@ export default function RiwayatPerbaikanGaransiPage() {
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs text-charcoal-400 font-medium tracking-wide">Garansi 1 Bulan HR MOTOR Garut</span>
             </div>
-            <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight flex items-center gap-2.5">
               <Wrench className="w-6 h-6 text-gold-600" />
               <span>Riwayat Perbaikan & Klaim Garansi</span>
             </h1>
@@ -861,10 +861,10 @@ export default function RiwayatPerbaikanGaransiPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="btn-gold flex items-center gap-2"
+              className="btn-gold flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               <span>Tambah Riwayat Perbaikan</span>
@@ -994,11 +994,11 @@ export default function RiwayatPerbaikanGaransiPage() {
       </div>
 
       {/* Sub-Tab Navigasi Halaman */}
-      <div className="flex items-center justify-between border-b border-[#EAE8E3]">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between border-b border-[#EAE8E3] overflow-x-auto w-full min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={() => setActiveTab('list')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors ${
+            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'list'
                 ? 'border-gold-500 text-gold-600'
                 : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
@@ -1010,7 +1010,7 @@ export default function RiwayatPerbaikanGaransiPage() {
 
           <button
             onClick={() => setActiveTab('reports')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors ${
+            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'reports'
                 ? 'border-gold-500 text-gold-600'
                 : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
@@ -1128,8 +1128,8 @@ export default function RiwayatPerbaikanGaransiPage() {
 
           {/* Tabel Riwayat Perbaikan (Sesuai Kolom Permintaan Pengguna) */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[1050px] text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-3 w-12 text-center">No</th>
@@ -1379,7 +1379,7 @@ export default function RiwayatPerbaikanGaransiPage() {
 
           {/* VISUALISASI GRAFIK 1: Grafik Biaya Perbaikan Berdasarkan Bulan dan Tahun */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div className="lg:col-span-2 p-4 bg-white border border-slate-200 rounded-xl shadow-xs min-w-0">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">
@@ -1414,7 +1414,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
 
             {/* VISUALISASI GRAFIK 2: Kerusakan yang Paling Sering Terjadi */}
-            <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+            <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs min-w-0">
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">Kerusakan Paling Sering</h4>
@@ -1486,8 +1486,8 @@ export default function RiwayatPerbaikanGaransiPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[760px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-4">Nama Konsumen</th>
@@ -1551,8 +1551,8 @@ export default function RiwayatPerbaikanGaransiPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[760px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-4">Merek & Model Kendaraan</th>
@@ -1607,8 +1607,8 @@ export default function RiwayatPerbaikanGaransiPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[760px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-4">Bulan & Tahun</th>
@@ -1648,10 +1648,10 @@ export default function RiwayatPerbaikanGaransiPage() {
       {/* MODAL 1: FORMULIR TAMBAH RIWAYAT PERBAIKAN                                */}
       {/* ========================================================================= */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between p-4 bg-slate-900 text-white">
+            <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                   <Wrench className="w-4 h-4" />
@@ -1670,7 +1670,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmitAdd} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleSubmitAdd} className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
               {/* Auto-fill Konsumen Terdaftar */}
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
@@ -1994,17 +1994,17 @@ export default function RiwayatPerbaikanGaransiPage() {
               )}
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30 transition-all flex items-center gap-1.5"
+                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Simpan Riwayat Perbaikan</span>
@@ -2019,10 +2019,10 @@ export default function RiwayatPerbaikanGaransiPage() {
       {/* MODAL 2: DETAIL RIWAYAT PERBAIKAN & TANDA TERIMA / SPK                    */}
       {/* ========================================================================= */}
       {isDetailModalOpen && selectedClaim && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 bg-slate-900 text-white">
+            <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                   <FileText className="w-4 h-4" />
@@ -2065,7 +2065,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1">
               {/* Header Box: Konsumen & Kendaraan */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -2195,27 +2195,27 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 border-t border-slate-200">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0">
               <button
                 onClick={() => setDeleteConfirmId(selectedClaim.id)}
-                className="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors flex items-center gap-1"
+                className="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors flex items-center justify-center gap-1 py-1 sm:py-0"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Hapus Riwayat Ini</span>
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => window.print()}
-                  className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors flex items-center gap-1.5"
+                  className="flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Printer className="w-4 h-4 text-slate-500" />
-                  <span>Cetak Tanda Terima / SPK</span>
+                  <span>Cetak SPK</span>
                 </button>
 
                 <button
                   onClick={() => setIsDetailModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors text-center"
                 >
                   Tutup
                 </button>
@@ -2229,9 +2229,9 @@ export default function RiwayatPerbaikanGaransiPage() {
       {/* MODAL 3: EDIT RIWAYAT PERBAIKAN                                           */}
       {/* ========================================================================= */}
       {isEditModalOpen && editFormData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-4 bg-slate-900 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
               <div className="flex items-center gap-2">
                 <Edit className="w-4 h-4 text-emerald-400" />
                 <h3 className="text-sm font-bold">Edit Riwayat Perbaikan ({editFormData.claimNumber})</h3>
@@ -2244,7 +2244,7 @@ export default function RiwayatPerbaikanGaransiPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmitEdit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleSubmitEdit} className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Konsumen</label>
@@ -2436,17 +2436,17 @@ export default function RiwayatPerbaikanGaransiPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all"
+                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all text-center"
                 >
                   Simpan Perubahan
                 </button>
@@ -2460,8 +2460,8 @@ export default function RiwayatPerbaikanGaransiPage() {
       {/* MODAL 4: KONFIRMASI HAPUS                                                 */}
       {/* ========================================================================= */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-luxury border border-warm-200 p-5 space-y-4 my-auto">
             <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
               <AlertCircle className="w-5 h-5" />
             </div>
@@ -2471,16 +2471,16 @@ export default function RiwayatPerbaikanGaransiPage() {
                 Data perbaikan ini akan dihapus secara permanen dari server database CRM.
               </p>
             </div>
-            <div className="flex items-center justify-center gap-2 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-center gap-2 pt-2">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors text-center"
               >
                 Batal
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors text-center"
               >
                 Ya, Hapus
               </button>

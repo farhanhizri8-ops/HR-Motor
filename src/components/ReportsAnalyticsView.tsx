@@ -676,7 +676,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
       {/* =========================================================================
           1. HEADER & FILTER PERIODE LAPORAN (PREMIUM AUTOMOTIVE BRANDING)
           ========================================================================= */}
-      <div className="bg-white rounded-2xl p-6 border border-[#E5E2DB] shadow-sm relative overflow-hidden">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5E2DB] shadow-sm relative overflow-hidden">
         {/* Subtle Luxury Gold Accent Bar on Left */}
         <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-[#D99A32] to-[#F0B653]" />
 
@@ -689,7 +689,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
               </span>
               <span className="text-xs text-[#666666] font-medium">• HR MOTOR Garut</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
               Reports & Analytics
             </h1>
             <p className="text-xs lg:text-sm text-[#666666] max-w-2xl">
@@ -698,7 +698,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
           </div>
 
           {/* Action Tools: Filter & Export Buttons */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
             {/* Filter Periode */}
             <div className="flex items-center gap-2 bg-[#F7F6F2] px-3.5 py-2 rounded-xl border border-[#E5E2DB]">
               <Calendar className="w-4 h-4 text-[#D99A32] shrink-0" />
@@ -883,7 +883,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Chart 1: Tren Omzet & Unit Terjual */}
-          <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
+          <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E2DB] pb-3">
               <div>
                 <h3 className="text-sm font-bold text-[#242424]">
@@ -954,7 +954,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
           </div>
 
           {/* Chart 2: Perbandingan Prospek Masuk vs Deal Ditutup */}
-          <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
+          <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E5E2DB] pb-3">
               <div>
                 <h3 className="text-sm font-bold text-[#242424]">
@@ -1081,8 +1081,8 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
                 </p>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full min-w-[640px] text-left">
                   <thead>
                     <tr className="bg-[#242424] text-[#F0B653] text-[11px] font-bold uppercase tracking-wider border-b border-[#1A1A1A]">
                       <th className="py-3 px-4">Saluran Promosi</th>

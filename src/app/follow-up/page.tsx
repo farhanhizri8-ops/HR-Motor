@@ -708,14 +708,14 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
   return (
     <div className="space-y-6 pb-16">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-4 sm:p-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-lg border border-gold-500/30">
-              <CalendarClock className="w-6 h-6 text-gold-400" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-lg border border-gold-500/30 shrink-0">
+              <CalendarClock className="w-5 h-5 sm:w-6 sm:h-6 text-gold-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl lg:text-2xl font-black tracking-tight text-charcoal-900">
                   Follow-up & Retensi Showroom
                 </h1>
@@ -728,7 +728,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 w-full md:w-auto">
           {activeMainTab === 'customer' ? (
             <button
               onClick={() => {
@@ -747,7 +747,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 setFormError('');
                 setShowAddCustomerModal(true);
               }}
-              className="btn-gold inline-flex items-center gap-2 text-xs shadow-md"
+              className="btn-gold inline-flex items-center justify-center gap-2 text-xs shadow-md w-full md:w-auto py-2.5"
             >
               <Plus className="w-4 h-4" />
               <span>Jadwalkan Follow-up Pembeli Baru</span>
@@ -770,7 +770,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 setFormError('');
                 setShowAddProspectModal(true);
               }}
-              className="btn-gold inline-flex items-center gap-2 text-xs shadow-md"
+              className="btn-gold inline-flex items-center justify-center gap-2 text-xs shadow-md w-full md:w-auto py-2.5"
             >
               <Plus className="w-4 h-4" />
               <span>+ Catat Calon Pelanggan Cari Mobil</span>
@@ -787,7 +787,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             setActiveMainTab('customer');
             setSearchQuery('');
           }}
-          className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-4 ${
+          className={`p-3.5 sm:p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-3 sm:gap-4 ${
             activeMainTab === 'customer'
               ? 'bg-charcoal-900 text-white border-gold-500/60 shadow-luxury'
               : 'bg-white text-charcoal-800 border-[#EAE8E3] hover:border-gold-300 hover:bg-[#FAF9F5]'
@@ -837,7 +837,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             setActiveMainTab('prospect');
             setSearchQuery('');
           }}
-          className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-4 ${
+          className={`p-3.5 sm:p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-3 sm:gap-4 ${
             activeMainTab === 'prospect'
               ? 'bg-charcoal-900 text-white border-gold-500/60 shadow-luxury'
               : 'bg-white text-charcoal-800 border-[#EAE8E3] hover:border-gold-300 hover:bg-[#FAF9F5]'
@@ -853,7 +853,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-1">
               <span className={`text-[10px] font-bold uppercase tracking-wider ${activeMainTab === 'prospect' ? 'text-gold-400' : 'text-amber-700'}`}>
                 Tab 2 • Smart Auto-Matching
               </span>
@@ -888,52 +888,52 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {activeMainTab === 'customer' && (
         <div className="space-y-5 animate-in fade-in duration-200">
           {/* KPI METRICS ROW FOR CUSTOMER FOLLOW UP */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-            <div className="crm-card p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
+            <div className="crm-card p-2.5 sm:p-3">
               <span className="text-[10px] font-bold uppercase text-charcoal-400">Total Pembeli</span>
-              <div className="text-xl font-black text-charcoal-900 mt-1">{customerStats.total}</div>
-              <span className="text-[10px] text-charcoal-500">Database aktif</span>
+              <div className="text-xl font-black text-charcoal-900 mt-0.5">{customerStats.total}</div>
+              <span className="text-[10px] text-charcoal-500 truncate block">Database aktif</span>
             </div>
-            <div className="crm-card p-3 border-l-4 border-l-amber-500">
+            <div className="crm-card p-2.5 sm:p-3 border-l-4 border-l-amber-500">
               <span className="text-[10px] font-bold uppercase text-amber-700 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-amber-500" /> Hari Ini
+                <Clock className="w-3 h-3 text-amber-500 shrink-0" /> Hari Ini
               </span>
-              <div className="text-xl font-black text-amber-600 mt-1">{customerStats.today}</div>
-              <span className="text-[10px] text-amber-700 font-medium">Jadwal kontak</span>
+              <div className="text-xl font-black text-amber-600 mt-0.5">{customerStats.today}</div>
+              <span className="text-[10px] text-amber-700 font-medium truncate block">Jadwal kontak</span>
             </div>
-            <div className="crm-card p-3 border-l-4 border-l-rose-500">
+            <div className="crm-card p-2.5 sm:p-3 border-l-4 border-l-rose-500">
               <span className="text-[10px] font-bold uppercase text-rose-600 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-rose-500" /> Terlambat
+                <AlertTriangle className="w-3 h-3 text-rose-500 shrink-0" /> Terlambat
               </span>
-              <div className="text-xl font-black text-rose-600 mt-1">{customerStats.overdue}</div>
-              <span className="text-[10px] text-rose-500 font-medium">Lewat jadwal</span>
+              <div className="text-xl font-black text-rose-600 mt-0.5">{customerStats.overdue}</div>
+              <span className="text-[10px] text-rose-500 font-medium truncate block">Lewat jadwal</span>
             </div>
-            <div className="crm-card p-3">
+            <div className="crm-card p-2.5 sm:p-3">
               <span className="text-[10px] font-bold uppercase text-charcoal-400">Tahap 1 Bulan</span>
-              <div className="text-xl font-black text-charcoal-800 mt-1">{customerStats.step1Bulan}</div>
-              <span className="text-[10px] text-charcoal-500">Kondisi awal unit</span>
+              <div className="text-xl font-black text-charcoal-800 mt-0.5">{customerStats.step1Bulan}</div>
+              <span className="text-[10px] text-charcoal-500 truncate block">Kondisi awal</span>
             </div>
-            <div className="crm-card p-3">
+            <div className="crm-card p-2.5 sm:p-3">
               <span className="text-[10px] font-bold uppercase text-charcoal-400">Tahap 3 Bulan</span>
-              <div className="text-xl font-black text-charcoal-800 mt-1">{customerStats.step3Bulan}</div>
-              <span className="text-[10px] text-charcoal-500">Cek servis & garansi</span>
+              <div className="text-xl font-black text-charcoal-800 mt-0.5">{customerStats.step3Bulan}</div>
+              <span className="text-[10px] text-charcoal-500 truncate block">Servis & garansi</span>
             </div>
-            <div className="crm-card p-3">
+            <div className="crm-card p-2.5 sm:p-3">
               <span className="text-[10px] font-bold uppercase text-charcoal-400">Tahap 6 Bulan</span>
-              <div className="text-xl font-black text-charcoal-800 mt-1">{customerStats.step6Bulan}</div>
-              <span className="text-[10px] text-charcoal-500">Evaluasi pemakaian</span>
+              <div className="text-xl font-black text-charcoal-800 mt-0.5">{customerStats.step6Bulan}</div>
+              <span className="text-[10px] text-charcoal-500 truncate block">Evaluasi rutin</span>
             </div>
-            <div className="crm-card p-3">
+            <div className="crm-card p-2.5 sm:p-3">
               <span className="text-[10px] font-bold uppercase text-charcoal-400">Tahap 1 Tahun</span>
-              <div className="text-xl font-black text-charcoal-800 mt-1">{customerStats.step1Tahun}</div>
-              <span className="text-[10px] text-gold-700 font-medium">Tukar tambah / jual</span>
+              <div className="text-xl font-black text-charcoal-800 mt-0.5">{customerStats.step1Tahun}</div>
+              <span className="text-[10px] text-gold-700 font-medium truncate block">Tukar tambah</span>
             </div>
-            <div className="crm-card p-3 border-l-4 border-l-emerald-500">
+            <div className="crm-card p-2.5 sm:p-3 border-l-4 border-l-emerald-500">
               <span className="text-[10px] font-bold uppercase text-emerald-700 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Selesai
+                <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" /> Selesai
               </span>
-              <div className="text-xl font-black text-emerald-700 mt-1">{customerStats.selesai}</div>
-              <span className="text-[10px] text-emerald-600 font-medium">Siklus tuntas</span>
+              <div className="text-xl font-black text-emerald-700 mt-0.5">{customerStats.selesai}</div>
+              <span className="text-[10px] text-emerald-600 font-medium truncate block">Siklus tuntas</span>
             </div>
           </div>
 
@@ -941,10 +941,10 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
           <div className="crm-card overflow-hidden border-gold-500/30">
             <div
               onClick={() => setShowQuestionGuide(!showQuestionGuide)}
-              className="p-4 bg-charcoal-900 text-white flex items-center justify-between cursor-pointer select-none"
+              className="p-3.5 sm:p-4 bg-charcoal-900 text-white flex items-center justify-between cursor-pointer select-none"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gold-500 text-charcoal-950 flex items-center justify-center font-black text-xs">
+                <div className="w-7 h-7 rounded-lg bg-gold-500 text-charcoal-950 flex items-center justify-center font-black text-xs shrink-0">
                   5Q
                 </div>
                 <div>
@@ -956,18 +956,18 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gold-400 font-medium">
-                <span>{showQuestionGuide ? 'Tutup Rincian' : 'Buka Rincian'}</span>
+              <div className="flex items-center gap-2 text-xs text-gold-400 font-medium shrink-0">
+                <span className="hidden sm:inline">{showQuestionGuide ? 'Tutup Rincian' : 'Buka Rincian'}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${showQuestionGuide ? 'rotate-180' : ''}`} />
               </div>
             </div>
 
             {showQuestionGuide && (
-              <div className="p-4 bg-[#FAF9F5] border-t border-[#EAE8E3] grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+              <div className="p-3.5 sm:p-4 bg-[#FAF9F5] border-t border-[#EAE8E3] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
                 {SHOWROOM_OPERATIONAL_QUESTIONS.map((q) => (
                   <div key={q.num} className="bg-white p-3 rounded-xl border border-[#EAE8E3] space-y-1.5 shadow-2xs">
                     <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-gold-500 text-charcoal-950 font-black text-[10px] flex items-center justify-center">
+                      <span className="w-5 h-5 rounded-full bg-gold-500 text-charcoal-950 font-black text-[10px] flex items-center justify-center shrink-0">
                         {q.num}
                       </span>
                       <strong className="text-[11px] font-black text-charcoal-900 uppercase">
@@ -988,13 +988,13 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
 
           {/* Urgent Admin Follow-Up Reminder Banner */}
           {(customerStats.today > 0 || customerStats.overdue > 0) && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-400 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-400 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start sm:items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-500 text-charcoal-950 flex items-center justify-center shrink-0 shadow-xs font-black">
                   <AlertTriangle className="w-5 h-5 text-charcoal-950 animate-bounce" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-black text-charcoal-900 flex items-center gap-2">
+                  <h4 className="text-xs sm:text-sm font-black text-charcoal-900 flex items-center gap-2 flex-wrap">
                     <span>PENGINGAT JADWAL FOLLOW-UP KONSUMEN</span>
                     {customerStats.overdue > 0 && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
@@ -1012,21 +1012,21 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                 {customerStats.today > 0 && (
                   <button
                     onClick={() => setFilterTimeTab('today')}
-                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-2xs"
+                    className="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-2xs text-center"
                   >
-                    Lihat Hari Ini ({customerStats.today})
+                    Hari Ini ({customerStats.today})
                   </button>
                 )}
                 {customerStats.overdue > 0 && (
                   <button
                     onClick={() => setFilterTimeTab('overdue')}
-                    className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs"
+                    className="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs text-center"
                   >
-                    Lihat Terlambat ({customerStats.overdue})
+                    Terlambat ({customerStats.overdue})
                   </button>
                 )}
               </div>
@@ -1034,22 +1034,22 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
           )}
 
           {/* FILTER & SEARCH BAR */}
-          <div className="crm-card p-4 space-y-3">
+          <div className="crm-card p-3.5 sm:p-4 space-y-3">
             {/* Time Filter Pills */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-[#EAE8E3] pb-3">
+            <div className="flex items-center gap-1.5 border-b border-[#EAE8E3] pb-3 overflow-x-auto max-w-full">
               <button
                 onClick={() => setFilterTimeTab('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
                   filterTimeTab === 'all'
                     ? 'bg-charcoal-900 text-gold-400 shadow-sm'
                     : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-[#FAF9F5]'
                 }`}
               >
-                Semua Jadwal ({customerFollowUps.length})
+                Semua ({customerFollowUps.length})
               </button>
               <button
                 onClick={() => setFilterTimeTab('today')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
                   filterTimeTab === 'today'
                     ? 'bg-amber-900 text-amber-200 shadow-sm'
                     : 'text-charcoal-600 hover:text-amber-800 hover:bg-amber-50'
@@ -1060,7 +1060,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               </button>
               <button
                 onClick={() => setFilterTimeTab('overdue')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
                   filterTimeTab === 'overdue'
                     ? 'bg-rose-900 text-rose-200 shadow-sm'
                     : 'text-charcoal-600 hover:text-rose-800 hover:bg-rose-50'
@@ -1071,7 +1071,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               </button>
               <button
                 onClick={() => setFilterTimeTab('upcoming')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
                   filterTimeTab === 'upcoming'
                     ? 'bg-charcoal-900 text-gold-400 shadow-sm'
                     : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-[#FAF9F5]'
@@ -1082,8 +1082,8 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             </div>
 
             {/* Filter Dropdowns & Search Input */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div className="md:col-span-2 relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+              <div className="sm:col-span-2 relative">
                 <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
@@ -1127,8 +1127,8 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
 
           {/* TABLE CUSTOMER FOLLOW UP */}
           <div className="crm-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="crm-table">
+            <div className="overflow-x-auto w-full">
+              <table className="crm-table w-full min-w-[960px]">
                 <thead>
                   <tr>
                     <th className="py-3 px-3 text-center w-12">No</th>
@@ -1643,9 +1643,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 1: CATAT RESPON PELANGGAN & MAJU MILESTONE (TAB 1)                   */}
       {/* ========================================================================= */}
       {showCustomerMilestoneModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">
                   Tahap: {selectedItem.periodicStep || '1 Bulan'}
@@ -1660,19 +1660,19 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <button
                 type="button"
                 onClick={() => setShowCustomerMilestoneModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitCustomerMilestone} className="flex-1 overflow-y-auto p-6 space-y-4">
+            <form onSubmit={handleSubmitCustomerMilestone} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               <div className="p-3 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs space-y-1">
                 <span className="font-bold text-charcoal-900 block">
                   Ringkasan Jawaban 5 Pertanyaan Operasional Showroom:
@@ -1747,7 +1747,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               </div>
 
               {/* Status Kontak */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
                     Status Respon Konsumen
@@ -1825,18 +1825,18 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 )}
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setShowCustomerMilestoneModal(false)}
-                  className="btn-outline-warm"
+                  className="btn-outline-warm w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold"
+                  className="btn-gold w-full sm:w-auto"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Respon & Perbarui'}
                 </button>
@@ -1850,9 +1850,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 2: CATAT CALON PELANGGAN MENCARI MOBIL (PROSPECT TAB 2)              */}
       {/* ========================================================================= */}
       {showAddProspectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">Calon Pembeli</span>
                 <h3 className="text-base font-black text-white tracking-tight">
@@ -1865,20 +1865,20 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <button
                 type="button"
                 onClick={() => setShowAddProspectModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitAddProspect} className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmitAddProspect} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
                     Nama Calon Pembeli <span className="text-rose-500">*</span>
@@ -2019,18 +2019,18 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setShowAddProspectModal(false)}
-                  className="btn-outline-warm"
+                  className="btn-outline-warm w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold"
+                  className="btn-gold w-full sm:w-auto"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Calon Pelanggan'}
                 </button>
@@ -2044,9 +2044,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 3: TAMBAH CUSTOMER FOLLOW-UP MANUAL (TAB 1)                         */}
       {/* ========================================================================= */}
       {showAddCustomerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <h3 className="text-base font-black text-white tracking-tight">
                   Jadwalkan Follow-up Pembeli Baru
@@ -2058,19 +2058,19 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <button
                 type="button"
                 onClick={() => setShowAddCustomerModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitAddCustomerManual} className="flex-1 overflow-y-auto p-6 space-y-4">
+            <form onSubmit={handleSubmitAddCustomerManual} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-charcoal-800 mb-1">
                   Nama Pelanggan Pembeli <span className="text-rose-500">*</span>
@@ -2085,7 +2085,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
                     Nomor WhatsApp <span className="text-rose-500">*</span>
@@ -2128,7 +2128,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
                     Metode Pembayaran
@@ -2172,18 +2172,18 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setShowAddCustomerModal(false)}
-                  className="btn-outline-warm"
+                  className="btn-outline-warm w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold"
+                  className="btn-gold w-full sm:w-auto"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Jadwalkan Follow-up'}
                 </button>
@@ -2197,22 +2197,22 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 4: UBAH STATUS PROSPEK CEPAT                                        */}
       {/* ========================================================================= */}
       {showProspectStatusModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-charcoal-800 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-charcoal-800 text-white shrink-0">
               <h3 className="text-base font-black text-white tracking-tight">
                 Update Status Calon Pembeli
               </h3>
               <button
                 type="button"
                 onClick={() => setShowProspectStatusModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitProspectStatus} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitProspectStatus} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-xs font-bold text-charcoal-800 mb-1">
                   Status Calon Pembeli
@@ -2241,18 +2241,18 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setShowProspectStatusModal(false)}
-                  className="btn-outline-warm"
+                  className="btn-outline-warm w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold"
+                  className="btn-gold w-full sm:w-auto"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Perbarui Status'}
                 </button>
@@ -2266,15 +2266,15 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 5: RIWAYAT TIMELINE KOMUNIKASI                                      */}
       {/* ========================================================================= */}
       {showHistoryModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-charcoal-800 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-charcoal-800 text-white shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-charcoal-800 text-gold-400 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-charcoal-800 text-gold-400 flex items-center justify-center shadow-sm shrink-0">
                   <History className="w-4 h-4 text-gold-400" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold text-white truncate max-w-[200px] sm:max-w-md">
                     Riwayat Komunikasi: {selectedItem.customerName}
                   </h3>
                   <p className="text-xs text-charcoal-300">
@@ -2285,13 +2285,13 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {!selectedItem.communicationLogs || selectedItem.communicationLogs.length === 0 ? (
                 <div className="text-center py-8 text-charcoal-400 text-xs">
                   Belum ada catatan riwayat komunikasi tersimpan.
@@ -2302,7 +2302,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                     <div key={log.id} className="relative pl-6">
                       <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-gold-500 ring-4 ring-white shadow-xs"></div>
                       <div className="bg-[#FAF9F5] p-3.5 rounded-xl border border-[#EAE8E3] space-y-1">
-                        <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center justify-between text-xs flex-wrap gap-1">
                           <span className="font-bold text-charcoal-900">{log.outcome}</span>
                           <span className="text-charcoal-400 font-mono text-[11px]">
                             {formatDate(log.timestamp, true)}
@@ -2313,7 +2313,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                             {log.notes}
                           </p>
                         )}
-                        <div className="flex items-center justify-between text-[11px] text-charcoal-500 pt-1.5 border-t border-[#EAE8E3] mt-1">
+                        <div className="flex items-center justify-between text-[11px] text-charcoal-500 pt-1.5 border-t border-[#EAE8E3] mt-1 flex-wrap gap-1">
                           <span>Oleh: {log.salesName || log.loggedByName || 'Staff Showroom'}</span>
                           {log.nextFollowUpDate && (
                             <span className="text-gold-700 font-bold">
@@ -2328,11 +2328,11 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               )}
             </div>
 
-            <div className="px-6 py-3.5 border-t border-[#EAE8E3] bg-[#FAF9F5] flex items-center justify-end">
+            <div className="px-4 sm:px-6 py-3 border-t border-[#EAE8E3] bg-[#FAF9F5] flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(false)}
-                className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-semibold text-xs hover:bg-black transition-colors"
+                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-charcoal-900 text-white font-semibold text-xs hover:bg-black transition-colors"
               >
                 Tutup
               </button>

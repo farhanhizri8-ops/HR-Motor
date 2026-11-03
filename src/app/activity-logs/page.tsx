@@ -43,7 +43,7 @@ export default function ActivityLogsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+      <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export default function ActivityLogsPage() {
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs text-charcoal-400 font-medium tracking-wide">Log Aktivitas Sistem</span>
             </div>
-            <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
               Audit Trail & Activity Logs
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
@@ -94,8 +94,8 @@ export default function ActivityLogsPage() {
 
       {/* Activity Timeline Table */}
       <div className="crm-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="crm-table w-full text-left">
+        <div className="overflow-x-auto w-full">
+          <table className="crm-table w-full min-w-[700px] text-left">
             <thead>
               <tr>
                 <th className="py-3.5 px-4">Waktu Kejadian (WIB)</th>

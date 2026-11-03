@@ -180,7 +180,7 @@ export default function SettingsDealerPage() {
   return (
     <div className="space-y-6 max-w-6xl pb-12">
       {/* 1. HEADER UTAMA & STATUS EKOSISTEM */}
-      <div className="bg-white rounded-2xl p-6 border border-[#E5E2DB] shadow-sm relative overflow-hidden">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5E2DB] shadow-sm relative overflow-hidden">
         {/* Gold Luxury Left Accent Bar */}
         <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-[#D99A32] to-[#F0B653]" />
 
@@ -193,7 +193,7 @@ export default function SettingsDealerPage() {
               </span>
               <span className="text-xs text-[#666666] font-medium">• HR MOTOR Garut</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
               Ekosistem Plugin & Pengaturan Dealer
             </h1>
             <p className="text-xs lg:text-sm text-[#666666]">

@@ -602,14 +602,14 @@ export default function StokUnitPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Showroom & Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-6 border-b-2 border-b-gold-500/40">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-md shrink-0">
               <Car className="w-5 h-5 text-gold-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl lg:text-2xl font-black tracking-tight text-charcoal-900">
                   Manajemen Stok Unit Showroom
                 </h1>
@@ -624,123 +624,123 @@ export default function StokUnitPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
           <button
             onClick={() => setShowCreditCalculatorModal(true)}
-            className="btn-outline-warm inline-flex items-center gap-1.5 text-xs py-2"
+            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2"
             title="Kalkulator Simulasi Kredit Showroom"
           >
-            <Calculator className="w-4 h-4 text-gold-600" />
-            <span>Kalkulator Kredit</span>
+            <Calculator className="w-4 h-4 text-gold-600 shrink-0" />
+            <span className="truncate">Kalkulator Kredit</span>
           </button>
 
           <button
             onClick={handleExportExcel}
-            className="btn-outline-warm inline-flex items-center gap-1.5 text-xs py-2 text-emerald-800"
+            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2 text-emerald-800"
             title="Ekspor Format Spreadsheet Excel"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>Unduh Excel</span>
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="truncate">Unduh Excel</span>
           </button>
 
           <button
             onClick={handleExportPDF}
-            className="btn-outline-warm inline-flex items-center gap-1.5 text-xs py-2 text-rose-800"
+            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2 text-rose-800"
             title="Unduh Katalog PDF"
           >
-            <Download className="w-4 h-4 text-rose-600" />
-            <span>Unduh PDF</span>
+            <Download className="w-4 h-4 text-rose-600 shrink-0" />
+            <span className="truncate">Unduh PDF</span>
           </button>
 
           <button
             onClick={handleOpenAdd}
-            className="btn-gold inline-flex items-center justify-center gap-1.5 text-xs py-2 shadow-sm"
+            className="btn-gold inline-flex items-center justify-center gap-1.5 text-xs py-2 shadow-sm col-span-2 sm:col-span-1"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>Tambah Unit</span>
           </button>
         </div>
       </div>
 
       {/* DASHBOARD RINGKASAN STOK UNIT (6 KPI Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
         {/* Total Unit */}
-        <div className="crm-card p-4">
-          <div className="flex items-center justify-between text-charcoal-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-700">Total Stok</span>
-            <div className="w-6 h-6 rounded-lg bg-charcoal-100 flex items-center justify-center text-charcoal-700">
+        <div className="crm-card p-3 sm:p-4">
+          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-charcoal-700">Total Stok</span>
+            <div className="w-6 h-6 rounded-lg bg-charcoal-100 flex items-center justify-center text-charcoal-700 shrink-0">
               <Layers className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-charcoal-900">{dashboardStats.total} Unit</div>
-          <div className="text-[10px] text-charcoal-500 mt-1">Armada Lengkap Showroom</div>
+          <div className="text-xl sm:text-2xl font-black text-charcoal-900">{dashboardStats.total} Unit</div>
+          <div className="text-[10px] text-charcoal-500 mt-0.5 truncate">Armada Showroom</div>
         </div>
 
         {/* Ready Stock */}
-        <div className="crm-card p-4 border-l-4 border-l-emerald-500">
-          <div className="flex items-center justify-between text-charcoal-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Ready Stock</span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+        <div className="crm-card p-3 sm:p-4 border-l-4 border-l-emerald-500">
+          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-800">Ready Stock</span>
+            <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-emerald-700">{dashboardStats.tersedia} Unit</div>
-          <div className="text-[10px] text-emerald-800 mt-1 font-semibold">Siap Test Drive & Kirim</div>
+          <div className="text-xl sm:text-2xl font-black text-emerald-700">{dashboardStats.tersedia} Unit</div>
+          <div className="text-[10px] text-emerald-800 mt-0.5 font-semibold truncate">Siap Test Drive</div>
         </div>
 
         {/* Booking */}
-        <div className="crm-card p-4 border-l-4 border-l-amber-500">
-          <div className="flex items-center justify-between text-charcoal-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">Booking</span>
-            <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+        <div className="crm-card p-3 sm:p-4 border-l-4 border-l-amber-500">
+          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-800">Booking</span>
+            <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-amber-700">{dashboardStats.booking} Unit</div>
-          <div className="text-[10px] text-amber-800 mt-1 font-medium">Tanda Jadi Masuk</div>
+          <div className="text-xl sm:text-2xl font-black text-amber-700">{dashboardStats.booking} Unit</div>
+          <div className="text-[10px] text-amber-800 mt-0.5 font-medium truncate">Tanda Jadi Masuk</div>
         </div>
 
         {/* Terjual / Sold Out */}
-        <div className="crm-card p-4 border-l-4 border-l-charcoal-500">
-          <div className="flex items-center justify-between text-charcoal-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-700">Sold Out</span>
-            <div className="w-6 h-6 rounded-lg bg-charcoal-100 text-charcoal-700 flex items-center justify-center">
+        <div className="crm-card p-3 sm:p-4 border-l-4 border-l-charcoal-500">
+          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-charcoal-700">Sold Out</span>
+            <div className="w-6 h-6 rounded-lg bg-charcoal-100 text-charcoal-700 flex items-center justify-center shrink-0">
               <ShoppingBag className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-charcoal-800">{dashboardStats.terjual} Unit</div>
-          <div className="text-[10px] text-charcoal-500 mt-1">Deal Selesai</div>
+          <div className="text-xl sm:text-2xl font-black text-charcoal-800">{dashboardStats.terjual} Unit</div>
+          <div className="text-[10px] text-charcoal-500 mt-0.5 truncate">Deal Selesai</div>
         </div>
 
         {/* Paket Kredit Tersedia */}
-        <div className="crm-card p-4 border-l-4 border-l-gold-500">
-          <div className="flex items-center justify-between text-charcoal-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700">Paket Kredit</span>
-            <div className="w-6 h-6 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center">
+        <div className="crm-card p-3 sm:p-4 border-l-4 border-l-gold-500">
+          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gold-700">Paket Kredit</span>
+            <div className="w-6 h-6 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center shrink-0">
               <BadgePercent className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl font-black text-gold-600">{dashboardStats.denganKredit} Unit</div>
-          <div className="text-[10px] text-gold-800 mt-1 font-semibold">DP Mulai Rp 15 Juta</div>
+          <div className="text-xl sm:text-2xl font-black text-gold-600">{dashboardStats.denganKredit} Unit</div>
+          <div className="text-[10px] text-gold-800 mt-0.5 font-semibold truncate">DP Mulai Rp 15 Juta</div>
         </div>
 
         {/* Total Nilai Aset */}
-        <div className="crm-card p-4 bg-[#FAF9F5] border-gold-500/40">
-          <div className="flex items-center justify-between text-charcoal-500 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700">Nilai Aset Stok</span>
-            <div className="w-6 h-6 rounded-lg bg-gold-100 text-gold-700 flex items-center justify-center">
+        <div className="crm-card p-3 sm:p-4 bg-[#FAF9F5] border-gold-500/40">
+          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gold-700">Nilai Aset</span>
+            <div className="w-6 h-6 rounded-lg bg-gold-100 text-gold-700 flex items-center justify-center shrink-0">
               <DollarSign className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-lg lg:text-xl font-black text-charcoal-900 truncate" title={formatRupiah(dashboardStats.totalAssetValue)}>
+          <div className="text-base sm:text-lg lg:text-xl font-black text-charcoal-900 truncate" title={formatRupiah(dashboardStats.totalAssetValue)}>
             {formatRupiah(dashboardStats.totalAssetValue)}
           </div>
-          <div className="text-[10px] text-charcoal-500 mt-1 font-medium">Rata-rata: {formatRupiah(dashboardStats.avgPrice)}</div>
+          <div className="text-[10px] text-charcoal-500 mt-0.5 font-medium truncate">Rata2: {formatRupiah(dashboardStats.avgPrice)}</div>
         </div>
       </div>
 
       {/* FILTER & PENCARIAN MODERN */}
-      <div className="crm-card p-4 space-y-3.5">
+      <div className="crm-card p-3.5 sm:p-4 space-y-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Search bar */}
           <div className="relative flex-1">
@@ -750,7 +750,7 @@ export default function StokUnitPage() {
               placeholder="Cari unit: misal 'Ayla', 'Brio', 'Pajero', 'Z 1083 NV', 'Abu-Abu', 'Kuning'..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-warm-50 border border-warm-200 rounded-lg text-charcoal-900 focus:outline-none focus:border-gold-500"
+              className="w-full pl-10 pr-8 py-2 text-xs bg-warm-50 border border-warm-200 rounded-lg text-charcoal-900 focus:outline-none focus:border-gold-500"
             />
             {searchQuery && (
               <button
@@ -765,13 +765,13 @@ export default function StokUnitPage() {
           {/* Quick Filter Pills */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {/* Brand Pills */}
-            <div className="flex items-center bg-warm-100 p-1 rounded-lg gap-1 text-xs">
+            <div className="flex items-center bg-warm-100 p-1 rounded-lg gap-1 text-xs overflow-x-auto max-w-full pb-0.5 sm:pb-0">
               {COMMON_BRANDS.map((brand) => (
                 <button
                   key={brand}
                   type="button"
                   onClick={() => setFilterBrand(brand)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all shrink-0 ${
                     filterBrand === brand
                       ? 'bg-charcoal-900 text-gold-400 shadow-xs'
                       : 'text-charcoal-600 hover:text-charcoal-900'
@@ -785,7 +785,7 @@ export default function StokUnitPage() {
             {/* Filter Paket Kredit Only */}
             <button
               onClick={() => setFilterCreditOnly(!filterCreditOnly)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 ${
                 filterCreditOnly
                   ? 'bg-gold-500 text-charcoal-950 border-gold-600 shadow-xs'
                   : 'bg-warm-50 text-charcoal-700 border-warm-200 hover:border-gold-400'
@@ -797,50 +797,50 @@ export default function StokUnitPage() {
           </div>
 
           {/* Mode Switcher */}
-          <div className="flex items-center bg-warm-100 p-1 rounded-lg gap-1 shrink-0">
+          <div className="grid grid-cols-3 sm:flex items-center bg-warm-100 p-1 rounded-lg gap-1 shrink-0 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
                 viewMode === 'table'
                   ? 'bg-white text-charcoal-900 shadow-xs'
                   : 'text-charcoal-600 hover:text-charcoal-900'
               }`}
             >
               <List className="w-3.5 h-3.5 text-gold-600" />
-              <span>Tabel Modern</span>
+              <span>Tabel</span>
             </button>
 
             <button
               type="button"
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
                 viewMode === 'grid'
                   ? 'bg-white text-charcoal-900 shadow-xs'
                   : 'text-charcoal-600 hover:text-charcoal-900'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5 text-gold-600" />
-              <span>Kartu Showroom</span>
+              <span>Kartu</span>
             </button>
 
             <button
               type="button"
               onClick={() => setViewMode('credit')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
                 viewMode === 'credit'
                   ? 'bg-white text-charcoal-900 shadow-xs'
                   : 'text-charcoal-600 hover:text-charcoal-900'
               }`}
             >
               <CreditCard className="w-3.5 h-3.5 text-gold-600" />
-              <span>Simulasi Kredit</span>
+              <span>Kredit</span>
             </button>
           </div>
         </div>
 
         {/* Secondary filters row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-warm-200/80 text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-warm-200/80 text-xs">
           <div className="flex flex-wrap items-center gap-2 text-charcoal-500">
             <span className="flex items-center gap-1 font-semibold text-charcoal-700">
               <Filter className="w-3.5 h-3.5 text-gold-600" /> Filter:
@@ -940,8 +940,8 @@ export default function StokUnitPage() {
       {/* ========================================================================= */}
       {viewMode === 'table' && (
         <div className="crm-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="crm-table w-full text-left border-collapse text-xs">
+          <div className="overflow-x-auto w-full">
+            <table className="crm-table w-full min-w-[980px] text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-[#141414] text-white border-b border-[#2A2A2A]">
                   <th className="py-3.5 px-3 text-center w-12 text-[11px] font-bold text-gold-400">NO</th>
@@ -1225,7 +1225,7 @@ export default function StokUnitPage() {
               <p className="text-xs text-charcoal-500 mt-1">Coba ubah kata kunci pencarian atau sesuaikan filter showroom.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {filteredStocks.map((stock) => {
                 const thumbnail =
                   stock.photos && stock.photos.length > 0
@@ -1437,8 +1437,8 @@ export default function StokUnitPage() {
             </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="crm-table text-left border-collapse text-xs">
+          <div className="overflow-x-auto w-full">
+            <table className="crm-table w-full min-w-[880px] text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-warm-100 border-b border-warm-200 text-charcoal-800">
                   <th className="py-3 px-3 text-center w-10 font-bold">NO</th>
@@ -1545,30 +1545,30 @@ export default function StokUnitPage() {
       {/* MODAL 1: KALKULATOR SIMULASI KREDIT SHOWROOM                              */}
       {/* ========================================================================= */}
       {showCreditCalculatorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between p-4 bg-charcoal-900 text-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
                   <Calculator className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold">Kalkulator Simulasi Kredit Showroom</h3>
-                  <p className="text-[11px] text-charcoal-400">
+                  <h3 className="text-sm font-bold text-white">Kalkulator Simulasi Kredit Showroom</h3>
+                  <p className="text-[11px] text-charcoal-400 truncate max-w-[220px] sm:max-w-xs">
                     {selectedStock ? `${selectedStock.merkType || selectedStock.model}` : 'Hitung estimasi DP & cicilan showroom'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowCreditCalculatorModal(false)}
-                className="p-1 rounded-md text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               {/* Harga Kendaraan */}
               <div>
                 <label className="block text-xs font-semibold text-charcoal-700 mb-1">
@@ -1608,13 +1608,13 @@ export default function StokUnitPage() {
                   />
                 </div>
                 {/* DP Shortcut Buttons */}
-                <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1.5">
                   {[15, 20, 25, 30].map((pct) => (
                     <button
                       key={pct}
                       type="button"
                       onClick={() => setCalcDpNominal(Math.round(calcCarPrice * (pct / 100)))}
-                      className="px-2 py-0.5 rounded text-[10px] font-semibold bg-warm-100 hover:bg-gold-50 text-charcoal-700 border border-warm-200 transition-colors"
+                      className="px-2 py-1 rounded text-[10px] font-semibold bg-warm-100 hover:bg-gold-50 text-charcoal-700 border border-warm-200 transition-colors text-center"
                     >
                       DP {pct}% ({formatRupiah(Math.round(calcCarPrice * (pct / 100)))})
                     </button>
@@ -1627,7 +1627,7 @@ export default function StokUnitPage() {
                 <label className="block text-xs font-semibold text-charcoal-700 mb-1">
                   Jangka Waktu Tenor
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { year: 2, label: '2 Thn (23x)' },
                     { year: 3, label: '3 Thn (35x)' },
@@ -1694,16 +1694,16 @@ export default function StokUnitPage() {
       {/* MODAL 2: DETAIL SPESIFIKASI KENDARAAN                                     */}
       {/* ========================================================================= */}
       {showDetailModal && selectedStock && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between p-4 bg-charcoal-900 text-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
                   <Car className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">
+                  <h3 className="text-sm font-bold text-white truncate max-w-[220px] sm:max-w-md">
                     {selectedStock.merkType || `${selectedStock.brand} ${selectedStock.model}`}
                   </h3>
                   <p className="text-[11px] text-charcoal-400">
@@ -1713,13 +1713,13 @@ export default function StokUnitPage() {
               </div>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="p-1 rounded-md text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto">
               {/* Alert Status Boking / Sold Out di Modal */}
               {selectedStock.status === 'Booking' && (
                 <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex items-start gap-3 shadow-xs">
@@ -1876,14 +1876,14 @@ export default function StokUnitPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-3 border-t border-warm-200">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-warm-200">
                 <button
                   type="button"
                   onClick={() => {
                     setShowDetailModal(false);
                     setShowDeleteModal(true);
                   }}
-                  className="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors flex items-center gap-1"
+                  className="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors flex items-center justify-center gap-1 py-1.5"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Hapus Unit</span>
@@ -1896,7 +1896,7 @@ export default function StokUnitPage() {
                       setShowDetailModal(false);
                       handleOpenCalculator(selectedStock);
                     }}
-                    className="btn-gold text-xs flex items-center gap-1.5 py-2 px-3.5 shadow-xs"
+                    className="flex-1 sm:flex-initial btn-gold text-xs flex items-center justify-center gap-1.5 py-2 px-3.5 shadow-xs"
                   >
                     <Calculator className="w-3.5 h-3.5" />
                     <span>Simulasi Kredit</span>
@@ -1908,7 +1908,7 @@ export default function StokUnitPage() {
                       setShowDetailModal(false);
                       handleOpenEdit(selectedStock);
                     }}
-                    className="btn-outline-warm text-xs flex items-center gap-1.5 py-2 px-3 shadow-xs"
+                    className="flex-1 sm:flex-initial btn-outline-warm text-xs flex items-center justify-center gap-1.5 py-2 px-3 shadow-xs"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>Edit Unit</span>
@@ -1924,16 +1924,16 @@ export default function StokUnitPage() {
       {/* MODAL 3: TAMBAH & EDIT UNIT KENDARAAN                                     */}
       {/* ========================================================================= */}
       {(showAddModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between p-4 bg-charcoal-900 text-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 text-white shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
                   <Car className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold">
+                  <h3 className="text-sm font-bold text-white">
                     {showAddModal ? 'Tambah Unit Baru ke Inventaris Showroom' : 'Edit Data Unit Kendaraan'}
                   </h3>
                   <p className="text-[11px] text-charcoal-400">Inventaris resmi HR MOTOR Garut</p>
@@ -1944,7 +1944,7 @@ export default function StokUnitPage() {
                   setShowAddModal(false);
                   setShowEditModal(false);
                 }}
-                className="p-1 rounded-md text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1953,7 +1953,7 @@ export default function StokUnitPage() {
             {/* Form */}
             <form
               onSubmit={showAddModal ? handleSubmitAdd : handleSubmitEdit}
-              className="p-6 space-y-4 max-h-[80vh] overflow-y-auto text-xs"
+              className="p-4 sm:p-6 space-y-4 overflow-y-auto text-xs"
             >
               {formError && (
                 <div className="p-3 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 font-semibold">
@@ -2203,21 +2203,21 @@ export default function StokUnitPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-warm-200">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-warm-200 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
                     setShowEditModal(false);
                   }}
-                  className="px-4 py-2 bg-warm-200 text-charcoal-800 font-bold rounded-lg hover:bg-warm-300"
+                  className="px-4 py-2 bg-warm-200 text-charcoal-800 font-bold rounded-lg hover:bg-warm-300 w-full sm:w-auto text-center"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold px-5 py-2 text-xs font-bold"
+                  className="btn-gold px-5 py-2 text-xs font-bold w-full sm:w-auto text-center"
                 >
                   {isSubmitting ? 'Menyimpan...' : showAddModal ? 'Simpan Unit Baru' : 'Perbarui Unit'}
                 </button>
@@ -2231,8 +2231,8 @@ export default function StokUnitPage() {
       {/* MODAL 4: KONFIRMASI HAPUS                                                 */}
       {/* ========================================================================= */}
       {showDeleteModal && selectedStock && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 border border-warm-200 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 max-w-sm w-full space-y-4 border border-[#EAE8E3] shadow-luxury my-auto">
             <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -2242,11 +2242,11 @@ export default function StokUnitPage() {
                 Apakah Anda yakin ingin menghapus <strong>{selectedStock.merkType || selectedStock.model}</strong> dari inventaris showroom?
               </p>
             </div>
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
-                className="flex-1 py-2 rounded-lg bg-warm-200 text-charcoal-800 font-bold text-xs hover:bg-warm-300"
+                className="w-full sm:flex-1 py-2 rounded-lg bg-warm-200 text-charcoal-800 font-bold text-xs hover:bg-warm-300"
               >
                 Batal
               </button>
@@ -2254,7 +2254,7 @@ export default function StokUnitPage() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isSubmitting}
-                className="flex-1 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs"
+                className="w-full sm:flex-1 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs"
               >
                 {isSubmitting ? 'Menghapus...' : 'Ya, Hapus'}
               </button>

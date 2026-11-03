@@ -254,15 +254,15 @@ export default function SalesPipelinePage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 crm-card p-4 sm:p-6">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-md shrink-0">
               <TrendingUp className="w-5 h-5 text-gold-400" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-charcoal-900">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-charcoal-900">
                   Sales Pipeline Showroom HR MOTOR
                 </h1>
                 <span className="badge-gold">
@@ -277,7 +277,7 @@ export default function SalesPipelinePage() {
         </div>
 
         {/* Pipeline Summary Metrics Banner */}
-        <div className="flex flex-wrap items-center gap-2 bg-warm-100 p-2 rounded-xl border border-warm-200 text-xs self-start md:self-auto">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 bg-warm-100 p-2 rounded-xl border border-warm-200 text-xs w-full lg:w-auto">
           <div className="px-3 py-1.5 bg-white rounded-lg border border-warm-200 shadow-xs">
             <span className="text-[10px] text-charcoal-500 font-semibold block">Total Prospek</span>
             <span className="font-black text-charcoal-900 text-sm">{leads.length}</span>
@@ -294,7 +294,7 @@ export default function SalesPipelinePage() {
             <span className="text-[10px] text-rose-600 font-semibold block">Lost (Batal)</span>
             <span className="font-black text-rose-600 text-sm">{lostLeads.length}</span>
           </div>
-          <div className="px-3 py-1.5 bg-gold-50 rounded-lg border border-gold-200 shadow-xs">
+          <div className="col-span-2 sm:col-span-1 px-3 py-1.5 bg-gold-50 rounded-lg border border-gold-200 shadow-xs">
             <span className="text-[10px] text-gold-800 font-semibold block">Konversi Deal</span>
             <span className="font-black text-gold-800 text-sm">{conversionRate}%</span>
           </div>
@@ -315,7 +315,7 @@ export default function SalesPipelinePage() {
       </div>
 
       {/* KANBAN BOARD CONTAINER (5 MAIN SHOWROOM STAGES) */}
-      <div className="flex gap-4 overflow-x-auto pb-4 items-start">
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 items-start w-full min-w-0">
         {MAIN_PIPELINE_STAGES.map((col) => {
           const colLeads = leads.filter((l) => l.status === col.stage);
           const totalValue = colLeads.reduce((acc, curr) => acc + (curr.estimatedBudget || 0), 0);
@@ -575,9 +575,9 @@ export default function SalesPipelinePage() {
 
       {/* MODAL 1: CEK UNIT (Hasil Kunjungan Showroom) */}
       {modalType === 'cek_unit' && activeLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-warm-200 bg-warm-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md my-auto max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-warm-200 bg-warm-50 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-charcoal-900">
                   Tahap 3: Cek Unit di Showroom
@@ -594,7 +594,7 @@ export default function SalesPipelinePage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto">
               <div>
                 <label className="block font-semibold text-charcoal-700 mb-1">Tanggal Kunjungan Showroom</label>
                 <input
@@ -623,18 +623,18 @@ export default function SalesPipelinePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-6 py-3.5 border-t border-warm-200 bg-warm-50">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 px-4 sm:px-6 py-3.5 border-t border-warm-200 bg-warm-50 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors text-center"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleConfirmModal}
-                className="btn-gold px-4 py-2 text-xs"
+                className="w-full sm:w-auto btn-gold px-4 py-2 text-xs text-center"
               >
                 Simpan & Pindahkan ke Cek Unit
               </button>
@@ -645,9 +645,9 @@ export default function SalesPipelinePage() {
 
       {/* MODAL 2: NEGOSIASI (Harga Penawaran & Hasil Tawar-Menawar) */}
       {modalType === 'negosiasi' && activeLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-warm-200 bg-warm-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md my-auto max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-warm-200 bg-warm-50 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-charcoal-900">
                   Tahap 4: Negosiasi Harga Showroom
@@ -664,7 +664,7 @@ export default function SalesPipelinePage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto">
               <div>
                 <label className="block font-semibold text-charcoal-700 mb-1">
                   Harga Penawaran Konsumen (Rp) <span className="text-rose-500">*</span>
@@ -693,18 +693,18 @@ export default function SalesPipelinePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-6 py-3.5 border-t border-warm-200 bg-warm-50">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 px-4 sm:px-6 py-3.5 border-t border-warm-200 bg-warm-50 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors text-center"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleConfirmModal}
-                className="btn-gold px-4 py-2 text-xs"
+                className="w-full sm:w-auto btn-gold px-4 py-2 text-xs text-center"
               >
                 Simpan & Masuk Tahap Negosiasi
               </button>
@@ -715,9 +715,9 @@ export default function SalesPipelinePage() {
 
       {/* MODAL 3: DEAL (Transaksi Pembelian Berhasil) */}
       {modalType === 'deal' && activeLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-warm-200 bg-gold-50/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md my-auto max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-warm-200 bg-gold-50/50 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-charcoal-900">
                   Tahap 5: Deal Pembelian Mobil Berhasil!
@@ -734,7 +734,7 @@ export default function SalesPipelinePage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto">
               <div className="p-3 bg-gold-50 border border-gold-200 rounded-xl flex items-center gap-2 text-gold-900 text-xs">
                 <CheckCircle className="w-5 h-5 text-gold-600 shrink-0" />
                 <span>
@@ -768,7 +768,7 @@ export default function SalesPipelinePage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-charcoal-700 mb-1">Metode Pembayaran</label>
                   <select
@@ -797,18 +797,18 @@ export default function SalesPipelinePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-6 py-3.5 border-t border-warm-200 bg-warm-50">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 px-4 sm:px-6 py-3.5 border-t border-warm-200 bg-warm-50 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors text-center"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleConfirmModal}
-                className="btn-gold px-5 py-2 text-xs"
+                className="w-full sm:w-auto btn-gold px-5 py-2 text-xs text-center"
               >
                 Konfirmasi Deal Sukses
               </button>
@@ -819,9 +819,9 @@ export default function SalesPipelinePage() {
 
       {/* MODAL 4: LOST / TIDAK JADI */}
       {modalType === 'lost' && activeLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-warm-200 bg-warm-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-md my-auto max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-warm-200 bg-warm-50 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-charcoal-900">
                   Tandai Status: Lost / Tidak Jadi
@@ -838,7 +838,7 @@ export default function SalesPipelinePage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto">
               <div className="p-3 bg-warm-100 border border-warm-200 rounded-xl text-charcoal-700 text-xs leading-relaxed">
                 <strong>Catatan Evaluasi:</strong> Pilihlah alasan mengapa calon pembeli batal membeli unit di HR MOTOR Garut untuk evaluasi performa CRM.
               </div>
@@ -889,18 +889,18 @@ export default function SalesPipelinePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-6 py-3.5 border-t border-warm-200 bg-warm-50">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 px-4 sm:px-6 py-3.5 border-t border-warm-200 bg-warm-50 shrink-0">
               <button
                 type="button"
                 onClick={() => setModalType(null)}
-                className="px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-charcoal-700 hover:bg-warm-200 rounded-xl transition-colors text-center"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={handleConfirmModal}
-                className="px-4 py-2 text-xs font-bold text-white bg-charcoal-800 hover:bg-charcoal-900 rounded-xl shadow-sm transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-white bg-charcoal-800 hover:bg-charcoal-900 rounded-xl shadow-sm transition-colors text-center"
               >
                 Simpan Status Lost
               </button>
@@ -911,9 +911,9 @@ export default function SalesPipelinePage() {
 
       {/* MODAL 5: CUSTOMER JOURNEY TIMELINE (Riwayat Perjalanan Konsumen) */}
       {journeyLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-xl max-h-[85vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-warm-200 bg-warm-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-luxury border border-warm-200 w-full max-w-xl my-auto max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-warm-200 bg-warm-50 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-charcoal-900 flex items-center gap-1.5">
                   <History className="w-4 h-4 text-gold-600" />
@@ -931,9 +931,9 @@ export default function SalesPipelinePage() {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4">
               {/* Profile summary card */}
-              <div className="p-3.5 bg-warm-50 rounded-xl border border-warm-200 text-xs grid grid-cols-2 gap-2">
+              <div className="p-3.5 bg-warm-50 rounded-xl border border-warm-200 text-xs grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <span className="text-charcoal-400 block text-[10px]">Status Terkini:</span>
                   <span className="font-bold text-charcoal-900">{journeyLead.status}</span>
@@ -1047,11 +1047,11 @@ export default function SalesPipelinePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end px-6 py-3.5 border-t border-warm-200 bg-warm-50">
+            <div className="flex items-center justify-end px-4 sm:px-6 py-3.5 border-t border-warm-200 bg-warm-50 shrink-0">
               <button
                 type="button"
                 onClick={() => setJourneyLead(null)}
-                className="px-4 py-2 text-xs font-bold text-charcoal-700 bg-white hover:bg-warm-100 border border-warm-200 rounded-xl transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-charcoal-700 bg-white hover:bg-warm-100 border border-warm-200 rounded-xl transition-colors text-center"
               >
                 Tutup Riwayat
               </button>

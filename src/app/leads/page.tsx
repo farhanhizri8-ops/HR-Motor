@@ -244,26 +244,26 @@ export default function LeadsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <Link
               href="/pipeline"
-              className="btn-outline-warm flex items-center gap-1.5 text-xs py-2"
+              className="flex-1 sm:flex-initial btn-outline-warm flex items-center justify-center gap-1.5 text-xs py-2"
             >
               <span>Kanban Pipeline</span>
               <ArrowRight className="w-3.5 h-3.5 text-gold-600" />
             </Link>
             <button
               onClick={openAddModal}
-              className="btn-gold flex items-center gap-2"
+              className="flex-1 sm:flex-initial btn-gold flex items-center justify-center gap-2 text-xs py-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Tambah Prospek Baru</span>
+              <span>Tambah Prospek</span>
             </button>
           </div>
         </div>
 
         {/* Quick KPI Strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-[#EAE8E3]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mt-6 pt-5 border-t border-[#EAE8E3]">
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
             <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Prospek</p>
             <p className="text-xl font-black text-charcoal-900 mt-0.5">{leads.length}</p>
@@ -290,7 +290,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="crm-card p-4 space-y-3">
+      <div className="crm-card p-3.5 sm:p-4 space-y-3">
         <div className="flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -361,8 +361,8 @@ export default function LeadsPage() {
 
       {/* Leads Table */}
       <div className="crm-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="crm-table w-full text-left">
+        <div className="overflow-x-auto w-full">
+          <table className="crm-table w-full min-w-[850px] text-left">
             <thead>
               <tr>
                 <th className="py-3.5 px-4">Calon Pembeli</th>
@@ -505,10 +505,10 @@ export default function LeadsPage() {
 
       {/* ADD / EDIT LEAD MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+          <div className="crm-card w-full max-w-xl my-auto max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">
                   {editingLead ? 'Perbarui Prospek' : 'Input Prospek Baru'}
@@ -529,12 +529,12 @@ export default function LeadsPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium shrink-0">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSaveLead} className="flex-1 overflow-y-auto p-6 space-y-4">
+            <form onSubmit={handleSaveLead} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
@@ -765,17 +765,17 @@ export default function LeadsPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-4 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="btn-outline-warm"
+                  className="btn-outline-warm w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="btn-gold"
+                  className="btn-gold w-full sm:w-auto"
                 >
                   {editingLead ? 'Simpan Perubahan' : 'Registrasi Prospek'}
                 </button>

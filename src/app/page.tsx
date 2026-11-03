@@ -380,8 +380,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Dashboard Executive Mode Switcher: Operasional vs Reports & Analytics */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-warm-200 shadow-xs">
-        <div className="flex items-center gap-1.5 p-1 bg-warm-100 rounded-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-warm-200 shadow-xs">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 p-1 bg-warm-100 rounded-xl w-full sm:w-auto">
           <button
             type="button"
             onClick={() => {
@@ -390,14 +390,14 @@ export default function DashboardPage() {
                 window.history.replaceState(null, '', '/');
               }
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
               dashboardTab === 'operasional'
                 ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
                 : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-white/70'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Dashboard Operasional</span>
+            <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Operasional</span>
           </button>
 
           <button
@@ -408,25 +408,25 @@ export default function DashboardPage() {
                 window.history.replaceState(null, '', '/?tab=reports');
               }
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
               dashboardTab === 'reports'
                 ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
                 : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-white/70'
             }`}
           >
-            <BarChart3 className="w-4 h-4 text-gold-500" />
-            <span>Reports & Analytics</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gold-500/20 text-gold-700">
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold-500 shrink-0" />
+            <span className="truncate">Reports & Analytics</span>
+            <span className="hidden md:inline-block px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gold-500/20 text-gold-700">
               Lengkap
             </span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-charcoal-500 font-medium px-2">
+        <div className="flex items-center gap-2 text-[11px] text-charcoal-500 font-medium px-1 sm:px-2">
           {dashboardTab === 'reports' ? (
-            <span>Analisis eksekutif penjualan, tren bulanan, saluran promosi, dan ekspor data</span>
+            <span className="truncate">Analisis eksekutif penjualan, tren bulanan, saluran promosi, dan ekspor</span>
           ) : (
-            <span>Ringkasan aktivitas transaksi, stok unit, dan follow-up showroom</span>
+            <span className="truncate">Ringkasan aktivitas transaksi, stok unit, dan follow-up showroom</span>
           )}
         </div>
       </div>
@@ -615,126 +615,126 @@ export default function DashboardPage() {
         </div>
 
         {/* Active Period Info Strip */}
-        <div className="mt-4 pt-3 border-t border-warm-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="mt-4 pt-3 border-t border-warm-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
-            <span className="text-charcoal-500">Filter Aktif:</span>
-            <span className="font-bold text-charcoal-900 bg-gold-50 text-gold-800 px-2.5 py-0.5 rounded-full border border-gold-200">
+            <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse shrink-0" />
+            <span className="text-charcoal-500 text-xs shrink-0">Filter Aktif:</span>
+            <span className="font-bold text-charcoal-900 bg-gold-50 text-gold-800 px-2.5 py-0.5 rounded-full border border-gold-200 text-xs truncate max-w-[280px]">
               {periodInfo.label} ({periodInfo.rangeDesc})
             </span>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4 text-charcoal-600 font-medium text-[11px]">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-4 text-charcoal-600 font-medium text-[11px] bg-warm-50 sm:bg-transparent p-2 sm:p-0 rounded-xl">
             <span>Prospek: <strong className="text-charcoal-900 font-bold">{filteredLeads.length}</strong></span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>Deal: <strong className="text-emerald-700 font-bold">{periodDealsCount}</strong></span>
-            <span>•</span>
-            <span>Omzet: <strong className="text-gold-700 font-bold">{formatRupiah(periodOmzet)}</strong></span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="truncate">Omzet: <strong className="text-gold-700 font-bold">{formatRupiah(periodOmzet)}</strong></span>
+            <span className="hidden sm:inline">•</span>
             <span>Konversi: <strong className="text-charcoal-900 font-bold">{periodConversionRate}%</strong></span>
           </div>
         </div>
       </div>
 
       {/* 6 Key Metric Cards (Luxury Automotive Aesthetics - Connected to Filter) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5">
         {/* Metric 1: Total Pelanggan */}
-        <div className="crm-card p-4 flex flex-col justify-between">
+        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-charcoal-500">Total Pelanggan</span>
-            <div className="w-8 h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center">
-              <Users className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Total Pelanggan</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{filteredCustomers.length}</div>
-            <div className="text-[11px] text-gold-700 font-semibold mt-0.5 truncate">
-              {dateFilter === 'semua' ? 'Konsumen Showroom' : 'Konsumen Periode Ini'}
+          <div className="mt-2.5 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{filteredCustomers.length}</div>
+            <div className="text-[10px] sm:text-[11px] text-gold-700 font-semibold mt-0.5 truncate">
+              {dateFilter === 'semua' ? 'Konsumen Showroom' : 'Konsumen Periode'}
             </div>
           </div>
         </div>
 
         {/* Metric 2: Total Prospek */}
-        <div className="crm-card p-4 flex flex-col justify-between">
+        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-charcoal-500">Total Prospek</span>
-            <div className="w-8 h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center">
-              <Target className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Total Prospek</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center shrink-0">
+              <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{filteredLeads.length}</div>
-            <div className="text-[11px] text-charcoal-500 font-medium mt-0.5">
+          <div className="mt-2.5 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{filteredLeads.length}</div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
               <span className="font-bold text-charcoal-800">
                 {filteredLeads.filter((l) => l.status !== 'Deal' && l.status !== 'Lost').length}
               </span>{' '}
-              aktif di pipeline
+              aktif pipeline
             </div>
           </div>
         </div>
 
         {/* Metric 3: Stok Unit Tersedia */}
-        <div className="crm-card p-4 flex flex-col justify-between">
+        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-charcoal-500">Stok Unit Ready</span>
-            <div className="w-8 h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center">
-              <Car className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Stok Unit Ready</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0">
+              <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-gold-600">{availableStocksCount}</div>
-            <div className="text-[11px] text-charcoal-500 font-medium mt-0.5">
-              Unit Mobil Siap Jual
+          <div className="mt-2.5 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-gold-600">{availableStocksCount}</div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
+              Mobil Siap Jual
             </div>
           </div>
         </div>
 
         {/* Metric 4: Total Deal */}
-        <div className="crm-card p-4 flex flex-col justify-between">
+        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-charcoal-500">Total Deal</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
-              <Trophy className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Total Deal</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
+              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{periodDealsCount}</div>
-            <div className="text-[11px] text-charcoal-500 font-medium mt-0.5 truncate" title={formatRupiah(periodOmzet)}>
+          <div className="mt-2.5 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{periodDealsCount}</div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate" title={formatRupiah(periodOmzet)}>
               {formatRupiah(periodOmzet)}
             </div>
           </div>
         </div>
 
         {/* Metric 5: Tingkat Konversi */}
-        <div className="crm-card p-4 flex flex-col justify-between">
+        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-charcoal-500">Konversi (Win Rate)</span>
-            <div className="w-8 h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
+            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Konversi Win Rate</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-charcoal-900">{periodConversionRate}%</div>
-            <div className="text-[11px] text-charcoal-500 font-medium mt-0.5">
+          <div className="mt-2.5 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{periodConversionRate}%</div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
               {filteredLeads.filter((l) => l.status === 'Deal' || l.status === 'Lost').length} Prospek Final
             </div>
           </div>
         </div>
 
         {/* Metric 6: Follow-up Terjadwal */}
-        <div className="crm-card p-4 flex flex-col justify-between bg-gold-50/50 border-gold-200">
+        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between bg-gold-50/50 border-gold-200">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-gold-800">
-              {dateFilter === 'hari_ini' ? 'Follow-up Hari Ini' : 'Follow-up Terjadwal'}
+            <span className="text-[10px] sm:text-[11px] font-semibold text-gold-800 truncate">
+              {dateFilter === 'hari_ini' ? 'Follow-up Hari Ini' : 'Follow-up Jadwal'}
             </span>
-            <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-700 border border-gold-300 flex items-center justify-center">
-              <CalendarClock className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-100 text-gold-700 border border-gold-300 flex items-center justify-center shrink-0">
+              <CalendarClock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-gold-900">
+          <div className="mt-2.5 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-gold-900">
               {filteredFollowUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan').length}
             </div>
-            <div className="text-[11px] text-gold-700 font-medium mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-gold-700 font-medium mt-0.5 truncate">
               Kontak Konsumen
             </div>
           </div>
@@ -742,9 +742,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Charts Section (Consistent Luxury Palette) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Left: Customer & Lead Growth Area Chart */}
-        <div className="crm-card p-5 lg:col-span-2">
+        <div className="crm-card p-4 sm:p-5 lg:col-span-2 min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-charcoal-900">
@@ -759,7 +759,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-56 sm:h-64 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={growthTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -808,7 +808,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right: Lead Source Distribution (Clean Monochromatic Gold/Charcoal Pie) */}
-        <div className="crm-card p-5">
+        <div className="crm-card p-4 sm:p-5 min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-charcoal-900">Saluran Masuk Calon Pembeli</h2>
@@ -816,7 +816,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-56 sm:h-64 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -861,9 +861,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Secondary Chart & Pipeline Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Pipeline Stage Distribution */}
-        <div className="crm-card p-5 lg:col-span-2">
+        <div className="crm-card p-4 sm:p-5 lg:col-span-2 min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-charcoal-900">
@@ -877,12 +877,12 @@ export default function DashboardPage() {
               href="/pipeline"
               className="text-xs font-bold text-gold-700 hover:text-gold-800 flex items-center gap-1"
             >
-              <span>Buka Kanban Board</span>
+              <span>Buka Kanban</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="h-60 w-full">
+          <div className="h-56 sm:h-60 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pipelineDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EAE8E3" />
@@ -904,7 +904,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Stock Status Card */}
-        <div className="crm-card p-5 flex flex-col justify-between">
+        <div className="crm-card p-4 sm:p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-warm-200">
               <div className="flex items-center gap-2">

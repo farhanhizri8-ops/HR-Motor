@@ -60,7 +60,7 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] text-[#202020] flex">
+    <div className="min-h-screen bg-[#F8F7F4] text-[#202020] flex overflow-x-hidden w-full relative">
       {/* Sidebar */}
       <Sidebar
         collapsed={collapsed}
@@ -71,7 +71,7 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
 
       {/* Main Container */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+        className={`flex-1 flex flex-col min-w-0 w-full overflow-x-hidden transition-all duration-300 ease-in-out ${
           collapsed ? 'lg:pl-20' : 'lg:pl-64'
         }`}
       >
@@ -81,7 +81,7 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
           onOpenGlobalSearch={() => setGlobalSearchOpen(true)}
         />
 
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-x-hidden w-full min-w-0">
           {children}
         </main>
       </div>

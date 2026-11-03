@@ -117,8 +117,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar Container: Charcoal Black Theme */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#1C1C1C] text-white transition-all duration-300 ease-in-out border-r border-[#2A2A2A] shadow-2xl ${
-          collapsed ? 'w-20' : 'w-64'
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#1C1C1C] text-white transition-all duration-300 ease-in-out border-r border-[#2A2A2A] shadow-2xl w-72 max-w-[85vw] ${
+          collapsed ? 'lg:w-20' : 'lg:w-64'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header with Real HR MOTOR Logo */}
@@ -130,13 +130,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             href="/"
             onClick={() => setMobileOpen(false)}
             className={`flex items-center overflow-hidden group transition-all ${
-              collapsed ? 'justify-center w-full' : 'gap-2.5'
+              collapsed ? 'lg:justify-center w-full lg:w-auto' : 'gap-2.5'
             }`}
           >
             {/* Real Official HR MOTOR Logo Badge - Modern Luxury Container */}
             <div
-              className={`flex items-center justify-center bg-gradient-to-b from-[#262626] to-[#1A1A1A] rounded-xl border border-gold-500/50 shadow-lg transition-all group-hover:border-gold-400 ${
-                collapsed ? 'p-1.5 w-12 h-12' : 'px-3 py-1.5 h-12 w-auto max-w-[170px]'
+              className={`flex items-center justify-center bg-gradient-to-b from-[#262626] to-[#1A1A1A] rounded-xl border border-gold-500/50 shadow-lg transition-all group-hover:border-gold-400 px-3 py-1.5 h-12 w-auto max-w-[170px] ${
+                collapsed ? 'lg:p-1.5 lg:w-12 lg:h-12 lg:max-w-none' : ''
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -162,7 +162,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-[#292929]"
+            className="flex lg:hidden items-center justify-center w-9 h-9 rounded-xl bg-[#262626] text-slate-300 hover:text-white border border-[#333333] transition-colors shadow-2xs"
+            aria-label="Tutup Menu"
           >
             <X className="w-5 h-5" />
           </button>
@@ -182,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Navigation Items */}
-        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
+        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
           {filteredNav.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -192,11 +193,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                className={`group flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-200 relative ${
                   isActive
-                    ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold'
-                    : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300'
-                } ${collapsed ? 'justify-center px-0' : ''}`}
+                    ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold border-l-4 border-l-gold-500'
+                    : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300 border-l-4 border-l-transparent'
+                } ${collapsed ? 'lg:justify-center lg:px-0 lg:border-l-0' : ''}`}
                 title={collapsed ? item.name : undefined}
               >
                 <Icon
@@ -207,8 +208,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }`}
                 />
 
-                {!collapsed && (
-                  <span className="truncate tracking-wide">{item.name}</span>
+                {/* Show label on mobile always, or on desktop when not collapsed */}
+                <span className={`truncate tracking-wide ${collapsed ? 'lg:hidden' : 'inline'}`}>
+                  {item.name}
+                </span>
+
+                {isActive && (
+                  <span className={`w-1.5 h-1.5 rounded-full bg-gold-400 ml-auto ${collapsed ? 'lg:hidden' : 'inline-block'}`} />
                 )}
               </Link>
             );
@@ -217,35 +223,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* User Profile Card & Role Footer */}
         <div className="p-3 bg-[#141414] border-t border-[#2A2A2A]">
-          <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+          <div className={`flex items-center gap-3 ${collapsed ? 'lg:justify-center' : ''}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'}
               alt={currentUser.name}
               className="w-9 h-9 rounded-full object-cover border-2 border-gold-500 shadow-xs shrink-0"
             />
-            {!collapsed && (
-              <div className="flex-1 min-w-0 flex items-center justify-between gap-1">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-white truncate">
-                    {currentUser.name}
+            <div className={`flex-1 min-w-0 flex items-center justify-between gap-1 ${collapsed ? 'lg:hidden' : 'flex'}`}>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">
+                  {currentUser.name}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
+                  <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
+                    {currentUser.role}
                   </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
-                    <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
-                      {currentUser.role}
-                    </p>
-                  </div>
                 </div>
-                <button
-                  onClick={logout}
-                  title="Keluar dari akun CRM"
-                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-[#202020] rounded-lg transition-colors shrink-0"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
               </div>
-            )}
+              <button
+                onClick={logout}
+                title="Keluar dari akun CRM"
+                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-[#202020] rounded-lg transition-colors shrink-0"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>

@@ -1169,30 +1169,30 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       {/* Sub-Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#EAE8E3] pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-b border-[#EAE8E3] pb-3">
         <button
           type="button"
           onClick={() => setActiveTab('customers')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all w-full sm:w-auto ${
             activeTab === 'customers'
-              ? 'bg-charcoal-900 text-gold-400 shadow-sm'
-              : 'bg-[#F8F7F4] text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+              ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
+              : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
           }`}
         >
-          <Users className="w-4 h-4" />
+          <Users className="w-4 h-4 text-gold-500" />
           <span>Data Pelanggan & Kwitansi ({customers.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('transactions')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all w-full sm:w-auto ${
             activeTab === 'transactions'
-              ? 'bg-charcoal-900 text-gold-400 shadow-sm'
-              : 'bg-[#F8F7F4] text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+              ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
+              : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
           }`}
         >
-          <FileText className="w-4 h-4" />
+          <FileText className="w-4 h-4 text-gold-500" />
           <span>Transaksi Penjualan (Cash & Kredit)</span>
           {pendingCreditCount > 0 && (
             <span className="px-2 py-0.5 rounded-full bg-amber-500 text-charcoal-950 text-[10px] font-black animate-pulse shadow-xs">
@@ -1205,7 +1205,7 @@ export default function CustomersPage() {
       {activeTab === 'customers' && (
         <>
           {/* Page Header */}
-          <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+          <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -1215,7 +1215,7 @@ export default function CustomersPage() {
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
             </div>
-            <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
               Database Konsumen & Pembeli
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
@@ -1225,7 +1225,7 @@ export default function CustomersPage() {
 
           <button
             onClick={openAddModal}
-            className="btn-gold flex items-center gap-2 self-start sm:self-auto"
+            className="btn-gold flex items-center justify-center gap-2 w-full sm:w-auto shadow-gold"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah Pelanggan Baru</span>
@@ -1233,29 +1233,29 @@ export default function CustomersPage() {
         </div>
 
         {/* Quick KPI Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-[#EAE8E3]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mt-5 pt-4 border-t border-[#EAE8E3]">
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Pelanggan</p>
-            <p className="text-xl font-black text-charcoal-900 mt-0.5">{customers.length}</p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Pelanggan</p>
+            <p className="text-lg sm:text-xl font-black text-charcoal-900 mt-0.5">{customers.length}</p>
           </div>
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Transaksi Pembelian</p>
-            <p className="text-xl font-black text-gold-600 mt-0.5">{purchases.length} Unit</p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Transaksi Pembelian</p>
+            <p className="text-lg sm:text-xl font-black text-gold-600 mt-0.5">{purchases.length} Unit</p>
           </div>
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Klaim Garansi</p>
-            <p className="text-xl font-black text-charcoal-900 mt-0.5">{repairClaims.length}</p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Klaim Garansi</p>
+            <p className="text-lg sm:text-xl font-black text-charcoal-900 mt-0.5">{repairClaims.length}</p>
           </div>
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Hasil Pencarian</p>
-            <p className="text-xl font-black text-charcoal-800 mt-0.5">{processedCustomers.length}</p>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Hasil Pencarian</p>
+            <p className="text-lg sm:text-xl font-black text-charcoal-800 mt-0.5">{processedCustomers.length}</p>
           </div>
         </div>
       </div>
 
       {/* Search & Filters Bar */}
-      <div className="crm-card p-4 space-y-3">
-        <div className="flex flex-col md:flex-row gap-3">
+      <div className="crm-card p-3.5 sm:p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
           {/* Search box */}
           <div className="flex-1 relative">
             <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1263,7 +1263,7 @@ export default function CustomersPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari berdasarkan nama konsumen, nomor WhatsApp, unit mobil yang dicari, atau alamat di Garut..."
+              placeholder="Cari nama konsumen, nomor WA, unit mobil, atau alamat..."
               className="w-full text-xs pl-9 pr-4 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 placeholder-charcoal-400 transition-all font-medium"
             />
           </div>
@@ -1307,7 +1307,7 @@ export default function CustomersPage() {
         <div className="flex items-center justify-between text-[11px] text-charcoal-500 pt-2 border-t border-[#EAE8E3]">
           <span>
             Menampilkan <strong className="text-charcoal-900">{processedCustomers.length}</strong> dari{' '}
-            {customers.length} total pelanggan terdata di sistem HR MOTOR
+            {customers.length} total pelanggan terdata
           </span>
         </div>
       </div>
@@ -1315,7 +1315,7 @@ export default function CustomersPage() {
       {/* Customer Data Table */}
       <div className="crm-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="crm-table w-full text-left">
+          <table className="crm-table w-full text-left min-w-[700px]">
             <thead>
               <tr>
                 <th className="py-3.5 px-4">Konsumen</th>
@@ -1465,7 +1465,7 @@ export default function CustomersPage() {
       {activeTab === 'transactions' && (
         <div className="space-y-6">
           {/* Transactions Header */}
-          <div className="crm-card p-6 border-b-2 border-b-gold-500/40">
+          <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -1473,7 +1473,7 @@ export default function CustomersPage() {
                   <span className="text-xs text-charcoal-300">•</span>
                   <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
                 </div>
-                <h1 className="text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
                   Transaksi Penjualan (Cash & Kredit)
                 </h1>
                 <p className="text-xs text-charcoal-500 mt-0.5">
@@ -1481,14 +1481,14 @@ export default function CustomersPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => {
                     setFormError('');
                     setIsCashModalOpen(true);
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
                 >
                   <DollarSign className="w-4 h-4" />
                   <span>+ Transaksi Cash Baru</span>
@@ -1500,7 +1500,7 @@ export default function CustomersPage() {
                     setFormError('');
                     setIsCreditModalOpen(true);
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
                 >
                   <CreditCard className="w-4 h-4 text-gold-400" />
                   <span>+ Pengajuan Kredit Baru</span>
@@ -1603,7 +1603,7 @@ export default function CustomersPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="crm-table w-full text-left text-xs">
+                <table className="crm-table w-full text-left text-xs min-w-[780px]">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
                       <th className="py-3 px-4 font-bold text-charcoal-700">No. Pengajuan & Tgl</th>
@@ -1822,7 +1822,7 @@ export default function CustomersPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="crm-table w-full text-left text-xs">
+                <table className="crm-table w-full text-left text-xs min-w-[780px]">
                   <thead>
                     <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
                       <th className="py-3 px-4 font-bold text-charcoal-700">No. Kwitansi</th>
@@ -1897,10 +1897,10 @@ export default function CustomersPage() {
 
       {/* ADD / EDIT CUSTOMER MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30 my-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">
                   {editingCustomer ? 'Perbarui Data Konsumen' : 'Registrasi Konsumen Baru'}
@@ -1921,12 +1921,12 @@ export default function CustomersPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSaveCustomer} className="flex-1 overflow-y-auto p-6 space-y-4">
+            <form onSubmit={handleSaveCustomer} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
@@ -2326,26 +2326,26 @@ export default function CustomersPage() {
 
       {/* CUSTOMER DETAIL DRAWER / MODAL */}
       {selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-charcoal-800 text-gold-400 border border-gold-500/40 flex items-center justify-center font-black text-lg uppercase shadow-xs">
+            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-charcoal-800 text-gold-400 border border-gold-500/40 flex items-center justify-center font-black text-base sm:text-lg uppercase shadow-xs shrink-0">
                   {selectedCustomer.fullName.charAt(0)}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-black text-white">{selectedCustomer.fullName}</h2>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h2 className="text-base sm:text-lg font-black text-white truncate">{selectedCustomer.fullName}</h2>
                     <span className="badge-gold text-[10px]">Pelanggan Terdaftar</span>
                   </div>
-                  <p className="text-xs text-charcoal-300">
+                  <p className="text-[11px] sm:text-xs text-charcoal-300 truncate">
                     ID: {selectedCustomer.id} • Terdaftar: {formatDate(selectedCustomer.registeredDate)}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end xs:self-auto shrink-0">
                 <a
                   href={formatWhatsAppLink(
                     selectedCustomer.whatsapp,
@@ -2353,10 +2353,11 @@ export default function CustomersPage() {
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-gold flex items-center gap-1.5 py-1.5 text-xs"
+                  className="btn-gold flex items-center gap-1.5 py-1.5 px-3 text-xs"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
-                  <span>Chat WhatsApp</span>
+                  <span className="hidden sm:inline">Chat WhatsApp</span>
+                  <span className="sm:hidden">WA</span>
                 </a>
                 <button
                   onClick={() => setSelectedCustomer(null)}
@@ -2368,9 +2369,9 @@ export default function CustomersPage() {
             </div>
 
             {/* Content Tabs */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
               {/* Profile Card */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-[#FAF9F5] rounded-2xl border border-[#EAE8E3] text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-5 bg-[#FAF9F5] rounded-2xl border border-[#EAE8E3] text-xs">
                 <div>
                   <span className="text-charcoal-400 block text-[11px] font-semibold uppercase tracking-wider">Nomor WhatsApp</span>
                   <span className="font-bold text-charcoal-900 text-sm">{selectedCustomer.whatsapp}</span>
@@ -2711,68 +2712,68 @@ export default function CustomersPage() {
             </div>
 
             {/* Printable Kwitansi Sheet (Presisi 100% Sesuai Template Excel Showroom HR MOTOR) */}
-            <div className="p-4 sm:p-6 overflow-y-auto bg-[#FAF8F5] flex justify-center">
+            <div className="p-3 sm:p-6 overflow-y-auto overflow-x-auto bg-[#FAF8F5] flex justify-center">
               <div
                 id="printable-kwitansi"
-                className="bg-white border border-black shadow-lg relative overflow-hidden text-black w-full max-w-2xl select-none"
+                className="bg-white border border-black shadow-lg relative overflow-hidden text-black w-full max-w-2xl select-none min-w-[290px]"
               >
                 {/* Top Yellow Bar */}
                 <div className="w-full h-3 sm:h-3.5 bg-[#FFEE00] border-b border-black/20"></div>
 
-                <div className="relative min-h-[300px] sm:min-h-[340px] p-5 sm:p-7 flex flex-col justify-between">
+                <div className="relative min-h-[290px] sm:min-h-[340px] p-4 sm:p-7 flex flex-col justify-between">
                     {/* Watermark Logo HR MOTOR in Center Background */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/logo-hr-motor.png"
                         alt=""
-                        className="w-64 sm:w-80 object-contain opacity-15"
+                        className="w-56 sm:w-80 object-contain opacity-15"
                       />
                     </div>
 
                     {/* Logo Header in Top Center */}
-                    <div className="flex justify-center mb-4 sm:mb-5 relative z-10">
+                    <div className="flex justify-center mb-3 sm:mb-5 relative z-10">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/logo-hr-motor.png"
                         alt="HR MOTOR"
-                        className="h-16 sm:h-20 object-contain drop-shadow-xs"
+                        className="h-14 sm:h-20 object-contain drop-shadow-xs"
                       />
                     </div>
 
                     {/* Main Receipt Content Rows */}
                     <div className="relative z-10 space-y-1 sm:space-y-1.5 text-xs sm:text-sm font-sans text-black">
                       <div className="flex items-baseline">
-                        <span className="w-36 sm:w-40 font-bold shrink-0">Terima Dari</span>
-                        <span className="font-bold mr-2 sm:mr-3">:</span>
-                        <span className="font-bold uppercase tracking-tight">
+                        <span className="w-28 sm:w-40 font-bold shrink-0 text-xs sm:text-sm">Terima Dari</span>
+                        <span className="font-bold mr-1.5 sm:mr-3">:</span>
+                        <span className="font-bold uppercase tracking-tight break-words">
                           {selectedKwitansi.terimaDari}
                         </span>
                       </div>
                       <div className="flex items-baseline">
-                        <span className="w-36 sm:w-40 font-bold shrink-0">Sejumlah Uang</span>
-                        <span className="font-bold mr-2 sm:mr-3">:</span>
-                        <span className="font-medium text-black">
+                        <span className="w-28 sm:w-40 font-bold shrink-0 text-xs sm:text-sm">Sejumlah Uang</span>
+                        <span className="font-bold mr-1.5 sm:mr-3">:</span>
+                        <span className="font-medium text-black break-words">
                           {selectedKwitansi.terbilang}
                         </span>
                       </div>
                       <div className="flex items-baseline">
-                        <span className="w-36 sm:w-40 font-bold shrink-0">Untuk Pembayaran</span>
-                        <span className="font-bold mr-2 sm:mr-3">:</span>
-                        <span className="font-bold uppercase text-black">
+                        <span className="w-28 sm:w-40 font-bold shrink-0 text-xs sm:text-sm">Untuk Pembayaran</span>
+                        <span className="font-bold mr-1.5 sm:mr-3">:</span>
+                        <span className="font-bold uppercase text-black break-words">
                           {selectedKwitansi.untukPembayaran}
                         </span>
                       </div>
                       <div className="flex items-baseline">
-                        <span className="w-36 sm:w-40 font-bold shrink-0">Plat No</span>
-                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="w-28 sm:w-40 font-bold shrink-0 text-xs sm:text-sm">Plat No</span>
+                        <span className="font-bold mr-1.5 sm:mr-3">:</span>
                         <span className="font-bold font-mono uppercase text-black">
                           {selectedKwitansi.nomorPolisi || '-'}
                         </span>
                       </div>
                       <div className="flex items-baseline">
-                        <span className="w-36 sm:w-40 font-bold shrink-0">Keterangan</span>
-                        <span className="font-bold mr-2 sm:mr-3">:</span>
+                        <span className="w-28 sm:w-40 font-bold shrink-0 text-xs sm:text-sm">Keterangan</span>
+                        <span className="font-bold mr-1.5 sm:mr-3">:</span>
                         <span className="font-medium text-black">
                           {selectedKwitansi.keterangan || 'Walk in'}
                         </span>
@@ -2780,13 +2781,13 @@ export default function CustomersPage() {
                     </div>
 
                     {/* Bottom Row: Jumlah Rp & Tanda Tangan */}
-                    <div className="mt-6 sm:mt-8 pt-2 flex items-end justify-between gap-4 relative z-10">
+                    <div className="mt-5 sm:mt-8 pt-2 flex flex-col xs:flex-row items-start xs:items-end justify-between gap-3 sm:gap-4 relative z-10">
                       {/* Left: Jumlah Rp with Slanted Parallelogram Box */}
                       <div className="flex items-center gap-2 sm:gap-3">
                         <span className="font-bold text-xs sm:text-sm text-black shrink-0">
                           Jumlah Rp
                         </span>
-                        <div className="border-2 border-black transform -skew-x-[25deg] px-6 sm:px-8 py-0.5 sm:py-1 bg-white">
+                        <div className="border-2 border-black transform -skew-x-[25deg] px-3 sm:px-8 py-0.5 sm:py-1 bg-white">
                           <span className="inline-block transform skew-x-[25deg] font-bold text-xs sm:text-sm font-mono text-black">
                             {selectedKwitansi.sejumlahUang.toLocaleString('id-ID')}
                           </span>
@@ -2794,10 +2795,10 @@ export default function CustomersPage() {
                       </div>
 
                       {/* Right: Signature & Date */}
-                      <div className="text-right text-[11px] sm:text-xs text-black shrink-0 pr-1">
+                      <div className="text-right text-[11px] sm:text-xs text-black shrink-0 pr-1 self-end">
                         <div>{selectedKwitansi.tempatTanggal}</div>
                         <div className="mt-0.5">Penerima</div>
-                        <div className="h-10 sm:h-12"></div>
+                        <div className="h-8 sm:h-12"></div>
                         <div className="font-bold uppercase tracking-wide">
                           {selectedKwitansi.penerima || 'HR MOTOR'}
                         </div>
@@ -2826,9 +2827,9 @@ export default function CustomersPage() {
 
       {/* MODAL 1: TRANSAKSI PENJUALAN CASH */}
       {isCashModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white shrink-0">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 mb-1">
                   <DollarSign className="w-3 h-3" /> Transaksi Penjualan Cash Showroom
@@ -2850,13 +2851,13 @@ export default function CustomersPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitCashTransaction} className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmitCashTransaction} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
                     Nama Pembeli <span className="text-rose-500">*</span>
@@ -3061,9 +3062,9 @@ export default function CustomersPage() {
 
       {/* MODAL 2: PENGAJUAN KREDIT BARU */}
       {isCreditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-gold-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-600/50 mb-1">
                   <CreditCard className="w-3 h-3" /> Pengajuan Kredit Baru Showroom
@@ -3085,13 +3086,13 @@ export default function CustomersPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitCreditApplication} className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmitCreditApplication} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
                     Nama Calon Pembeli <span className="text-rose-500">*</span>
@@ -3339,9 +3340,9 @@ export default function CustomersPage() {
 
       {/* MODAL 3: TOMBOL ACC (PERSETUJUAN KREDIT) */}
       {isAccModalOpen && selectedCreditApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white shrink-0">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 mb-1">
                   <Check className="w-3 h-3" /> Konfirmasi Keputusan Kredit
@@ -3363,12 +3364,12 @@ export default function CustomersPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitAcc} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitAcc} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               {/* Ringkasan Pengajuan */}
               <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs space-y-2">
                 <div className="flex justify-between items-center">
@@ -3467,9 +3468,9 @@ export default function CustomersPage() {
 
       {/* MODAL 4: TOMBOL DITOLAK (PENOLAKAN KREDIT) */}
       {isRejectModalOpen && selectedCreditApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-rose-500/40">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-rose-500/30 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-rose-500/40 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-rose-500/30 text-white shrink-0">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-600/50 mb-1">
                   <XCircle className="w-3 h-3" /> Konfirmasi Penolakan Pengajuan
@@ -3491,12 +3492,12 @@ export default function CustomersPage() {
             </div>
 
             {formError && (
-              <div className="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
+              <div className="mx-4 sm:mx-6 mt-3 sm:mt-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSubmitReject} className="p-6 space-y-4">
+            <form onSubmit={handleSubmitReject} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-charcoal-500">Pemohon:</span>
@@ -3534,17 +3535,17 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-[#EAE8E3]">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 pt-3 border-t border-[#EAE8E3]">
                 <button
                   type="button"
                   onClick={() => setIsRejectModalOpen(false)}
-                  className="btn-outline-warm"
+                  className="btn-outline-warm w-full sm:w-auto"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
                 >
                   <X className="w-4 h-4" />
                   <span>Konfirmasi Tolak Pengajuan</span>
@@ -3557,9 +3558,9 @@ export default function CustomersPage() {
 
       {/* MODAL 5: RIWAYAT AUDIT PENGAJUAN KREDIT */}
       {isHistoryModalOpen && selectedCreditApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700">
-            <div className="flex items-center justify-between px-6 py-4 bg-charcoal-900 border-b border-charcoal-800 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700 my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-charcoal-800 text-white shrink-0">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">Audit Trail & Timeline</span>
                 <h2 className="text-base font-black text-white tracking-tight">
@@ -3578,8 +3579,8 @@ export default function CustomersPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs grid grid-cols-2 gap-2">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl text-xs grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <span className="text-charcoal-400 block text-[10px] uppercase font-bold">Harga Deal</span>
                   <span className="font-bold text-charcoal-900">{formatRupiah(selectedCreditApp.dealPrice)}</span>
@@ -3654,11 +3655,11 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            <div className="px-6 py-3 bg-[#FAF9F5] border-t border-[#EAE8E3] flex justify-end">
+            <div className="px-4 sm:px-6 py-3 bg-[#FAF9F5] border-t border-[#EAE8E3] flex justify-end">
               <button
                 type="button"
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
               >
                 Tutup
               </button>
