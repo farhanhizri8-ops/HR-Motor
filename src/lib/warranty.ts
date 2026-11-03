@@ -70,7 +70,7 @@ export function checkWarrantyStatus(purchaseDateStr?: string, repairDateStr?: st
   const m = String(expiryDate.getMonth() + 1).padStart(2, '0');
   const d = String(expiryDate.getDate()).padStart(2, '0');
   const expiryDateFormatted = `${y}-${m}-${d}`;
-  const daysRemaining = Math.max(0, 30 - daysDiff);
+  const daysRemaining = isWithin ? Math.max(0, 30 - daysDiff) : 0;
 
   return {
     isWithinWarranty: isWithin,

@@ -661,6 +661,11 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   assert(!test31Days.isWithinWarranty, 'Day 31 claim is outside warranty (> 30 days)');
   assert(test31Days.statusLabel === 'Di Luar Garansi', 'Day 31 claim statusLabel is "Di Luar Garansi"');
   assert(test31Days.badgeLabel === 'Di Luar Garansi', 'Day 31 claim badgeLabel is "Di Luar Garansi"');
+  assert(test31Days.daysRemaining === 0, 'Day 31 claim daysRemaining is 0');
+
+  const testPriorClaimDate = checkWarrantyStatus('2026-10-15', '2026-10-10');
+  assert(!testPriorClaimDate.isWithinWarranty, 'Claim date preceding purchase date is outside warranty');
+  assert(testPriorClaimDate.daysRemaining === 0, 'Preceding claim date daysRemaining is 0');
 
   const testMissingPurchaseDate = checkWarrantyStatus(undefined, '2026-11-01');
   assert(!testMissingPurchaseDate.isWithinWarranty, 'Missing purchase date safely defaults to outside warranty');
@@ -831,6 +836,49 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   assert(testPathMatch('/garansi-perbaikan'), '/garansi-perbaikan matches warranty menu');
   assert(testPathMatch('/garansi-perbaikan/'), '/garansi-perbaikan/ with trailing slash matches warranty menu');
   assert(testPathMatch('/riwayat-perbaikan'), '/riwayat-perbaikan matches warranty menu');
+
+  // 6. Ticket Number Non-Colliding Generation Test
+  const testClaimsForSeq = [
+    { claimNumber: 'GRS-2026-001' },
+    { claimNumber: 'GRS-2026-002' },
+    { claimNumber: 'GRS-2026-003' },
+  ];
+  // simulate deleting claim 002 -> remaining 001 and 003 (length is 2)
+  const remainingAfterDelete = [testClaimsForSeq[0], testClaimsForSeq[2]];
+  let maxSeqNum = 0;
+  remainingAfterDelete.forEach(c => {
+    const match = (c.claimNumber || '').match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > maxSeqNum) maxSeqNum = num;
+    }
+  });
+  const generatedSeq = Math.max(maxSeqNum + 1, remainingAfterDelete.length + 1);
+  const nextTicket = `GRS-2026-${String(generatedSeq).padStart(3, '0')}`;
+  assert(nextTicket === 'GRS-2026-004', 'Generated ticket is GRS-2026-004, avoiding collision with existing GRS-2026-003');
+
+  // 7. repairDatabaseRepairClaims Persistence Test
+  const { repairDatabaseRepairClaims } = require('../src/lib/serverStore');
+  const dummyDb: any = {
+    repairClaims: [
+      { id: 'TEST-1', customerName: 'Budi', claimType: 'Non-Garansi', totalCost: 500000 },
+    ],
+  };
+  const modResult = repairDatabaseRepairClaims(dummyDb);
+  assert(modResult, 'repairDatabaseRepairClaims modifies legacy Non-Garansi claim');
+  assert(dummyDb.repairClaims[0].claimType === 'Garansi', 'Legacy Non-Garansi claim converted to Garansi');
+  assert(dummyDb.repairClaims[0].status === 'Selesai', 'Default status Selesai assigned');
+  assert(dummyDb.repairClaims[0].workshop.includes('HR MOTOR'), 'Default workshop assigned');
+
+  // 8. Table Month & Year Filter Test
+  const filterByMonthYear = (claimDate: string, yFilter: string, mFilter: string) => {
+    const y = claimDate.slice(0, 4);
+    const m = claimDate.slice(5, 7);
+    return (yFilter === 'Semua' || y === yFilter) && (mFilter === 'Semua' || m === mFilter);
+  };
+  assert(filterByMonthYear('2026-10-08', '2026', '10'), 'October 2026 claim matches 2026 and month 10');
+  assert(!filterByMonthYear('2026-10-08', '2026', '09'), 'October 2026 claim does NOT match month 09');
+  assert(filterByMonthYear('2026-10-08', 'Semua', 'Semua'), 'Semua matches any claim');
 }
 
 

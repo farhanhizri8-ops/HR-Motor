@@ -120,8 +120,8 @@ export default function RiwayatPerbaikanGaransiPage() {
     formatWhatsAppLink,
   } = useCrm();
 
-  // Active sub-tab: 'list' (Tabel Data Garansi) | 'reports' (Dashboard & Analitik Owner)
-  const [activeTab, setActiveTab] = useState<'list' | 'reports'>('list');
+  // Active sub-tab: 'all' (Semua: Dashboard & Tabel) | 'list' (Tabel Saja) | 'reports' (Visualisasi Saja)
+  const [activeTab, setActiveTab] = useState<'all' | 'list' | 'reports'>('all');
 
   // Month & Year Selector for Metric: Total Uang Perbaikan Selama Satu Bulan
   const currentDate = new Date();
@@ -219,11 +219,16 @@ export default function RiwayatPerbaikanGaransiPage() {
 
     purchases.forEach((p, idx) => {
       const cust = customers.find(
-        (c) => c.id === p.customerId || c.fullName.toLowerCase() === p.customerName.toLowerCase()
+        (c) =>
+          c.id === p.customerId ||
+          c.fullName.toLowerCase().trim() === p.customerName.toLowerCase().trim()
       );
-      const phone = cust ? cust.whatsapp : '';
+      const phone = cust?.whatsapp || (p as any).customerPhone || '';
       const brand = p.vehicleBrand || (p.vehicleName ? p.vehicleName.split(' ')[0] : 'Toyota');
-      const model = p.vehicleModel || p.vehicleName || 'Mobil';
+      let model = p.vehicleModel || p.vehicleName || 'Mobil';
+      if (model.toLowerCase().startsWith(brand.toLowerCase())) {
+        model = model.slice(brand.length).trim() || model;
+      }
       const plate = p.plateNumber || '-';
 
       list.push({
@@ -244,11 +249,14 @@ export default function RiwayatPerbaikanGaransiPage() {
     customers.forEach((c) => {
       if (c.status === 'Sudah Beli') {
         const alreadyIn = list.some(
-          (item) => item.customerId === c.id || item.customerName.toLowerCase() === c.fullName.toLowerCase()
+          (item) => item.customerId === c.id || item.customerName.toLowerCase().trim() === c.fullName.toLowerCase().trim()
         );
         if (!alreadyIn) {
           const brand = c.interestedVehicle ? c.interestedVehicle.split(' ')[0] : 'Toyota';
-          const model = c.interestedVehicle || 'Mobil';
+          let model = c.interestedVehicle || 'Mobil';
+          if (model.toLowerCase().startsWith(brand.toLowerCase())) {
+            model = model.slice(brand.length).trim() || model;
+          }
           const plate = c.plateNumber || '-';
           list.push({
             key: `CUST-${c.id}`,
@@ -335,6 +343,8 @@ export default function RiwayatPerbaikanGaransiPage() {
         model: string;
         year: number;
         plateNumber: string;
+        customerName?: string;
+        customerPhone?: string;
         claimCount: number;
         totalCost: number;
         categories: Record<string, number>;
@@ -354,6 +364,8 @@ export default function RiwayatPerbaikanGaransiPage() {
           model: c.vehicleModel,
           year: c.vehicleYear,
           plateNumber: plate || '-',
+          customerName: c.customerName,
+          customerPhone: c.customerPhone,
           claimCount: 0,
           totalCost: 0,
           categories: {},
@@ -423,6 +435,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     return {
       totalClaimsCount,
       totalCostSelectedMonth,
+      claimsForSelectedMonthCount: claimsForSelectedMonth.length,
       grandTotalCost,
       totalUniqueCustomers,
       totalCarSales,
@@ -586,8 +599,16 @@ export default function RiwayatPerbaikanGaransiPage() {
         ? formData.customWorkshop.trim() || 'Bengkel Rekanan HR MOTOR'
         : formData.workshop;
 
-    const count = repairClaims.length + 1;
-    const ticketNo = `GRS-2026-${String(count).padStart(3, '0')}`;
+    let maxNum = 0;
+    repairClaims.forEach((c) => {
+      const match = (c.claimNumber || c.id || '').match(/(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) maxNum = num;
+      }
+    });
+    const nextSeq = Math.max(maxNum + 1, repairClaims.length + 1);
+    const ticketNo = `GRS-2026-${String(nextSeq).padStart(3, '0')}`;
 
     const newPayload: Partial<RepairClaim> = {
       claimNumber: ticketNo,
@@ -979,14 +1000,18 @@ export default function RiwayatPerbaikanGaransiPage() {
       },
     });
 
-    const afterT3Y = (doc as any).lastAutoTable.finalY + 12;
+    const afterT3Y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 12 : 200;
 
     // Signature section
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(60, 60, 60);
 
-    const signY = afterT3Y > 235 ? 245 : afterT3Y;
+    let signY = afterT3Y;
+    if (afterT3Y + 32 > 285) {
+      doc.addPage();
+      signY = 30;
+    }
 
     doc.text('Konsumen / Pemilik Unit,', 20, signY);
     doc.text('(_______________________)', 20, signY + 22);
@@ -1130,6 +1155,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 className="text-[10px] font-bold py-0.5 px-1 bg-white border border-gold-300 rounded text-charcoal-800 focus:outline-none cursor-pointer"
                 title="Pilih Bulan untuk Metrik Biaya 1 Bulan"
               >
+                <option value="ALL">Semua</option>
                 {MONTH_NAMES.map((name, idx) => {
                   const val = String(idx + 1).padStart(2, '0');
                   return (
@@ -1157,10 +1183,23 @@ export default function RiwayatPerbaikanGaransiPage() {
           </div>
 
           <div className="flex items-center justify-between text-[10px] text-charcoal-500 mt-1">
-            <span className="font-medium">
-              Bulan {MONTH_NAMES[parseInt(selectedMonth, 10) - 1] || selectedMonth} {selectedYear}
+            <span className="font-medium truncate">
+              {selectedMonth === 'ALL'
+                ? `Tahun ${selectedYear}`
+                : `Bulan ${MONTH_NAMES[parseInt(selectedMonth, 10) - 1] || selectedMonth} ${selectedYear}`}
+              {warrantyMetrics.claimsForSelectedMonthCount > 0 ? ` (${warrantyMetrics.claimsForSelectedMonthCount} klaim)` : ''}
             </span>
-            <span className="text-gold-700 font-bold">100% Ditanggung HR</span>
+            <button
+              type="button"
+              onClick={() => {
+                setTableYearFilter(selectedYear);
+                setTableMonthFilter(selectedMonth === 'ALL' ? 'Semua' : selectedMonth);
+              }}
+              className="text-gold-700 hover:text-gold-900 font-bold underline shrink-0 ml-1"
+              title="Terapkan filter bulan ini ke tabel"
+            >
+              Lihat Tabel →
+            </button>
           </div>
         </div>
 
@@ -1217,13 +1256,23 @@ export default function RiwayatPerbaikanGaransiPage() {
             <span className="text-xl font-black text-charcoal-900">{warrantyMetrics.avgPerbaikanPerUnit}x</span>
             <span className="text-xs text-charcoal-500 font-semibold">per mobil</span>
           </div>
-          <p className="text-[10px] text-charcoal-400 mt-1 truncate">
-            {warrantyMetrics.totalClaimsCount} klaim dari {warrantyMetrics.totalUniqueUnits} mobil diservis
+          <p className="text-[10px] text-charcoal-500 mt-1 truncate" title={warrantyMetrics.rankedUnits[0] ? `Unit klaim terbanyak: ${warrantyMetrics.rankedUnits[0].brand} ${warrantyMetrics.rankedUnits[0].model} (${warrantyMetrics.rankedUnits[0].claimCount}x)` : undefined}>
+            {warrantyMetrics.rankedUnits[0]
+              ? `Top: ${warrantyMetrics.rankedUnits[0].brand} ${warrantyMetrics.rankedUnits[0].model} (${warrantyMetrics.rankedUnits[0].claimCount}x)`
+              : `${warrantyMetrics.totalClaimsCount} klaim dari ${warrantyMetrics.totalUniqueUnits} mobil`}
           </p>
         </div>
 
         {/* 5. Perbaikan yang Sering Terjadi di Garansi */}
-        <div className="crm-card p-4 bg-[#FAF9F5] border-charcoal-300">
+        <div
+          onClick={() => {
+            if (warrantyMetrics.topCategory) {
+              setCategoryFilter(categoryFilter === warrantyMetrics.topCategory.name ? 'Semua' : warrantyMetrics.topCategory.name);
+            }
+          }}
+          className="crm-card p-4 bg-[#FAF9F5] border-charcoal-300 cursor-pointer hover:border-gold-500 transition-all"
+          title="Klik untuk memfilter tabel berdasarkan kategori perbaikan ini"
+        >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-700 flex items-center gap-1">
               <Wrench className="w-3.5 h-3.5 text-rose-600" />
@@ -1243,11 +1292,18 @@ export default function RiwayatPerbaikanGaransiPage() {
               style={{ width: `${warrantyMetrics.topCategory?.percentage || 0}%` }}
             />
           </div>
-          <p className="text-[10px] text-charcoal-500 mt-1 font-medium">
-            {warrantyMetrics.topCategory
-              ? `${warrantyMetrics.topCategory.count} kasus (${warrantyMetrics.topCategory.percentage}% frekuensi)`
-              : 'Belum ada data perbaikan garansi'}
-          </p>
+          <div className="flex items-center justify-between text-[10px] text-charcoal-600 mt-1">
+            <span className="font-semibold">
+              {warrantyMetrics.topCategory
+                ? `${warrantyMetrics.topCategory.count} kasus (${warrantyMetrics.topCategory.percentage}%)`
+                : '-'}
+            </span>
+            {warrantyMetrics.rankedCategories.length > 1 && warrantyMetrics.rankedCategories[1].count > 0 && (
+              <span className="text-charcoal-500 truncate ml-1 text-[9px]">
+                #2 {warrantyMetrics.rankedCategories[1].name} ({warrantyMetrics.rankedCategories[1].count}x)
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1322,6 +1378,18 @@ export default function RiwayatPerbaikanGaransiPage() {
       <div className="flex items-center justify-between border-b border-[#EAE8E3] overflow-x-auto w-full min-w-0">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
+            onClick={() => setActiveTab('all')}
+            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === 'all'
+                ? 'border-gold-500 text-gold-600'
+                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-gold-500" />
+            <span>Semua (Dashboard &amp; Tabel)</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('list')}
             className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'list'
@@ -1330,7 +1398,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>Tabel Data Garansi Perbaikan ({filteredClaims.length})</span>
+            <span>Tabel Data Garansi ({filteredClaims.length})</span>
           </button>
 
           <button
@@ -1361,9 +1429,9 @@ export default function RiwayatPerbaikanGaransiPage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: TABEL DATA GARANSI PERBAIKAN                                       */}
+      {/* TAB: TABEL DATA GARANSI PERBAIKAN                                         */}
       {/* ========================================================================= */}
-      {activeTab === 'list' && (
+      {(activeTab === 'all' || activeTab === 'list') && (
         <div className="space-y-4">
           {/* Toolbar Pencarian & Filter */}
           <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
@@ -1450,11 +1518,32 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </select>
               </div>
 
+              {/* Filter Bulan */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-slate-500 font-medium">Bulan:</span>
+                <select
+                  value={tableMonthFilter}
+                  onChange={(e) => setTableMonthFilter(e.target.value)}
+                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                >
+                  <option value="Semua">Semua Bulan</option>
+                  {MONTH_NAMES.map((name, idx) => {
+                    const val = String(idx + 1).padStart(2, '0');
+                    return (
+                      <option key={val} value={val}>
+                        {name}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
               {/* Reset Filter Button */}
               {(categoryFilter !== 'Semua' ||
                 warrantyFilter !== 'Semua' ||
                 statusFilter !== 'Semua' ||
                 tableYearFilter !== 'Semua' ||
+                tableMonthFilter !== 'Semua' ||
                 searchQuery ||
                 customerFilter !== 'Semua') && (
                 <button
@@ -1921,9 +2010,9 @@ export default function RiwayatPerbaikanGaransiPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: DASHBOARD & VISUALISASI OWNER HR MOTOR                              */}
+      {/* TAB: DASHBOARD & VISUALISASI OWNER HR MOTOR                                */}
       {/* ========================================================================= */}
-      {activeTab === 'reports' && (
+      {(activeTab === 'all' || activeTab === 'reports') && (
         <div className="space-y-6">
           {/* Header Periode Laporan */}
           <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -2097,6 +2186,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-4">Peringkat</th>
+                    <th className="py-3 px-4">Pelanggan &amp; WhatsApp</th>
                     <th className="py-3 px-4">Unit Kendaraan</th>
                     <th className="py-3 px-4">No. Polisi (Plat)</th>
                     <th className="py-3 px-4 text-center">Frekuensi Klaim</th>
@@ -2108,6 +2198,12 @@ export default function RiwayatPerbaikanGaransiPage() {
                   {warrantyMetrics.rankedUnits.map((unit, idx) => (
                     <tr key={unit.unitKey} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3 px-4 font-bold text-slate-500">#{idx + 1}</td>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-slate-900">{unit.customerName || '-'}</div>
+                        {unit.customerPhone && (
+                          <div className="text-[10px] text-slate-500 font-mono">{unit.customerPhone}</div>
+                        )}
+                      </td>
                       <td className="py-3 px-4 font-semibold text-slate-900">
                         {unit.brand} {unit.model} ({unit.year})
                       </td>
@@ -2485,13 +2581,11 @@ export default function RiwayatPerbaikanGaransiPage() {
                   </span>
                 </div>
                 <input
-                  type="number"
-                  min="0"
-                  step="10000"
+                  type="text"
                   required
-                  placeholder="Contoh: 850000"
-                  value={formData.repairCost || ''}
-                  onChange={(e) => setFormData({ ...formData, repairCost: Number(e.target.value) || 0 })}
+                  placeholder="Contoh: 850.000"
+                  value={formData.repairCost ? formData.repairCost.toLocaleString('id-ID') : ''}
+                  onChange={(e) => setFormData({ ...formData, repairCost: parseRupiahInput(e.target.value) })}
                   className="w-full text-sm font-bold py-2.5 px-3 bg-white border border-gold-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-600 font-mono text-slate-900"
                 />
                 <div className="text-xs text-charcoal-600 font-medium">
@@ -2983,13 +3077,12 @@ export default function RiwayatPerbaikanGaransiPage() {
                   Biaya Perbaikan (Rp)
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  step="10000"
+                  type="text"
                   required
-                  value={editFormData.repairCost}
+                  placeholder="Contoh: 850.000"
+                  value={editFormData.repairCost ? editFormData.repairCost.toLocaleString('id-ID') : ''}
                   onChange={(e) =>
-                    setEditFormData({ ...editFormData, repairCost: Number(e.target.value) || 0 })
+                    setEditFormData({ ...editFormData, repairCost: parseRupiahInput(e.target.value) })
                   }
                   className="w-full text-sm font-bold py-2 px-3 bg-white border border-gold-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-600 font-mono"
                 />

@@ -103,7 +103,7 @@ export function readDatabase(): CrmDatabase {
     const parsed = JSON.parse(content) as CrmDatabase;
 
     // Ensure repairClaims is present
-    if (!parsed.repairClaims || !Array.isArray(parsed.repairClaims) || parsed.repairClaims.length === 0) {
+    if (!parsed.repairClaims || !Array.isArray(parsed.repairClaims)) {
       parsed.repairClaims = JSON.parse(JSON.stringify(INITIAL_REPAIR_CLAIMS));
     }
 
@@ -119,6 +119,7 @@ export function readDatabase(): CrmDatabase {
 
     repairDatabaseFollowUps(parsed);
     repairDatabaseUsers(parsed);
+    repairDatabaseRepairClaims(parsed);
     repairDatabaseStocks(parsed);
     repairDatabaseCustomers(parsed);
     repairDatabasePurchases(parsed);
@@ -227,16 +228,57 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
     modified = true;
   }
 
-  // Ensure every repair claim is Garansi (HR MOTOR guarantees 100% warranty on every vehicle sold)
-  if (db.repairClaims && Array.isArray(db.repairClaims)) {
-    db.repairClaims.forEach((r) => {
-      if ((r.claimType as string) === 'Non-Garansi') {
-        r.claimType = 'Garansi';
-        modified = true;
-      }
-    });
-  }
+  return modified;
+}
 
+export function repairDatabaseRepairClaims(db: CrmDatabase): boolean {
+  let modified = false;
+  if (!db || !Array.isArray(db.repairClaims)) {
+    db.repairClaims = JSON.parse(JSON.stringify(INITIAL_REPAIR_CLAIMS));
+    return true;
+  }
+  db.repairClaims.forEach((r, idx) => {
+    if ((r.claimType as string) === 'Non-Garansi' || !r.claimType) {
+      r.claimType = 'Garansi';
+      modified = true;
+    }
+    if (!r.claimNumber) {
+      r.claimNumber = `GRS-2026-${String(idx + 1).padStart(3, '0')}`;
+      modified = true;
+    }
+    if (!r.status) {
+      r.status = 'Selesai';
+      modified = true;
+    }
+    if (!r.workshop) {
+      r.workshop = 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)';
+      modified = true;
+    }
+    if (!r.partsToRepair && r.damagedParts) {
+      r.partsToRepair = r.damagedParts;
+      modified = true;
+    }
+    if (!r.damagedParts && r.partsToRepair) {
+      r.damagedParts = r.partsToRepair;
+      modified = true;
+    }
+    if (!r.complaintOrDamage && r.complaint) {
+      r.complaintOrDamage = r.complaint;
+      modified = true;
+    }
+    if (!r.complaint && r.complaintOrDamage) {
+      r.complaint = r.complaintOrDamage;
+      modified = true;
+    }
+    if (!r.repairActionDescription && r.actionTaken) {
+      r.repairActionDescription = r.actionTaken;
+      modified = true;
+    }
+    if (!r.actionTaken && r.repairActionDescription) {
+      r.actionTaken = r.repairActionDescription;
+      modified = true;
+    }
+  });
   return modified;
 }
 

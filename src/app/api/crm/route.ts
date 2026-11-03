@@ -904,10 +904,18 @@ export async function POST(request: Request) {
         const serviceCost = payload.serviceCost !== undefined
           ? Number(payload.serviceCost) || 0
           : 0;
-        const count = (db.repairClaims || []).length + 1;
-        const claimNum = payload.claimNumber || `GRS-2026-${String(count).padStart(3, '0')}`;
+        let maxNum = 0;
+        (db.repairClaims || []).forEach((c) => {
+          const match = (c.claimNumber || c.id || '').match(/(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num > maxNum) maxNum = num;
+          }
+        });
+        const nextSeq = Math.max(maxNum + 1, (db.repairClaims || []).length + 1);
+        const claimNum = payload.claimNumber || `GRS-2026-${String(nextSeq).padStart(3, '0')}`;
         const newClaim: RepairClaim = {
-          id: payload.id || `REP-2026-${String(count).padStart(3, '0')}`,
+          id: payload.id || `REP-2026-${String(nextSeq).padStart(3, '0')}`,
           claimNumber: claimNum,
           customerId: payload.customerId || '',
           customerName: payload.customerName || '',
