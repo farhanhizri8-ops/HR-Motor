@@ -894,11 +894,16 @@ export async function POST(request: Request) {
 
       // GARANSI & PERBAIKAN (REPAIR & WARRANTY CLAIMS)
       case 'ADD_REPAIR_CLAIM': {
-        const sparepartCost = Number(payload.sparepartCost) || 0;
-        const serviceCost = Number(payload.serviceCost) || 0;
-        const totalCost = payload.totalCost !== undefined && Number(payload.totalCost) > 0 && sparepartCost === 0 && serviceCost === 0
-          ? Number(payload.totalCost)
-          : sparepartCost + serviceCost;
+        const hasExplicitTotal = payload.totalCost !== undefined;
+        const totalCost = hasExplicitTotal
+          ? Number(payload.totalCost) || 0
+          : (Number(payload.sparepartCost) || 0) + (Number(payload.serviceCost) || 0);
+        const sparepartCost = payload.sparepartCost !== undefined
+          ? Number(payload.sparepartCost) || 0
+          : totalCost;
+        const serviceCost = payload.serviceCost !== undefined
+          ? Number(payload.serviceCost) || 0
+          : 0;
         const count = (db.repairClaims || []).length + 1;
         const claimNum = payload.claimNumber || `GRS-2026-${String(count).padStart(3, '0')}`;
         const newClaim: RepairClaim = {
@@ -950,11 +955,17 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: false, error: 'Data klaim perbaikan tidak ditemukan' }, { status: 404 });
         }
         const existing = db.repairClaims[index];
-        const sparepartCost = payload.sparepartCost !== undefined ? Number(payload.sparepartCost) || 0 : existing.sparepartCost;
-        const serviceCost = payload.serviceCost !== undefined ? Number(payload.serviceCost) || 0 : existing.serviceCost;
-        const totalCost = payload.totalCost !== undefined && Number(payload.totalCost) > 0 && sparepartCost === 0 && serviceCost === 0
-          ? Number(payload.totalCost)
-          : (sparepartCost + serviceCost || Number(payload.totalCost) || existing.totalCost || 0);
+        const hasExplicitTotal = payload.totalCost !== undefined;
+        const totalCost = hasExplicitTotal
+          ? Number(payload.totalCost) || 0
+          : (payload.sparepartCost !== undefined ? Number(payload.sparepartCost) || 0 : existing.sparepartCost) +
+            (payload.serviceCost !== undefined ? Number(payload.serviceCost) || 0 : existing.serviceCost);
+        const sparepartCost = payload.sparepartCost !== undefined
+          ? Number(payload.sparepartCost) || 0
+          : (hasExplicitTotal ? totalCost : existing.sparepartCost);
+        const serviceCost = payload.serviceCost !== undefined
+          ? Number(payload.serviceCost) || 0
+          : (hasExplicitTotal ? 0 : existing.serviceCost);
 
         const wasFinished = existing.status === 'Selesai';
         const isNowFinished = payload.status === 'Selesai';

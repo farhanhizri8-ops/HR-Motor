@@ -636,23 +636,26 @@ console.log('\n[8/8] Testing Sales Pipeline 3-Stage Tracking & Lead Management S
 // ----------------------------------------------------------------------
 console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard Metrics...');
 {
-  const { checkWarrantyStatus } = require('../src/app/riwayat-perbaikan/page');
+  const { checkWarrantyStatus, parseRupiahInput } = require('../src/lib/warranty');
 
-  // 1. Garansi 30 Hari Calculation & Badge Labels
+  // 1. Garansi 30 Hari Calculation & Badge Labels & Timezone Expiry Date
   const testSameDay = checkWarrantyStatus('2026-10-01', '2026-10-01');
   assert(testSameDay.isWithinWarranty, 'Same day claim is within warranty (day 0)');
   assert(testSameDay.statusLabel === 'Dalam Garansi (Gratis)', 'Same day claim statusLabel is "Dalam Garansi (Gratis)"');
   assert(testSameDay.badgeLabel === 'Gratis < 1 Bulan', 'Same day claim badgeLabel is "Gratis < 1 Bulan"');
   assert(testSameDay.daysRemaining === 30, 'Same day claim has 30 days remaining');
+  assert(testSameDay.expiryDateStr === '2026-10-31', 'Same day claim expiryDateStr is exactly 2026-10-31 (local timezone safe)');
 
   const test15Days = checkWarrantyStatus('2026-10-01', '2026-10-16');
   assert(test15Days.isWithinWarranty, 'Day 15 claim is within warranty');
   assert(test15Days.daysDiff === 15, 'Day 15 diff is 15');
   assert(test15Days.daysRemaining === 15, 'Day 15 claim has 15 days remaining');
+  assert(test15Days.expiryDateStr === '2026-10-31', 'Day 15 claim expiryDateStr is 2026-10-31');
 
   const testExactly30Days = checkWarrantyStatus('2026-10-01', '2026-10-31');
   assert(testExactly30Days.isWithinWarranty, 'Exactly 30 days claim is within warranty');
   assert(testExactly30Days.badgeLabel === 'Gratis < 1 Bulan', '30 days claim badgeLabel is "Gratis < 1 Bulan"');
+  assert(testExactly30Days.expiryDateStr === '2026-10-31', '30 days claim expiryDateStr is 2026-10-31');
 
   const test31Days = checkWarrantyStatus('2026-10-01', '2026-11-01');
   assert(!test31Days.isWithinWarranty, 'Day 31 claim is outside warranty (> 30 days)');
@@ -661,8 +664,16 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
 
   const testMissingPurchaseDate = checkWarrantyStatus(undefined, '2026-11-01');
   assert(!testMissingPurchaseDate.isWithinWarranty, 'Missing purchase date safely defaults to outside warranty');
+  assert(testMissingPurchaseDate.expiryDateStr === '-', 'Missing purchase date expiryDateStr is "-"');
 
-  // 2. Metrics & Analytics Calculation
+  // 2. Rupiah Currency Input Parsing Tests (Indonesian dot/comma formats)
+  assert(parseRupiahInput('850.000') === 850000, 'parseRupiahInput("850.000") is 850000');
+  assert(parseRupiahInput('Rp 1.500.000,00') === 1500000, 'parseRupiahInput("Rp 1.500.000,00") is 1500000');
+  assert(parseRupiahInput(850000) === 850000, 'parseRupiahInput(850000) is 850000');
+  assert(parseRupiahInput('') === 0, 'parseRupiahInput("") is 0');
+  assert(parseRupiahInput(null) === 0, 'parseRupiahInput(null) is 0');
+
+  // 3. Metrics & Analytics Calculation
   const sampleClaims = [
     {
       id: 'REP-001',
@@ -677,6 +688,7 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
       claimDate: '2026-09-28',
       damageCategory: 'Sistem Rem',
       totalCost: 850000,
+      status: 'Selesai',
     },
     {
       id: 'REP-002',
@@ -691,6 +703,7 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
       claimDate: '2026-10-08',
       damageCategory: 'Kaki-kaki & Suspensi',
       totalCost: 1050000,
+      status: 'Selesai',
     },
     {
       id: 'REP-003',
@@ -705,23 +718,55 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
       claimDate: '2026-10-05',
       damageCategory: 'Kelistrikan & AC',
       totalCost: 800000,
+      status: 'Selesai',
+    },
+    {
+      id: 'REP-004',
+      customerName: 'Wawan Hermawan',
+      customerPhone: '085712348899',
+      vehicleBrand: 'Toyota',
+      vehicleModel: 'Avanza 1.3 G',
+      vehicleYear: 2019,
+      plateNumber: 'Z 1452 DA',
+      workshop: 'Bengkel Mandiri Motor Samarang (Rujukan HR MOTOR)',
+      purchaseDate: '2026-07-10',
+      claimDate: '2026-08-20',
+      damageCategory: 'Lainnya',
+      totalCost: 450000,
+      status: 'Dibatalkan',
     },
   ];
 
-  // Unique customers: Agus Gunawan (2 claims) + Nina Marlina (1 claim) = 2 unique customers
+  // Unique customers: Agus Gunawan (2 claims) + Nina Marlina (1 claim) + Wawan Hermawan (1 claim) = 3 unique customers
   const uniqueKeys = new Set(sampleClaims.map(c => c.customerPhone.trim()));
-  assert(uniqueKeys.size === 2, 'Unique customer count is 2 (Agus Gunawan counted once despite 2 repairs)');
+  assert(uniqueKeys.size === 3, 'Unique customer count is 3');
 
-  // Claims per unit: 3 claims across 2 units (Innova Reborn + HR-V) = 1.5x
+  // Realized financial total excludes canceled claims: 850k + 1050k + 800k = 2,700,000 (excludes 450k canceled)
+  const isRealized = (c: any) => c.status !== 'Dibatalkan';
+  const realizedCost = sampleClaims.filter(isRealized).reduce((sum, c) => sum + c.totalCost, 0);
+  assert(realizedCost === 2700000, 'Realized repair cost excludes canceled claim (2,700,000)');
+
+  // Claims per unit: 4 claims across 3 units (Innova Reborn, HR-V, Avanza) = 1.3x
   const unitKeys = new Set(sampleClaims.map(c => c.plateNumber));
-  assert(unitKeys.size === 2, 'Unique vehicles count is 2');
+  assert(unitKeys.size === 3, 'Unique vehicles count is 3');
   const avgPerUnit = (sampleClaims.length / unitKeys.size).toFixed(1);
-  assert(avgPerUnit === '1.5', 'Average repair per unit is 1.5x');
+  assert(avgPerUnit === '1.3', 'Average repair per unit is 1.3x');
 
   // Claim percentage against total sales (e.g. 20 sales)
   const totalSales = 20;
   const ratio = ((uniqueKeys.size / totalSales) * 100).toFixed(1);
-  assert(ratio === '10.0', 'Percentage of warranty customers against total sales is 10.0%');
+  assert(ratio === '15.0', 'Percentage of warranty customers against total sales is 15.0%');
+
+  // Distinct vehicles without plate numbers belonging to different owners do not falsely merge
+  const noPlateCars = [
+    { customerPhone: '081111111', carName: 'Avanza', vehicleYear: 2021, plateNumber: '-' },
+    { customerPhone: '082222222', carName: 'Avanza', vehicleYear: 2021, plateNumber: '-' },
+  ];
+  const noPlateKeys = new Set(noPlateCars.map(c => {
+    const plate = c.plateNumber && c.plateNumber !== '-' ? c.plateNumber : `${c.customerPhone}-${c.carName}-${c.vehicleYear}`;
+    return plate;
+  }));
+  assert(noPlateKeys.size === 2, 'Distinct owners with unplated identical car models produce 2 separate vehicle records');
 
   // Category frequency ranking
   const catCounts: Record<string, number> = {};
@@ -733,6 +778,15 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   // Verify Plate Number & Workshop on sample claims
   assert(sampleClaims.every(c => Boolean(c.plateNumber)), 'Every sample claim has a plateNumber');
   assert(sampleClaims.every(c => c.workshop.includes('HR MOTOR')), 'Every sample claim links to HR MOTOR recommended workshop');
+
+  // Verify route active path matching for /garansi-perbaikan and trailing slash
+  const testPathMatch = (pathname: string) => {
+    const cleanPath = (pathname || '').replace(/\/$/, '') || '/';
+    return cleanPath === '/garansi-perbaikan' || cleanPath === '/riwayat-perbaikan';
+  };
+  assert(testPathMatch('/garansi-perbaikan'), '/garansi-perbaikan matches warranty menu');
+  assert(testPathMatch('/garansi-perbaikan/'), '/garansi-perbaikan/ with trailing slash matches warranty menu');
+  assert(testPathMatch('/riwayat-perbaikan'), '/riwayat-perbaikan matches warranty menu');
 }
 
 console.log('\n================================================================');

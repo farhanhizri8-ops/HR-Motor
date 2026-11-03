@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, UserPlus, Target, CalendarClock, MessageSquare, Wrench } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { X, UserPlus, Target, CalendarClock, MessageSquare, Wrench, ShieldCheck, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { LeadSourceType, VehicleCategory, PriorityLevel, FollowUpChannel } from '@/types/crm';
+import { LeadSourceType, VehicleCategory, PriorityLevel, FollowUpChannel, RepairPartCategory } from '@/types/crm';
+import { checkWarrantyStatus, parseRupiahInput } from '@/lib/warranty';
 
 interface QuickActionModalProps {
   isOpen: boolean;
@@ -88,14 +89,98 @@ function guessVehicleCategory(brand: string, model: string): VehicleCategory {
   return 'MPV';
 }
 
+const REPAIR_CATEGORIES: RepairPartCategory[] = [
+  'Mesin',
+  'Kelistrikan & AC',
+  'Kaki-kaki & Suspensi',
+  'Sistem Rem',
+  'Transmisi',
+  'Bodi & Cat',
+  'Lainnya',
+];
+
+const RECOMMENDED_WORKSHOPS = [
+  'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+  'Bengkel Resmi HR MOTOR Garut - Samarang',
+  'Bengkel Garut Otomotif Sentra (Rujukan HR MOTOR)',
+  'Bengkel Mandiri Motor Samarang (Rujukan HR MOTOR)',
+  'Bengkel Mitra Bodi Otomotif Garut (Rujukan HR MOTOR)',
+];
+
 export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onClose }) => {
-  const { addCustomer, addLead, addFollowUp, logCommunication, addRepairClaim, customers, leads, users, currentUser, stocks } = useCrm();
+  const { addCustomer, addLead, addFollowUp, logCommunication, addRepairClaim, customers, leads, users, currentUser, stocks, purchases, formatRupiah } = useCrm();
 
   const readyStocks = (stocks || []).filter((s) => s.status === 'Tersedia');
 
   const [activeTab, setActiveTab] = useState<'customer' | 'lead' | 'followup' | 'comm' | 'repair'>('customer');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // 1. List of Customers Who Have Purchased Cars (Auto-fill dropdown for Garansi)
+  const purchaseCustomersList = useMemo(() => {
+    const list: Array<{
+      key: string;
+      customerId: string;
+      customerName: string;
+      customerPhone: string;
+      vehicleBrand: string;
+      vehicleModel: string;
+      vehicleYear: number;
+      plateNumber: string;
+      purchaseDate: string;
+      label: string;
+    }> = [];
+
+    (purchases || []).forEach((p, idx) => {
+      const cust = customers.find(
+        (c) => c.id === p.customerId || c.fullName.toLowerCase() === p.customerName.toLowerCase()
+      );
+      const phone = cust?.whatsapp || (p as any).customerPhone || '';
+      const brand = p.vehicleBrand || (p.vehicleName ? p.vehicleName.split(' ')[0] : 'Toyota');
+      const model = p.vehicleModel || p.vehicleName || 'Mobil';
+      const plate = p.plateNumber || '-';
+
+      list.push({
+        key: `PURCHASE-${p.id || idx}`,
+        customerId: p.customerId || cust?.id || '',
+        customerName: p.customerName,
+        customerPhone: phone,
+        vehicleBrand: brand,
+        vehicleModel: model,
+        vehicleYear: p.vehicleYear || 2021,
+        plateNumber: plate,
+        purchaseDate: p.purchaseDate || '',
+        label: `${p.customerName} — ${brand} ${model} [${plate}] (Beli: ${p.purchaseDate || '-'})`,
+      });
+    });
+
+    (customers || []).forEach((c) => {
+      if (c.status === 'Sudah Beli') {
+        const alreadyIn = list.some(
+          (item) => item.customerId === c.id || item.customerName.toLowerCase() === c.fullName.toLowerCase()
+        );
+        if (!alreadyIn) {
+          const brand = c.interestedVehicle ? c.interestedVehicle.split(' ')[0] : 'Toyota';
+          const model = c.interestedVehicle || 'Mobil';
+          const plate = c.plateNumber || '-';
+          list.push({
+            key: `CUST-${c.id}`,
+            customerId: c.id,
+            customerName: c.fullName,
+            customerPhone: c.whatsapp,
+            vehicleBrand: brand,
+            vehicleModel: model,
+            vehicleYear: 2021,
+            plateNumber: plate,
+            purchaseDate: c.receiptDate || c.registeredDate || '',
+            label: `${c.fullName} — ${brand} ${model} [${plate}] • ${c.whatsapp}`,
+          });
+        }
+      }
+    });
+
+    return list;
+  }, [purchases, customers]);
 
   // Form states
   const [custForm, setCustForm] = useState({
@@ -141,16 +226,28 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
   });
 
   const [repairForm, setRepairForm] = useState({
+    selectedPurchaseKey: '',
+    isManualMode: false,
     customerId: '',
     customerName: '',
     customerPhone: '',
+    vehicleBrand: 'Toyota',
     vehicleModel: '',
     vehicleYear: 2021,
-    claimType: 'Garansi' as 'Garansi',
+    plateNumber: '',
+    purchaseDate: '',
+    claimDate: new Date().toISOString().split('T')[0],
+    damageCategory: 'Mesin' as RepairPartCategory,
     complaintOrDamage: '',
-    sparepartCost: 0,
-    serviceCost: 0,
+    partsToRepair: '',
+    workshop: 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+    customWorkshop: '',
+    repairCost: 0,
   });
+
+  const quickWarrantyCheck = useMemo(() => {
+    return checkWarrantyStatus(repairForm.purchaseDate, repairForm.claimDate);
+  }, [repairForm.purchaseDate, repairForm.claimDate]);
 
   if (!isOpen) return null;
 
@@ -260,6 +357,39 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
     }
   };
 
+  const handleSelectRepairCustomer = (key: string) => {
+    if (!key) {
+      setRepairForm((prev) => ({
+        ...prev,
+        selectedPurchaseKey: '',
+        customerId: '',
+        customerName: '',
+        customerPhone: '',
+        vehicleBrand: 'Toyota',
+        vehicleModel: '',
+        vehicleYear: 2021,
+        plateNumber: '',
+        purchaseDate: '',
+      }));
+      return;
+    }
+    const selected = purchaseCustomersList.find((p) => p.key === key);
+    if (!selected) return;
+    setRepairForm((prev) => ({
+      ...prev,
+      selectedPurchaseKey: key,
+      isManualMode: false,
+      customerId: selected.customerId,
+      customerName: selected.customerName,
+      customerPhone: selected.customerPhone || prev.customerPhone,
+      vehicleBrand: selected.vehicleBrand,
+      vehicleModel: selected.vehicleModel,
+      vehicleYear: selected.vehicleYear,
+      plateNumber: selected.plateNumber !== '-' ? selected.plateNumber : '',
+      purchaseDate: selected.purchaseDate,
+    }));
+  };
+
   const handleRepairSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -271,24 +401,37 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
       return;
     }
 
-    const sparepart = Number(repairForm.sparepartCost) || 0;
-    const service = Number(repairForm.serviceCost) || 0;
+    const cost = parseRupiahInput(repairForm.repairCost);
+    const finalWorkshop =
+      repairForm.workshop === 'Lainnya'
+        ? repairForm.customWorkshop.trim() || 'Bengkel Rekanan HR MOTOR'
+        : repairForm.workshop;
 
     const res = await addRepairClaim({
       customerId: repairForm.customerId || undefined,
       customerName: repairForm.customerName.trim(),
       customerPhone: repairForm.customerPhone.trim(),
-      vehicleBrand: repairForm.vehicleModel.split(' ')[0] || 'Toyota',
+      vehicleBrand: repairForm.vehicleBrand || (repairForm.vehicleModel.split(' ')[0] || 'Toyota'),
       vehicleModel: repairForm.vehicleModel.trim(),
       vehicleYear: Number(repairForm.vehicleYear) || 2021,
-      claimType: repairForm.claimType,
-      damageCategory: 'Mesin',
+      plateNumber: repairForm.plateNumber.trim().toUpperCase() || undefined,
+      workshop: finalWorkshop,
+      purchaseDate: repairForm.purchaseDate || undefined,
+      claimDate: repairForm.claimDate || new Date().toISOString().split('T')[0],
+      claimType: 'Garansi',
+      damageCategory: repairForm.damageCategory,
       complaintOrDamage: repairForm.complaintOrDamage.trim(),
       complaint: repairForm.complaintOrDamage.trim(),
-      sparepartCost: sparepart,
-      serviceCost: service,
-      totalCost: sparepart + service,
-      status: 'Menunggu',
+      partsToRepair: repairForm.partsToRepair.trim(),
+      damagedParts: repairForm.partsToRepair.trim(),
+      repairActionDescription: `Perbaikan garansi gratis showroom HR MOTOR: ${repairForm.partsToRepair.trim() || repairForm.damageCategory}`,
+      actionTaken: `Perbaikan garansi gratis showroom HR MOTOR: ${repairForm.partsToRepair.trim() || repairForm.damageCategory}`,
+      sparepartCost: cost,
+      serviceCost: 0,
+      totalCost: cost,
+      status: 'Selesai',
+      notes: 'Garansi Perbaikan Gratis (< 1 Bulan) HR MOTOR Garut',
+      completedDate: repairForm.claimDate,
     });
 
     setSubmitting(false);
@@ -909,143 +1052,258 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
             </form>
           )}
 
-          {/* TAB 5: FORM PERBAIKAN / KLAIM */}
+          {/* TAB 5: FORM PERBAIKAN / KLAIM GARANSI */}
           {activeTab === 'repair' && (
             <form onSubmit={handleRepairSubmit} className="space-y-4">
+              {/* 1. DATA PELANGGAN */}
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-gold-600" />
+                    Data Pelanggan (Pilih Pembeli Unit Mobil HR MOTOR):
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRepairForm((prev) => ({
+                        ...prev,
+                        isManualMode: !prev.isManualMode,
+                        selectedPurchaseKey: '',
+                      }))
+                    }
+                    className="text-[11px] font-semibold text-gold-700 hover:text-gold-900 underline"
+                  >
+                    {repairForm.isManualMode ? '← Pilih dari Daftar Pembelian' : 'Atau Ketik Data Manual'}
+                  </button>
+                </div>
+
+                {!repairForm.isManualMode ? (
+                  <select
+                    value={repairForm.selectedPurchaseKey}
+                    onChange={(e) => handleSelectRepairCustomer(e.target.value)}
+                    className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg text-slate-900 font-medium focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  >
+                    <option value="">-- Pilih Pelanggan yang Sudah Membeli Mobil --</option>
+                    {purchaseCustomersList.map((p) => (
+                      <option key={p.key} value={p.key}>
+                        {p.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-[11px] text-slate-500 italic">
+                    Mode ketik manual aktif. Silakan isi data pelanggan dan unit mobil di kolom bawah.
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Nama Pelanggan <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Budi Santoso"
+                      value={repairForm.customerName}
+                      onChange={(e) => setRepairForm({ ...repairForm, customerName: e.target.value })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Nomor WhatsApp <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="0812xxxxxxxx"
+                      value={repairForm.customerPhone}
+                      onChange={(e) => setRepairForm({ ...repairForm, customerPhone: e.target.value })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 font-mono bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Unit Mobil (Model) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Toyota Avanza 1.3 G"
+                      value={repairForm.vehicleModel}
+                      onChange={(e) => setRepairForm({ ...repairForm, vehicleModel: e.target.value })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      No. Polisi (Plat)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Z 1524 DB"
+                      value={repairForm.plateNumber}
+                      onChange={(e) => setRepairForm({ ...repairForm, plateNumber: e.target.value.toUpperCase() })}
+                      className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 font-mono uppercase bg-white font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Tanggal Pembelian Mobil
+                    </label>
+                    <input
+                      type="date"
+                      value={repairForm.purchaseDate}
+                      onChange={(e) => setRepairForm({ ...repairForm, purchaseDate: e.target.value })}
+                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Tanggal Klaim / Perbaikan <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={repairForm.claimDate}
+                      onChange={(e) => setRepairForm({ ...repairForm, claimDate: e.target.value })}
+                      className="w-full text-xs py-2 px-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Real-time Warranty Indicator */}
+                {repairForm.purchaseDate && (
+                  <div
+                    className={`p-2 rounded-lg border text-xs flex items-center gap-2 mt-1 ${
+                      quickWarrantyCheck.isWithinWarranty
+                        ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
+                        : 'bg-amber-50 text-amber-900 border-amber-300'
+                    }`}
+                  >
+                    {quickWarrantyCheck.isWithinWarranty ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    )}
+                    <div>
+                      <span className="font-bold">{quickWarrantyCheck.badgeLabel}:</span>{' '}
+                      <span>{quickWarrantyCheck.notes}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. KATEGORI PERBAIKAN */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Pilih Konsumen Terdaftar (Opsional)
+                  Kategori Perbaikan <span className="text-rose-500">*</span>
                 </label>
                 <select
-                  value={repairForm.customerId}
-                  onChange={(e) => {
-                    const cust = customers.find((c) => c.id === e.target.value);
-                    if (cust) {
-                      setRepairForm({
-                        ...repairForm,
-                        customerId: cust.id,
-                        customerName: cust.fullName,
-                        customerPhone: cust.whatsapp,
-                        vehicleModel: cust.interestedVehicle || '',
-                      });
-                    } else {
-                      setRepairForm({
-                        ...repairForm,
-                        customerId: '',
-                      });
-                    }
-                  }}
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 bg-white"
+                  value={repairForm.damageCategory}
+                  onChange={(e) =>
+                    setRepairForm({ ...repairForm, damageCategory: e.target.value as RepairPartCategory })
+                  }
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white font-medium"
                 >
-                  <option value="">-- Ketik Konsumen Baru Secara Manual --</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.fullName} ({c.whatsapp}) — {c.interestedVehicle || 'Pelanggan'}
+                  {REPAIR_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nama Konsumen <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={repairForm.customerName}
-                    onChange={(e) => setRepairForm({ ...repairForm, customerName: e.target.value })}
-                    placeholder="Contoh: Budi Santoso"
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nomor WhatsApp <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={repairForm.customerPhone}
-                    onChange={(e) => setRepairForm({ ...repairForm, customerPhone: e.target.value })}
-                    placeholder="081234567890"
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Mobil (Merek & Tipe) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={repairForm.vehicleModel}
-                    onChange={(e) => setRepairForm({ ...repairForm, vehicleModel: e.target.value })}
-                    placeholder="Contoh: Toyota Avanza 1.3 G"
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Jenis Klaim <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={repairForm.claimType}
-                    onChange={(e) => setRepairForm({ ...repairForm, claimType: e.target.value as any })}
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 bg-white"
-                  >
-                    <option value="Garansi">Garansi Resmi Showroom HR MOTOR</option>
-                  </select>
-                </div>
-              </div>
-
+              {/* 3. KELUHAN PERBAIKAN */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Keluhan / Kerusakan <span className="text-rose-500">*</span>
+                  Keluhan Perbaikan Konsumen <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={2}
                   required
                   value={repairForm.complaintOrDamage}
                   onChange={(e) => setRepairForm({ ...repairForm, complaintOrDamage: e.target.value })}
-                  placeholder="AC kurang dingin, bunyi decit rem..."
-                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                  placeholder="Contoh: AC kurang dingin, bunyi decit rem saat turunan..."
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Biaya Sparepart (Rp)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={repairForm.sparepartCost || ''}
-                    onChange={(e) => setRepairForm({ ...repairForm, sparepartCost: Number(e.target.value) || 0 })}
-                    placeholder="0"
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 font-mono"
-                  />
-                </div>
+              {/* 4. BAGIAN YANG DIPERBAIKI */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Bagian yang Diperbaiki <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={repairForm.partsToRepair}
+                  onChange={(e) => setRepairForm({ ...repairForm, partsToRepair: e.target.value })}
+                  placeholder="Contoh: Kampas rem depan, pengisian freon AC..."
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Biaya Jasa (Rp)
-                  </label>
+              {/* 5. BENGKEL REKANAN RUJUKAN */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Bengkel Rekanan HR MOTOR yang Disarankan</span>
+                  <span className="text-[10px] text-slate-400">Rujukan Resmi Showroom</span>
+                </label>
+                <select
+                  value={repairForm.workshop}
+                  onChange={(e) => setRepairForm({ ...repairForm, workshop: e.target.value })}
+                  className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
+                >
+                  {RECOMMENDED_WORKSHOPS.map((ws) => (
+                    <option key={ws} value={ws}>
+                      {ws}
+                    </option>
+                  ))}
+                  <option value="Lainnya">+ Ketik Bengkel Rekanan Lainnya</option>
+                </select>
+
+                {repairForm.workshop === 'Lainnya' && (
                   <input
-                    type="number"
-                    min="0"
-                    value={repairForm.serviceCost || ''}
-                    onChange={(e) => setRepairForm({ ...repairForm, serviceCost: Number(e.target.value) || 0 })}
-                    placeholder="0"
-                    className="w-full text-xs px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 font-mono"
+                    type="text"
+                    placeholder="Ketik nama bengkel rekanan rujukan..."
+                    value={repairForm.customWorkshop}
+                    onChange={(e) => setRepairForm({ ...repairForm, customWorkshop: e.target.value })}
+                    className="w-full text-xs px-3 py-2 mt-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
                   />
+                )}
+              </div>
+
+              {/* 6. BIAYA PERBAIKAN */}
+              <div className="p-3 bg-gold-50/60 border border-gold-300 rounded-xl space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-900">
+                    Biaya Perbaikan (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200">
+                    100% Ditanggung HR MOTOR
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={repairForm.repairCost || ''}
+                  onChange={(e) => setRepairForm({ ...repairForm, repairCost: parseRupiahInput(e.target.value) })}
+                  placeholder="Contoh: 850000"
+                  className="w-full text-sm font-bold py-2 px-3 bg-white border border-gold-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-600 font-mono"
+                />
+                <div className="text-[11px] text-charcoal-600 font-medium">
+                  Terbilang: <strong className="text-slate-900 font-bold">{formatRupiah(repairForm.repairCost)}</strong>
                 </div>
               </div>
 
@@ -1060,9 +1318,10 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm shadow-emerald-600/30 transition-all disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-semibold text-white bg-gold-600 hover:bg-gold-700 rounded-lg shadow-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {submitting ? 'Menyimpan...' : 'Simpan Klaim Perbaikan'}
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{submitting ? 'Menyimpan...' : 'Simpan Klaim Garansi'}</span>
                 </button>
               </div>
             </form>

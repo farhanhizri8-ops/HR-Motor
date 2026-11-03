@@ -180,10 +180,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
           {filteredNav.map((item) => {
+            const cleanPath = (pathname || '').replace(/\/$/, '') || '/';
             const isActive =
-              pathname === item.href ||
-              (item.href === '/leads' && pathname === '/pipeline') ||
-              (item.href === '/riwayat-perbaikan' && pathname === '/garansi-perbaikan');
+              cleanPath === item.href ||
+              (item.href === '/leads' && cleanPath === '/pipeline') ||
+              (item.href === '/riwayat-perbaikan' && (cleanPath === '/garansi-perbaikan' || cleanPath === '/riwayat-perbaikan'));
             const Icon = item.icon;
 
             return (

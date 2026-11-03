@@ -59,24 +59,12 @@ import {
   RepairPartCategory,
   RepairStatus,
 } from '@/types/crm';
-
-const REPAIR_CATEGORIES: RepairPartCategory[] = [
-  'Mesin',
-  'Kelistrikan & AC',
-  'Kaki-kaki & Suspensi',
-  'Sistem Rem',
-  'Transmisi',
-  'Bodi & Cat',
-  'Lainnya',
-];
-
-const RECOMMENDED_WORKSHOPS = [
-  'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
-  'Bengkel Resmi HR MOTOR Garut - Samarang',
-  'Bengkel Garut Otomotif Sentra (Rujukan HR MOTOR)',
-  'Bengkel Mandiri Motor Samarang (Rujukan HR MOTOR)',
-  'Bengkel Mitra Bodi Otomotif Garut (Rujukan HR MOTOR)',
-];
+import {
+  REPAIR_CATEGORIES,
+  RECOMMENDED_WORKSHOPS,
+  parseRupiahInput,
+  checkWarrantyStatus,
+} from '@/lib/warranty';
 
 const CAR_BRANDS = [
   'Toyota',
@@ -115,56 +103,6 @@ const PIE_COLORS = [
   '#EC4899',
   '#64748B',
 ];
-
-// Helper to check 30-day warranty status based on purchaseDate and claimDate
-export function checkWarrantyStatus(purchaseDateStr?: string, repairDateStr?: string): {
-  isWithinWarranty: boolean;
-  statusLabel: 'Dalam Garansi (Gratis)' | 'Di Luar Garansi';
-  badgeLabel: string;
-  daysDiff: number;
-  daysRemaining: number;
-  expiryDateStr: string;
-  notes: string;
-} {
-  if (!purchaseDateStr) {
-    return {
-      isWithinWarranty: false,
-      statusLabel: 'Di Luar Garansi',
-      badgeLabel: 'Di Luar Garansi',
-      daysDiff: 0,
-      daysRemaining: 0,
-      expiryDateStr: '-',
-      notes: 'Tanggal pembelian belum tercatat',
-    };
-  }
-
-  const pDate = new Date(purchaseDateStr + 'T00:00:00');
-  const rDate = repairDateStr ? new Date(repairDateStr + 'T00:00:00') : new Date();
-
-  // Exactly 30 calendar days warranty (< 1 Bulan)
-  const expiryDate = new Date(pDate);
-  expiryDate.setDate(expiryDate.getDate() + 30);
-
-  const diffTime = rDate.getTime() - pDate.getTime();
-  const daysDiff = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  const isWithin = daysDiff >= 0 && daysDiff <= 30;
-  const expiryDateFormatted = expiryDate.toISOString().split('T')[0];
-  const daysRemaining = Math.max(0, 30 - daysDiff);
-
-  return {
-    isWithinWarranty: isWithin,
-    statusLabel: isWithin ? 'Dalam Garansi (Gratis)' : 'Di Luar Garansi',
-    badgeLabel: isWithin ? 'Gratis < 1 Bulan' : 'Di Luar Garansi',
-    daysDiff,
-    daysRemaining,
-    expiryDateStr: expiryDateFormatted,
-    notes: isWithin
-      ? `Hari ke-${daysDiff} dari 30 hari (Sisa ${daysRemaining} hari garansi gratis showroom ke bengkel rujukan HR MOTOR)`
-      : daysDiff < 0
-      ? 'Tanggal perbaikan mendahului tanggal pembelian unit'
-      : `Melewati masa garansi 30 hari (+ ${daysDiff - 30} hari)`,
-  };
-}
 
 export default function RiwayatPerbaikanGaransiPage() {
   const {
@@ -340,6 +278,7 @@ export default function RiwayatPerbaikanGaransiPage() {
   // 2. CORE DASHBOARD METRICS FOR GARANSI
   const warrantyMetrics = useMemo(() => {
     const totalClaimsCount = repairClaims.length;
+    const isRealized = (c: RepairClaim) => c.status !== 'Dibatalkan';
 
     // A. 💰 Total Uang Perbaikan Selama Satu Bulan
     const monthKey = selectedMonth === 'ALL' ? '' : `${selectedYear}-${selectedMonth}`;
@@ -351,13 +290,14 @@ export default function RiwayatPerbaikanGaransiPage() {
       }
       return d.startsWith(monthKey);
     });
-    const totalCostSelectedMonth = claimsForSelectedMonth.reduce(
-      (acc, c) => acc + (c.totalCost || 0),
-      0
-    );
+    const totalCostSelectedMonth = claimsForSelectedMonth
+      .filter(isRealized)
+      .reduce((acc, c) => acc + (c.totalCost || 0), 0);
 
-    // Total pengeluaran garansi keseluruhan
-    const grandTotalCost = repairClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
+    // Total pengeluaran garansi keseluruhan (realisasi tanpa yang dibatalkan)
+    const grandTotalCost = repairClaims
+      .filter(isRealized)
+      .reduce((acc, c) => acc + (c.totalCost || 0), 0);
 
     // B. 👥 Total Pelanggan yang Meminta Perbaikan (Unique customers)
     const uniqueCustomerKeys = new Set(
@@ -367,11 +307,17 @@ export default function RiwayatPerbaikanGaransiPage() {
 
     // C. 📊 Persentase Pelanggan Garansi dari Semua Penjualan
     // Rasio klaim: ((Jumlah Pelanggan Klaim / Total Seluruh Penjualan Mobil) * 100%)
-    const totalCarSales = Math.max(
-      purchases.length,
-      customers.filter((c) => c.status === 'Sudah Beli').length,
-      1
-    );
+    const salesCustomerIds = new Set<string>();
+    purchases.forEach((p) => {
+      if (p.customerId) salesCustomerIds.add(p.customerId);
+      else if (p.customerName) salesCustomerIds.add(p.customerName.toLowerCase().trim());
+    });
+    customers.forEach((c) => {
+      if (c.status === 'Sudah Beli') {
+        salesCustomerIds.add(c.id);
+      }
+    });
+    const totalCarSales = Math.max(salesCustomerIds.size, purchases.length, 1);
     const claimRatioPercentage = ((totalUniqueCustomers / totalCarSales) * 100).toFixed(1);
 
     // D. 🚗 Berapa Perbaikan Garansi per Unit
@@ -393,7 +339,8 @@ export default function RiwayatPerbaikanGaransiPage() {
     repairClaims.forEach((c) => {
       const plate = (c.plateNumber || '').trim().toUpperCase();
       const carName = `${c.vehicleBrand} ${c.vehicleModel}`.trim();
-      const key = plate ? plate : `${carName}-${c.vehicleYear}`.toLowerCase();
+      const custId = (c.customerPhone || c.customerName || '').trim().toLowerCase();
+      const key = plate && plate !== '-' ? plate : `${custId}-${carName}-${c.vehicleYear}`.toLowerCase();
 
       if (!unitMap[key]) {
         unitMap[key] = {
@@ -408,7 +355,9 @@ export default function RiwayatPerbaikanGaransiPage() {
         };
       }
       unitMap[key].claimCount += 1;
-      unitMap[key].totalCost += c.totalCost || 0;
+      if (isRealized(c)) {
+        unitMap[key].totalCost += c.totalCost || 0;
+      }
       const cat = c.damageCategory || 'Lainnya';
       unitMap[key].categories[cat] = (unitMap[key].categories[cat] || 0) + 1;
     });
@@ -440,7 +389,9 @@ export default function RiwayatPerbaikanGaransiPage() {
         catMap[cat] = { count: 0, totalCost: 0 };
       }
       catMap[cat].count += 1;
-      catMap[cat].totalCost += c.totalCost || 0;
+      if (isRealized(c)) {
+        catMap[cat].totalCost += c.totalCost || 0;
+      }
     });
 
     const rankedCategories = Object.entries(catMap)
@@ -452,7 +403,8 @@ export default function RiwayatPerbaikanGaransiPage() {
       }))
       .sort((a, b) => b.count - a.count || b.totalCost - a.totalCost);
 
-    const topCategory = rankedCategories[0];
+    const hasAnyClaim = rankedCategories.some((c) => c.count > 0);
+    const topCategory = hasAnyClaim ? rankedCategories[0] : null;
 
     // Status Garansi Distribution
     const withinCount = repairClaims.filter(
@@ -507,7 +459,9 @@ export default function RiwayatPerbaikanGaransiPage() {
         };
       }
       groups[key].totalClaims += 1;
-      groups[key].totalCost += claim.totalCost || 0;
+      if (claim.status !== 'Dibatalkan') {
+        groups[key].totalCost += claim.totalCost || 0;
+      }
       groups[key].customers.add((claim.customerPhone || claim.customerName).trim().toLowerCase());
     });
 
@@ -612,7 +566,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       return;
     }
 
-    const cost = Number(formData.repairCost) || 0;
+    const cost = parseRupiahInput(formData.repairCost);
     const finalWorkshop =
       formData.workshop === 'Lainnya'
         ? formData.customWorkshop.trim() || 'Bengkel Rekanan HR MOTOR'
@@ -734,7 +688,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     e.preventDefault();
     if (!editFormData) return;
 
-    const cost = Number(editFormData.repairCost) || 0;
+    const cost = parseRupiahInput(editFormData.repairCost);
 
     const res = await updateRepairClaim({
       id: editFormData.id,
@@ -795,6 +749,11 @@ export default function RiwayatPerbaikanGaransiPage() {
 
   // Export to Excel Function (10 Columns)
   const handleExportExcel = () => {
+    if (filteredClaims.length === 0) {
+      alert('Tidak ada data klaim garansi untuk diekspor ke Excel.');
+      return;
+    }
+
     const dataToExport = filteredClaims.map((c, idx) => {
       const wInfo = checkWarrantyStatus(c.purchaseDate, c.claimDate);
       return {
@@ -831,6 +790,11 @@ export default function RiwayatPerbaikanGaransiPage() {
 
   // Export to PDF Function
   const handleExportPDF = () => {
+    if (filteredClaims.length === 0) {
+      alert('Tidak ada data klaim garansi untuk diekspor ke PDF.');
+      return;
+    }
+
     const doc = new jsPDF('landscape');
 
     doc.setFontSize(14);
@@ -844,8 +808,14 @@ export default function RiwayatPerbaikanGaransiPage() {
       14,
       21
     );
+
+    const filteredTotalCost = filteredClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
+    const filteredUniqueCustomers = new Set(
+      filteredClaims.map((c) => (c.customerPhone || c.customerName).trim().toLowerCase())
+    ).size;
+
     doc.text(
-      `Total Klaim: ${warrantyMetrics.totalClaimsCount} | Total Konsumen: ${warrantyMetrics.totalUniqueCustomers} orang | Total Biaya: ${formatRupiah(warrantyMetrics.grandTotalCost)} (100% Ditanggung HR MOTOR)`,
+      `Total Klaim: ${filteredClaims.length} klaim | Total Konsumen: ${filteredUniqueCustomers} orang | Total Biaya: ${formatRupiah(filteredTotalCost)} (100% Ditanggung HR MOTOR)`,
       14,
       26
     );
@@ -997,27 +967,39 @@ export default function RiwayatPerbaikanGaransiPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         {/* 1. Total Uang Perbaikan Selama Satu Bulan */}
         <div className="crm-card p-4 bg-gradient-to-br from-white to-[#FAF9F5] border-gold-500/40 relative">
-          <div className="flex items-center justify-between text-charcoal-600 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700 flex items-center gap-1">
+          <div className="flex items-center justify-between text-charcoal-600 mb-1 gap-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700 flex items-center gap-1 shrink-0">
               <DollarSign className="w-3.5 h-3.5 text-gold-600" />
               Biaya 1 Bulan
             </span>
-            {/* Quick Month Selector */}
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="text-[10px] font-bold py-0.5 px-1.5 bg-white border border-gold-300 rounded text-charcoal-800 focus:outline-none cursor-pointer"
-              title="Pilih Bulan untuk Metrik Biaya 1 Bulan"
-            >
-              {MONTH_NAMES.map((name, idx) => {
-                const val = String(idx + 1).padStart(2, '0');
-                return (
-                  <option key={val} value={val}>
-                    {name}
-                  </option>
-                );
-              })}
-            </select>
+            {/* Quick Month & Year Selector */}
+            <div className="flex items-center gap-1">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="text-[10px] font-bold py-0.5 px-1 bg-white border border-gold-300 rounded text-charcoal-800 focus:outline-none cursor-pointer"
+                title="Pilih Bulan untuk Metrik Biaya 1 Bulan"
+              >
+                {MONTH_NAMES.map((name, idx) => {
+                  const val = String(idx + 1).padStart(2, '0');
+                  return (
+                    <option key={val} value={val}>
+                      {name.slice(0, 3)}
+                    </option>
+                  );
+                })}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="text-[10px] font-bold py-0.5 px-1 bg-white border border-gold-300 rounded text-charcoal-800 focus:outline-none cursor-pointer"
+                title="Pilih Tahun untuk Metrik Biaya 1 Bulan"
+              >
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+              </select>
+            </div>
           </div>
 
           <div className="text-base sm:text-lg font-black text-charcoal-900 truncate" title={formatRupiah(warrantyMetrics.totalCostSelectedMonth)}>
@@ -1026,7 +1008,7 @@ export default function RiwayatPerbaikanGaransiPage() {
 
           <div className="flex items-center justify-between text-[10px] text-charcoal-500 mt-1">
             <span className="font-medium">
-              Bulan {MONTH_NAMES[parseInt(selectedMonth, 10) - 1]} {selectedYear}
+              Bulan {MONTH_NAMES[parseInt(selectedMonth, 10) - 1] || selectedMonth} {selectedYear}
             </span>
             <span className="text-gold-700 font-bold">100% Ditanggung HR</span>
           </div>
@@ -1102,10 +1084,12 @@ export default function RiwayatPerbaikanGaransiPage() {
             </span>
           </div>
           <div className="text-base font-black text-charcoal-900 truncate">
-            {warrantyMetrics.topCategory?.name || '-'}
+            {warrantyMetrics.topCategory ? warrantyMetrics.topCategory.name : 'Belum Ada Klaim'}
           </div>
           <p className="text-[10px] text-charcoal-500 mt-1 font-medium">
-            {warrantyMetrics.topCategory?.count || 0} kasus ({warrantyMetrics.topCategory?.percentage || 0}% total perbaikan)
+            {warrantyMetrics.topCategory
+              ? `${warrantyMetrics.topCategory.count} kasus (${warrantyMetrics.topCategory.percentage}% total perbaikan)`
+              : 'Belum ada data perbaikan garansi'}
           </p>
         </div>
       </div>
@@ -1737,34 +1721,43 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </div>
               </div>
 
-              <div className="h-52 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={warrantyMetrics.rankedCategories}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={75}
-                      paddingAngle={3}
-                      dataKey="count"
-                    >
-                      {warrantyMetrics.rankedCategories.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={PIE_COLORS[index % PIE_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(val: any, name: any, item: any) => [
-                        `${val} kasus (${formatRupiah(item.payload.totalCost)})`,
-                        item.payload.name,
-                      ]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              {warrantyMetrics.rankedCategories.every((c) => c.count === 0) ? (
+                <div className="h-52 flex flex-col items-center justify-center text-slate-400 text-xs">
+                  <PieChartIcon className="w-8 h-8 text-slate-300 mb-1" />
+                  <span>Belum ada data klaim perbaikan</span>
+                </div>
+              ) : (
+                <div className="h-52 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={warrantyMetrics.rankedCategories.filter((c) => c.count > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="count"
+                      >
+                        {warrantyMetrics.rankedCategories
+                          .filter((c) => c.count > 0)
+                          .map((entry, index) => (
+                            <Cell
+                              key={`cell-${entry.name}`}
+                              fill={PIE_COLORS[index % PIE_COLORS.length]}
+                            />
+                          ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(val: any, name: any, item: any) => [
+                          `${val} kasus (${formatRupiah(item.payload.totalCost)})`,
+                          item.payload.name,
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
               <div className="space-y-1 mt-1 text-[11px] max-h-28 overflow-y-auto divide-y divide-slate-100">
                 {warrantyMetrics.rankedCategories.map((item, idx) => (
@@ -2642,15 +2635,23 @@ export default function RiwayatPerbaikanGaransiPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Bengkel Rekanan Rujukan
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Bengkel Rekanan Rujukan</span>
+                  <span className="text-[10px] text-slate-400">Pilih rujukan resmi atau ketik manual</span>
                 </label>
                 <input
                   type="text"
+                  list="editWorkshopOptions"
+                  placeholder="Ketik atau pilih bengkel rekanan rujukan..."
                   value={editFormData.workshop}
                   onChange={(e) => setEditFormData({ ...editFormData, workshop: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
                 />
+                <datalist id="editWorkshopOptions">
+                  {RECOMMENDED_WORKSHOPS.map((ws) => (
+                    <option key={ws} value={ws} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="p-3 bg-gold-50/60 border border-gold-300 rounded-xl">
