@@ -95,6 +95,7 @@ const PROSPECT_STATUSES: { label: string; value: ProspectFollowUpStatus; color: 
   { label: 'Tertarik', value: 'Tertarik', color: 'bg-purple-50 text-purple-800 border-purple-300' },
   { label: 'Tidak Tertarik', value: 'Tidak Tertarik', color: 'bg-charcoal-100 text-charcoal-600 border-charcoal-300' },
   { label: 'Sudah Deal', value: 'Sudah Deal', color: 'bg-gold-50 text-gold-900 border-gold-400 font-bold' },
+  { label: 'Tidak Merespons', value: 'Tidak Merespons', color: 'bg-rose-50 text-rose-800 border-rose-300' },
 ];
 
 export default function FollowUpPage() {
@@ -235,13 +236,17 @@ export default function FollowUpPage() {
 
       if (!brandMatch && searchBrand) continue;
 
-      // Model Check
+      // Model Check: all meaningful spec tokens must match
       let modelMatch = true;
+      const fullStockDesc = `${stockBrand} ${stockModel} ${stockMerk}`.toLowerCase();
       if (searchModel) {
-        const modelKeywords = searchModel.split(/\s+/).filter((k) => k.length > 2);
-        modelMatch = modelKeywords.some(
-          (k) => stockModel.includes(k) || stockMerk.includes(k)
-        );
+        const modelKeywords = searchModel
+          .split(/[\s,-]+/)
+          .map((k) => k.trim().toLowerCase())
+          .filter((k) => k.length >= 2 && !searchBrand.includes(k) && !stockBrand.includes(k));
+        modelMatch = modelKeywords.length > 0
+          ? modelKeywords.every((k) => fullStockDesc.includes(k))
+          : true;
       } else if (infoLower) {
         modelMatch = stockModel ? infoLower.includes(stockModel) : true;
       }
@@ -563,7 +568,8 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
         // Also log into communication history
         await logFollowUpCommunication({
           id: selectedItem.id,
-          outcome: milestoneForm.status === 'Selesai' ? 'Berhasil Transaksi / Deal' : 'Tertarik Datang ke Showroom',
+          outcome: newStatus,
+          status: newStatus,
           notes: fullNotes,
         });
 
@@ -980,6 +986,53 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             )}
           </div>
 
+          {/* Urgent Admin Follow-Up Reminder Banner */}
+          {(customerStats.today > 0 || customerStats.overdue > 0) && (
+            <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-400 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-charcoal-950 flex items-center justify-center shrink-0 shadow-xs font-black">
+                  <AlertTriangle className="w-5 h-5 text-charcoal-950 animate-bounce" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-charcoal-900 flex items-center gap-2">
+                    <span>PENGINGAT JADWAL FOLLOW-UP KONSUMEN</span>
+                    {customerStats.overdue > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                        {customerStats.overdue} Terlambat
+                      </span>
+                    )}
+                    {customerStats.today > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-600 text-white">
+                        {customerStats.today} Hari Ini
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-[11px] text-charcoal-700 mt-0.5">
+                    Sudah waktunya menghubungi konsumen pembeli untuk pengecekan berkala 1 tahun. Klik tombol WhatsApp untuk mengirim 5 pertanyaan kepuasan showroom.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {customerStats.today > 0 && (
+                  <button
+                    onClick={() => setFilterTimeTab('today')}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-2xs"
+                  >
+                    Lihat Hari Ini ({customerStats.today})
+                  </button>
+                )}
+                {customerStats.overdue > 0 && (
+                  <button
+                    onClick={() => setFilterTimeTab('overdue')}
+                    className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs"
+                  >
+                    Lihat Terlambat ({customerStats.overdue})
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* FILTER & SEARCH BAR */}
           <div className="crm-card p-4 space-y-3">
             {/* Time Filter Pills */}
@@ -1334,6 +1387,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                   <option value="Tertarik">Tertarik</option>
                   <option value="Tidak Tertarik">Tidak Tertarik</option>
                   <option value="Sudah Deal">Sudah Deal</option>
+                  <option value="Tidak Merespons">Tidak Merespons</option>
                 </select>
               </div>
             </div>
@@ -1543,13 +1597,25 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
 
                         {/* 1-Click Convert to Deal/Transaction */}
                         {isMatched && matchedStock && (
-                          <Link
-                            href={`/customers?tab=transactions`}
-                            className="btn-gold px-3 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 shadow-sm"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            <span>Buat Transaksi / Deal</span>
-                          </Link>
+                          <div className="inline-flex items-center gap-1.5">
+                            <Link
+                              href={`/customers?tab=transactions&action=cash&prospectId=${item.id}&stockId=${matchedStock.id}&name=${encodeURIComponent(item.customerName)}&phone=${encodeURIComponent(item.customerPhone)}&address=${encodeURIComponent(item.customerAddress || '')}&source=${encodeURIComponent(item.customerSource || 'Walk-in')}&price=${matchedStock.price}`}
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-all"
+                              title="Buat Transaksi Cash Langsung dari Unit Ready ini"
+                            >
+                              <DollarSign className="w-3.5 h-3.5" />
+                              <span>Deal Cash</span>
+                            </Link>
+
+                            <Link
+                              href={`/customers?tab=transactions&action=credit&prospectId=${item.id}&stockId=${matchedStock.id}&name=${encodeURIComponent(item.customerName)}&phone=${encodeURIComponent(item.customerPhone)}&address=${encodeURIComponent(item.customerAddress || '')}&source=${encodeURIComponent(item.customerSource || 'Walk-in')}&price=${matchedStock.price}&dp=${matchedStock.creditDp || Math.round(matchedStock.price * 0.2)}`}
+                              className="px-2.5 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-600 text-charcoal-950 text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-all"
+                              title="Buat Pengajuan Kredit (Boking Unit)"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              <span>Ajukan Kredit</span>
+                            </Link>
+                          </div>
                         )}
 
                         {/* Button Riwayat */}
@@ -1696,6 +1762,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                     }
                     className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 text-charcoal-900 font-medium"
                   >
+                    <option value="Belum Dihubungi">Belum Dihubungi</option>
                     <option value="Sudah Dihubungi">Sudah Dihubungi</option>
                     <option value="Tidak Merespons">Tidak Merespons</option>
                     <option value="Selesai">Selesai (Tuntas)</option>

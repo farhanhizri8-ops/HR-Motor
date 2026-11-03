@@ -132,7 +132,7 @@ interface CrmContextType {
   updateFollowUp: (data: Partial<FollowUp> & { id: string }) => Promise<{ success: boolean; error?: string }>;
   deleteFollowUp: (id: string) => Promise<{ success: boolean; error?: string }>;
   completeFollowUp: (id: string, extras: { resultNotes: string; scheduleNextDate?: string; scheduleNextTime?: string; scheduleNextChannel?: any; scheduleNextPriority?: any; scheduleNextNotes?: string }) => Promise<{ success: boolean; error?: string }>;
-  logFollowUpCommunication: (payload: { id: string; outcome: any; notes?: string; scheduleNextDate?: string; scheduleNextCategory?: any; scheduleNextTime?: string; scheduleNextChannel?: any; scheduleNextPriority?: any; scheduleNextReason?: string; scheduleNextNotes?: string }) => Promise<{ success: boolean; error?: string }>;
+  logFollowUpCommunication: (payload: { id: string; outcome: any; status?: any; periodicStep?: any; notes?: string; scheduleNextDate?: string; scheduleNextCategory?: any; scheduleNextTime?: string; scheduleNextChannel?: any; scheduleNextPriority?: any; scheduleNextReason?: string; scheduleNextNotes?: string }) => Promise<{ success: boolean; error?: string }>;
   
   // Stock Management
   addStock: (data: Partial<VehicleStock>) => Promise<{ success: boolean; error?: string }>;

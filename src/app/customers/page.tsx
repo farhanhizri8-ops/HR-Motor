@@ -75,21 +75,30 @@ function getKwitansiForCustomer(customer: Customer, allPurchases: CustomerPurcha
       (p.customerName && customer.fullName && p.customerName.toLowerCase() === customer.fullName.toLowerCase())
   );
 
-  const terimaDari = customer.fullName;
+  const terimaDari = customer.fullName || purchase?.customerName || 'Konsumen Showroom';
   const plateNo = customer.plateNumber || purchase?.plateNumber || '-';
-  const untukPembayaran = customer.interestedVehicle || purchase?.vehicleModel || '1 UNIT KENDARAAN';
-  const nominal = customer.receiptAmount || Number(customer.budget) || purchase?.purchasePrice || 0;
+  const isCredit = purchase ? purchase.paymentType === 'Kredit' : customer.paymentType === 'Kredit';
+  const untukPembayaran = purchase
+    ? (isCredit
+        ? `UANG MUKA (DP) UNIT ${purchase.vehicleName} ${purchase.leasingPartner ? `VIA ${purchase.leasingPartner.toUpperCase()}` : ''}`
+        : `PELUNASAN UNIT ${purchase.vehicleName}`)
+    : (customer.interestedVehicle || '1 UNIT KENDARAAN');
+
+  const nominal = purchase
+    ? (isCredit ? (purchase.downPayment || customer.receiptAmount || 0) : (purchase.purchasePrice || customer.receiptAmount || 0))
+    : (customer.receiptAmount || Number(customer.budget) || 0);
+
   const terbilang = `${formatRupiahWords(nominal)} Rupiah`;
   const tempatTanggal =
     customer.receiptDate ||
     purchase?.receiptDate ||
     `GARUT, ${customer.registeredDate || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}`;
-  const keterangan = customer.receiptNotes || customer.notes || purchase?.notes || 'Lunas';
+  const keterangan = customer.receiptNotes || customer.notes || purchase?.notes || (isCredit ? 'DP Kredit ACC' : 'Lunas (Cash)');
   const penerima = customer.receiptReceiver || purchase?.salesName || 'HR MOTOR';
   const nomorKwitansi =
     customer.receiptNumber ||
     (purchase?.receiptNumber) ||
-    `No. ${customer.id.replace('CUST-2026-', '').replace(/^0+/, '') || '1'}`;
+    `No. ${customer.id?.replace('CUST-2026-', '').replace(/^0+/, '') || '1'}`;
 
   return {
     nomorKwitansi,
@@ -521,6 +530,7 @@ export default function CustomersPage() {
     dealPrice: '',
     notes: '',
     transactionDate: new Date().toISOString().split('T')[0],
+    prospectFollowUpId: '',
   });
 
   // Credit application form
@@ -535,6 +545,7 @@ export default function CustomersPage() {
     initialDp: '',
     notes: '',
     applicationDate: new Date().toISOString().split('T')[0],
+    prospectFollowUpId: '',
   });
 
   // ACC form
@@ -553,12 +564,46 @@ export default function CustomersPage() {
   const [creditStockSearch, setCreditStockSearch] = useState('');
   const [isCreditStockDropdownOpen, setIsCreditStockDropdownOpen] = useState(false);
 
-  // Detect URL parameter ?tab=transactions
+  // Detect URL parameter ?tab=transactions & action=cash/credit
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const tabParam = new URLSearchParams(window.location.search).get('tab');
-      if (tabParam === 'transactions') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const action = params.get('action');
+      const prospectId = params.get('prospectId');
+
+      if (tabParam === 'transactions' || action) {
         setActiveTab('transactions');
+      }
+
+      if (action === 'cash') {
+        setCashForm({
+          customerName: params.get('name') || '',
+          customerPhone: params.get('phone') || '',
+          customerAddress: params.get('address') || '',
+          customerSource: (params.get('source') as any) || 'Walk-in',
+          vehicleStockId: params.get('stockId') || '',
+          dealPrice: params.get('price') || '',
+          notes: prospectId ? `Deal dari Prospek Follow-Up [${prospectId}]` : '',
+          transactionDate: new Date().toISOString().split('T')[0],
+          prospectFollowUpId: prospectId || '',
+        });
+        setIsCashModalOpen(true);
+      } else if (action === 'credit') {
+        setCreditForm({
+          customerName: params.get('name') || '',
+          customerPhone: params.get('phone') || '',
+          customerAddress: params.get('address') || '',
+          customerSource: (params.get('source') as any) || 'Walk-in',
+          vehicleStockId: params.get('stockId') || '',
+          targetLeasing: 'BCA Finance',
+          dealPrice: params.get('price') || '',
+          initialDp: params.get('dp') || '',
+          notes: prospectId ? `Pengajuan kredit dari Prospek Follow-Up [${prospectId}]` : '',
+          applicationDate: new Date().toISOString().split('T')[0],
+          prospectFollowUpId: prospectId || '',
+        });
+        setIsCreditModalOpen(true);
       }
     }
   }, []);
@@ -712,6 +757,7 @@ export default function CustomersPage() {
       dealPrice: '',
       notes: '',
       transactionDate: new Date().toISOString().split('T')[0],
+      prospectFollowUpId: '',
     });
     setFormError('');
     setIsCashModalOpen(true);
@@ -729,6 +775,7 @@ export default function CustomersPage() {
       initialDp: '',
       notes: '',
       applicationDate: new Date().toISOString().split('T')[0],
+      prospectFollowUpId: '',
     });
     setFormError('');
     setIsCreditModalOpen(true);

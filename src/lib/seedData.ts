@@ -4999,6 +4999,12 @@ export const INITIAL_STOCKS: VehicleStock[] = [
       "BOOKING",
       "❌ DETAILING"
     ],
+    "bookingCustomerId": "CUST-2026-070",
+    "bookingCustomerName": "Ahmad Fauzi",
+    "bookingLeasing": "BCA Finance",
+    "bookingDp": 45000000,
+    "bookingDate": "2026-11-01",
+    "bookingApplicationId": "CRD-2026-001",
     "createdAt": "2026-08-01T08:00:00Z",
     "updatedAt": "2026-11-03T01:00:00Z"
   },

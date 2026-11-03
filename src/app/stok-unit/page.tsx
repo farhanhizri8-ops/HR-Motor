@@ -1466,7 +1466,19 @@ export default function StokUnitPage() {
                           <span className="text-gold-700">{stock.brand}</span>
                           <span>{stock.model}</span>
                         </div>
-                        <span className="text-[10px] text-charcoal-400 font-mono">{stock.licensePlate || stock.id}</span>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-charcoal-400 font-mono">{stock.licensePlate || stock.id}</span>
+                          {stock.status === 'Booking' && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                              BOKING ({stock.bookingCustomerName || 'Pelanggan'} - {stock.bookingLeasing || 'Leasing'})
+                            </span>
+                          )}
+                          {stock.status === 'Terjual' && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                              SOLD OUT
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-3 text-center font-semibold text-charcoal-800">{stock.year}</td>
                       <td className="py-3 px-3 text-right font-bold text-charcoal-900 whitespace-nowrap">{formatRupiah(stock.price)}</td>

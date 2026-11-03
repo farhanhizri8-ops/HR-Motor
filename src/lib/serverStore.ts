@@ -60,7 +60,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DATA_FILE = path.join(DATA_DIR, 'crm_store.json');
 
 export function getInitialDatabase(): CrmDatabase {
-  return {
+  return JSON.parse(JSON.stringify({
     users: INITIAL_USERS,
     customers: INITIAL_CUSTOMERS,
     leads: INITIAL_LEADS,
@@ -77,7 +77,7 @@ export function getInitialDatabase(): CrmDatabase {
     templates: MESSAGE_TEMPLATES,
     creditApplications: INITIAL_CREDIT_APPLICATIONS,
     lastUpdated: new Date().toISOString(),
-  };
+  }));
 }
 
 export function readDatabase(): CrmDatabase {
@@ -103,12 +103,12 @@ export function readDatabase(): CrmDatabase {
 
     // Ensure repairClaims is present
     if (!parsed.repairClaims || !Array.isArray(parsed.repairClaims) || parsed.repairClaims.length === 0) {
-      parsed.repairClaims = INITIAL_REPAIR_CLAIMS;
+      parsed.repairClaims = JSON.parse(JSON.stringify(INITIAL_REPAIR_CLAIMS));
     }
 
-    // Ensure stocks is present and has the full 32 official showroom units
-    if (!parsed.stocks || !Array.isArray(parsed.stocks) || parsed.stocks.length < 20) {
-      parsed.stocks = INITIAL_STOCKS;
+    // Ensure stocks is present
+    if (!parsed.stocks || !Array.isArray(parsed.stocks) || parsed.stocks.length === 0) {
+      parsed.stocks = JSON.parse(JSON.stringify(INITIAL_STOCKS));
     }
 
     // Ensure followUps is present
@@ -235,12 +235,16 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
 
 export function repairDatabaseStocks(db: CrmDatabase): boolean {
   let modified = false;
-  if (!db || !Array.isArray(db.stocks) || db.stocks.length < 32 || !db.stocks[0]?.stockNumber) {
-    db.stocks = INITIAL_STOCKS;
-    modified = true;
+  if (!db || !Array.isArray(db.stocks) || db.stocks.length === 0) {
+    db.stocks = JSON.parse(JSON.stringify(INITIAL_STOCKS));
+    return true;
   }
-  db.stocks.forEach((s) => {
-    if (s.status === 'Booking' && !s.bookingCustomerName) {
+  db.stocks.forEach((s, idx) => {
+    if (s.stockNumber === undefined || s.stockNumber === null) {
+      s.stockNumber = idx + 1;
+      modified = true;
+    }
+    if (s.id === 'STK-2026-022' && s.status === 'Booking' && !s.bookingCustomerName) {
       s.bookingCustomerName = 'Ahmad Fauzi';
       s.bookingLeasing = 'BCA Finance';
       s.bookingDp = 45000000;
@@ -254,7 +258,7 @@ export function repairDatabaseStocks(db: CrmDatabase): boolean {
 
 export function repairDatabaseCreditApplications(db: CrmDatabase): boolean {
   if (!db || !Array.isArray(db.creditApplications) || db.creditApplications.length === 0) {
-    db.creditApplications = INITIAL_CREDIT_APPLICATIONS;
+    db.creditApplications = JSON.parse(JSON.stringify(INITIAL_CREDIT_APPLICATIONS));
     return true;
   }
   return false;
