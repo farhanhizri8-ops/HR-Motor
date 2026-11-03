@@ -24,7 +24,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { Lead, LeadSourceType, PipelineStage, VehicleCategory } from '@/types/crm';
+import { Lead, LeadSourceType, PipelineStage, VehicleCategory, normalizePipelineStage } from '@/types/crm';
 
 export default function LeadsPage() {
   const {
@@ -100,7 +100,7 @@ export default function LeadsPage() {
       result = result.filter((l) => l.leadSource === filterSource);
     }
     if (filterStage !== 'ALL') {
-      result = result.filter((l) => l.status === filterStage);
+      result = result.filter((l) => normalizePipelineStage(l.status) === filterStage);
     }
     if (filterSales !== 'ALL') {
       result = result.filter((l) => l.assignedSalesId === filterSales);
@@ -276,25 +276,25 @@ export default function LeadsPage() {
         {/* Quick KPI Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mt-6 pt-5 border-t border-[#EAE8E3]">
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Prospek</p>
+            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Konsumen</p>
             <p className="text-xl font-black text-charcoal-900 mt-0.5">{leads.length}</p>
           </div>
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Prospek Aktif</p>
+            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Hanya Menanyakan</p>
+            <p className="text-xl font-black text-blue-600 mt-0.5">
+              {leads.filter((l) => normalizePipelineStage(l.status) === 'Hanya Menanyakan').length}
+            </p>
+          </div>
+          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Negosiasi</p>
             <p className="text-xl font-black text-gold-600 mt-0.5">
-              {leads.filter((l) => l.status !== 'Deal' && l.status !== 'Lost').length}
+              {leads.filter((l) => normalizePipelineStage(l.status) === 'Negosiasi').length}
             </p>
           </div>
           <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Tahap Cek & Nego</p>
-            <p className="text-xl font-black text-charcoal-900 mt-0.5">
-              {leads.filter((l) => l.status === 'Cek Unit' || l.status === 'Negosiasi').length}
-            </p>
-          </div>
-          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Potensi Pipeline</p>
-            <p className="text-base font-black text-gold-600 mt-1 truncate">
-              {formatRupiah(leads.reduce((s, l) => s + (l.estimatedBudget || 0), 0))}
+            <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Cek Unit Showroom</p>
+            <p className="text-xl font-black text-emerald-600 mt-0.5">
+              {leads.filter((l) => normalizePipelineStage(l.status) === 'Cek Unit').length}
             </p>
           </div>
         </div>
@@ -338,10 +338,6 @@ export default function LeadsPage() {
               <option value="Hanya Menanyakan">Hanya Menanyakan</option>
               <option value="Negosiasi">Negosiasi</option>
               <option value="Cek Unit">Cek Unit (Showroom)</option>
-              <option value="Menanyakan Unit">Menanyakan Unit (Legacy)</option>
-              <option value="Tertarik">Tertarik (Legacy)</option>
-              <option value="Deal">Deal (Selesai)</option>
-              <option value="Lost">Lost (Tidak Jadi)</option>
             </select>
 
             <select
@@ -701,7 +697,7 @@ export default function LeadsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-charcoal-800 mb-1">Tahap Awal Pipeline</label>
+                  <label className="block text-xs font-bold text-charcoal-800 mb-1">Tahap Komunikasi Pipeline</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as PipelineStage })}
@@ -710,10 +706,6 @@ export default function LeadsPage() {
                     <option value="Hanya Menanyakan">Hanya Menanyakan</option>
                     <option value="Negosiasi">Negosiasi</option>
                     <option value="Cek Unit">Cek Unit (Kunjungan Showroom)</option>
-                    <option value="Menanyakan Unit">Menanyakan Unit (Legacy)</option>
-                    <option value="Tertarik">Tertarik (Legacy)</option>
-                    <option value="Deal">Deal (Transaksi Berhasil)</option>
-                    <option value="Lost">Lost (Tidak Jadi)</option>
                   </select>
                 </div>
               </div>

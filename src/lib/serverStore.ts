@@ -15,6 +15,7 @@ import {
   RepairClaim,
   VehicleStock,
   CreditApplication,
+  normalizePipelineStage,
 } from '@/types/crm';
 import {
   INITIAL_USERS,
@@ -277,25 +278,35 @@ export function repairDatabaseLeads(db: CrmDatabase): boolean {
   db.leads.forEach((lead) => {
     // Synchronize contactNumber and customerPhone
     const phone = lead.contactNumber || lead.customerPhone || '';
-    if (!lead.contactNumber && phone) {
+    if (lead.contactNumber !== phone) {
       lead.contactNumber = phone;
       modified = true;
     }
-    if (!lead.customerPhone && phone) {
+    if (lead.customerPhone !== phone) {
       lead.customerPhone = phone;
       modified = true;
     }
 
-    // Backwards compatibility mapping for legacy stages
-    if (lead.status === 'Menanyakan Unit') {
-      lead.status = 'Hanya Menanyakan';
-      modified = true;
-    } else if (lead.status === 'Tertarik') {
-      lead.status = 'Negosiasi';
+    // Default leadSource to WhatsApp
+    if (!lead.leadSource) {
+      lead.leadSource = 'WhatsApp';
       modified = true;
     }
 
-    // Ensure stageHistory has at least the current status
+    // Backwards compatibility mapping for legacy stages to 3 core stages
+    const normalized = normalizePipelineStage(lead.status);
+    if (lead.status !== normalized) {
+      lead.status = normalized;
+      modified = true;
+    }
+
+    // Ensure dateReceived is present
+    if (!lead.dateReceived) {
+      lead.dateReceived = (lead.createdAt ? lead.createdAt.split('T')[0] : '') || new Date().toISOString().split('T')[0];
+      modified = true;
+    }
+
+    // Ensure stageHistory has at least the current status and items are normalized
     if (!lead.stageHistory || !Array.isArray(lead.stageHistory) || lead.stageHistory.length === 0) {
       lead.stageHistory = [
         {
@@ -306,6 +317,14 @@ export function repairDatabaseLeads(db: CrmDatabase): boolean {
         },
       ];
       modified = true;
+    } else {
+      lead.stageHistory.forEach((item) => {
+        const itemNorm = normalizePipelineStage(item.stage);
+        if (item.stage !== itemNorm) {
+          item.stage = itemNorm;
+          modified = true;
+        }
+      });
     }
   });
 
@@ -420,7 +439,8 @@ export async function readDatabaseAsync(): Promise<CrmDatabase> {
         const customersRepaired = repairDatabaseCustomers(cloudDb);
         const purchasesRepaired = repairDatabasePurchases(cloudDb);
         const creditsRepaired = repairDatabaseCreditApplications(cloudDb);
-        if (followUpsRepaired || usersRepaired || stocksRepaired || customersRepaired || purchasesRepaired || creditsRepaired) {
+        const leadsRepaired = repairDatabaseLeads(cloudDb);
+        if (followUpsRepaired || usersRepaired || stocksRepaired || customersRepaired || purchasesRepaired || creditsRepaired || leadsRepaired) {
           try {
             await supabase
               .from('crm_snapshots')

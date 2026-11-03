@@ -87,6 +87,15 @@ const STAGES: StageConfig[] = [
   },
 ];
 
+// Phone normalization helper for resilient search & duplicate detection
+function normalizePhone(phone?: string): string {
+  let digits = (phone || '').replace(/\D/g, '');
+  if (digits.startsWith('62')) {
+    digits = '0' + digits.slice(2);
+  }
+  return digits;
+}
+
 export default function SalesPipelinePage() {
   const {
     leads,
@@ -155,16 +164,19 @@ export default function SalesPipelinePage() {
   const filteredLeads = useMemo(() => {
     let result = [...leads];
 
-    // Search query: name or phone
+    // Search query: name or phone or vehicle
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      const cleanQ = q.replace(/\D/g, '');
+      const cleanQ = normalizePhone(q);
+      const rawQ = q.replace(/\D/g, '');
       result = result.filter((l) => {
         const nameMatch = l.customerName?.toLowerCase().includes(q);
-        const phone = (l.contactNumber || l.customerPhone || '').replace(/\D/g, '');
-        const phoneMatch = cleanQ.length > 0 && phone.includes(cleanQ);
+        const lPhoneNorm = normalizePhone(l.contactNumber || l.customerPhone);
+        const phoneMatch = cleanQ.length >= 3 && lPhoneNorm.includes(cleanQ);
+        const rawPhone = (l.contactNumber || l.customerPhone || '').replace(/\D/g, '');
+        const rawPhoneMatch = rawQ.length >= 3 && rawPhone.includes(rawQ);
         const vehicleMatch = l.interestedVehicle?.toLowerCase().includes(q);
-        return nameMatch || phoneMatch || vehicleMatch;
+        return nameMatch || phoneMatch || rawPhoneMatch || vehicleMatch;
       });
     }
 
@@ -213,13 +225,16 @@ export default function SalesPipelinePage() {
   // Duplicate warning detector
   const duplicateWarning = useMemo(() => {
     if (!formData.contactNumber && !formData.customerName) return null;
-    const cleanPhone = formData.contactNumber.replace(/\D/g, '');
+    const cleanPhone = normalizePhone(formData.contactNumber);
     const cleanName = formData.customerName.toLowerCase().trim();
 
     const existing = leads.find((l) => {
       if (editingLead && l.id === editingLead.id) return false;
-      const lPhone = (l.contactNumber || l.customerPhone || '').replace(/\D/g, '');
-      const phoneMatch = cleanPhone.length >= 8 && lPhone.length >= 8 && (lPhone === cleanPhone || lPhone.endsWith(cleanPhone) || cleanPhone.endsWith(lPhone));
+      const lPhone = normalizePhone(l.contactNumber || l.customerPhone);
+      const phoneMatch =
+        cleanPhone.length >= 8 &&
+        lPhone.length >= 8 &&
+        (cleanPhone === lPhone || cleanPhone.includes(lPhone) || lPhone.includes(cleanPhone));
       const nameMatch = cleanName.length >= 3 && l.customerName?.toLowerCase().trim() === cleanName;
       return phoneMatch || nameMatch;
     });
@@ -229,7 +244,7 @@ export default function SalesPipelinePage() {
         id: existing.id,
         name: existing.customerName,
         phone: existing.contactNumber || existing.customerPhone,
-        stage: existing.status,
+        stage: normalizePipelineStage(existing.status),
       };
     }
     return null;
@@ -287,6 +302,16 @@ export default function SalesPipelinePage() {
       setFormError('Nomor WhatsApp konsumen wajib diisi.');
       setSubmitting(false);
       return;
+    }
+
+    if (!editingLead && duplicateWarning) {
+      const proceed = window.confirm(
+        `PERINGATAN DUPLIKASI DATA LEAD:\n\nKonsumen "${duplicateWarning.name}" (${duplicateWarning.phone}) sudah tercatat di tahapan "${duplicateWarning.stage}" (${duplicateWarning.id}).\n\nApakah Anda yakin ingin tetap menambahkan data ini sebagai calon konsumen baru?`
+      );
+      if (!proceed) {
+        setSubmitting(false);
+        return;
+      }
     }
 
     try {
@@ -558,9 +583,7 @@ export default function SalesPipelinePage() {
         {STAGES.map((stg) => {
           const leadsInStage = groupedLeads[stg.id];
           const isOver = dragOverStage === stg.id;
-          const isMobileVisible = mobileTab === 'ALL' || mobileTab === stg.id;
-
-          if (!isMobileVisible) return null;
+          const isMobileHidden = mobileTab !== 'ALL' && mobileTab !== stg.id;
 
           return (
             <div
@@ -568,7 +591,9 @@ export default function SalesPipelinePage() {
               onDragOver={(e) => handleDragOver(e, stg.id)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, stg.id)}
-              className={`flex flex-col rounded-2xl transition-all duration-200 ${
+              className={`${
+                isMobileHidden ? 'hidden lg:flex' : 'flex'
+              } flex-col rounded-2xl transition-all duration-200 ${
                 isOver ? 'ring-2 ring-gold-500 bg-gold-50/20' : 'bg-[#FAF9F5]'
               } border border-[#EAE8E3] overflow-hidden`}
             >
@@ -613,7 +638,7 @@ export default function SalesPipelinePage() {
                     const waMessage = `Halo Bapak/Ibu ${lead.customerName}, salam hangat dari Showroom HR MOTOR Garut mengenai unit ${
                       lead.interestedVehicle || 'yang Anda tanyakan'
                     }. Apakah ada informasi yang bisa kami bantu?`;
-                    const waHref = formatWhatsAppLink(lead.contactNumber || lead.customerPhone, waMessage);
+                    const waHref = cleanPhone ? formatWhatsAppLink(lead.contactNumber || lead.customerPhone, waMessage) : '#';
 
                     return (
                       <div
@@ -638,7 +663,7 @@ export default function SalesPipelinePage() {
                           <span
                             className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${stg.badgeClass}`}
                           >
-                            {lead.status}
+                            {normalizePipelineStage(lead.status)}
                           </span>
                         </div>
 
@@ -651,16 +676,26 @@ export default function SalesPipelinePage() {
                             </span>
                           </div>
 
-                          <a
-                            href={waHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#25D366] hover:bg-[#1fb355] text-white shadow-2xs transition-colors shrink-0"
-                            title="Buka WhatsApp langsung"
-                          >
-                            <MessageCircle className="w-3.5 h-3.5" />
-                            <span>Chat WA</span>
-                          </a>
+                          {cleanPhone ? (
+                            <a
+                              href={waHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#25D366] hover:bg-[#1fb355] text-white shadow-2xs transition-colors shrink-0"
+                              title="Buka WhatsApp langsung"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              <span>Chat WA</span>
+                            </a>
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-charcoal-200 text-charcoal-400 shrink-0 cursor-not-allowed"
+                              title="Nomor WhatsApp belum terdaftar"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              <span>Chat WA</span>
+                            </span>
+                          )}
                         </div>
 
                         {/* Vehicle Asked */}
@@ -685,7 +720,7 @@ export default function SalesPipelinePage() {
                         <div className="flex items-center gap-1.5 text-[11px] text-charcoal-500">
                           <Calendar className="w-3.5 h-3.5 text-charcoal-400 shrink-0" />
                           <span>
-                            Tgl Hubungi:{' '}
+                            Tgl Masuk:{' '}
                             <strong className="text-charcoal-800">
                               {formatDate(lead.dateReceived || lead.createdAt)}
                             </strong>
@@ -1123,7 +1158,7 @@ export default function SalesPipelinePage() {
                       <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3] space-y-1">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-black text-charcoal-900 bg-white px-2 py-0.5 rounded-md border border-[#EAE8E3]">
-                            {item.stage}
+                            {normalizePipelineStage(item.stage)}
                           </span>
                           <span className="text-[10px] text-charcoal-400 font-mono">
                             {formatDate(item.timestamp, true)}

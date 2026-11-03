@@ -344,9 +344,39 @@ export async function POST(request: Request) {
         const initialStage = payload.status || 'Hanya Menanyakan';
         const now = new Date().toISOString();
         const contactNum = payload.contactNumber || payload.customerPhone || '';
+        
+        // Prevent ID collisions after deletion by finding maximum existing sequence
+        const maxLeadNum = (db.leads || []).reduce((max, l) => {
+          const match = (l.id || '').match(/LEAD-\d+-(\d+)/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            return num > max ? num : max;
+          }
+          return max;
+        }, 0);
+        const assignedLeadId = payload.id || `LEAD-2026-${String(maxLeadNum + 1).padStart(3, '0')}`;
+
+        // Link with existing customer if matching whatsapp exists
+        let customerId = payload.customerId;
+        if (!customerId && db.customers && contactNum) {
+          const cleanPhone = contactNum.replace(/\D/g, '');
+          const matchedCust = db.customers.find((c) => {
+            const custPhone = (c.whatsapp || '').replace(/\D/g, '');
+            return (
+              cleanPhone.length >= 8 &&
+              custPhone.length >= 8 &&
+              (cleanPhone === custPhone || cleanPhone.endsWith(custPhone) || custPhone.endsWith(cleanPhone))
+            );
+          });
+          if (matchedCust) {
+            customerId = matchedCust.id;
+          }
+        }
+
         const lead: Lead = {
           ...payload,
-          id: payload.id || `LEAD-2026-${String(db.leads.length + 1).padStart(3, '0')}`,
+          id: assignedLeadId,
+          customerId,
           contactNumber: contactNum,
           customerPhone: contactNum,
           leadSource: payload.leadSource || 'WhatsApp',
@@ -399,6 +429,27 @@ export async function POST(request: Request) {
           stageHistory,
           updatedAt: now,
         };
+
+        // Synchronize customer name & WhatsApp to linked Customer record and Follow-ups
+        const updatedName = payload.customerName || oldLead.customerName;
+        if (oldLead.customerId && db.customers) {
+          const cust = db.customers.find((c) => c.id === oldLead.customerId);
+          if (cust) {
+            if (payload.customerName) cust.fullName = payload.customerName;
+            if (contactNum) cust.whatsapp = contactNum;
+            cust.updatedAt = now;
+          }
+        }
+        if (db.followUps) {
+          db.followUps.forEach((f) => {
+            if (f.leadId === payload.id) {
+              if (updatedName) f.customerName = updatedName;
+              if (contactNum) f.customerPhone = contactNum;
+              f.updatedAt = now;
+            }
+          });
+        }
+
         logActivity('Memperbarui Data Prospek', 'Prospek', payload.id, `Memperbarui info prospek ${db.leads[index].customerName}`);
         break;
       }
@@ -415,15 +466,15 @@ export async function POST(request: Request) {
         lead.status = newStage;
         lead.lastContactDate = now;
         lead.updatedAt = now;
+        if (payload.notes) lead.notes = payload.notes;
 
         if (newStage === 'Cek Unit') {
-          lead.visitNotes = payload.visitNotes || lead.visitNotes || payload.notes;
+          lead.visitNotes = payload.visitNotes || payload.notes || lead.visitNotes;
           lead.visitDate = payload.visitDate || now;
         }
         if (newStage === 'Negosiasi') {
           if (payload.negotiationOffer) lead.negotiationOffer = Number(payload.negotiationOffer);
           if (payload.negotiationNotes) lead.negotiationNotes = payload.negotiationNotes;
-          if (payload.notes) lead.notes = payload.notes;
         }
         if (newStage === 'Lost') {
           lead.lostReason = payload.lostReason;
@@ -555,6 +606,9 @@ export async function POST(request: Request) {
         }
         const deletedLead = db.leads[leadIndex];
         db.leads.splice(leadIndex, 1);
+        if (db.followUps) {
+          db.followUps = db.followUps.filter((f) => f.leadId !== payload.id);
+        }
         logActivity(
           'Menghapus Data Lead',
           'Prospek',
@@ -1974,8 +2028,16 @@ export async function POST(request: Request) {
 
         // Also add or sync with Leads for Sales Pipeline consistency
         if (!db.leads) db.leads = [];
+        const maxLeadNum = db.leads.reduce((max, l) => {
+          const match = (l.id || '').match(/LEAD-\d+-(\d+)/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            return num > max ? num : max;
+          }
+          return max;
+        }, 0);
         const newLead: Lead = {
-          id: `LEAD-2026-${String(db.leads.length + 1).padStart(3, '0')}`,
+          id: `LEAD-2026-${String(maxLeadNum + 1).padStart(3, '0')}`,
           customerName: customerName.trim(),
           contactNumber: customerPhone.trim(),
           customerPhone: customerPhone.trim(),
@@ -1989,10 +2051,18 @@ export async function POST(request: Request) {
           searchBudgetMax: budgetWanted,
           assignedSalesId: userId,
           assignedSalesName: userName,
-          status: 'Menanyakan Unit',
+          status: 'Hanya Menanyakan',
           notes: notes || 'Calon pembeli mencari unit mobil',
           dateReceived: dateInquiry,
           lastContactDate: nowIso,
+          stageHistory: [
+            {
+              stage: 'Hanya Menanyakan',
+              timestamp: nowIso,
+              notes: notes || 'Calon pembeli mencari unit mobil',
+              updatedByName: userName,
+            },
+          ],
           createdAt: nowIso,
           updatedAt: nowIso,
         };

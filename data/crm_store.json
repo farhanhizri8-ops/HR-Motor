@@ -25,7 +25,8 @@
       "estimatedBudget": 470000000,
       "lastContactDate": "2026-11-01T14:30:00Z",
       "assignedSalesName": "Asep Kurniawan",
-      "interestedVehicle": "Mitsubishi Pajero Sport Dakar 4x2 2020"
+      "interestedVehicle": "Mitsubishi Pajero Sport Dakar 4x2 2020",
+      "customerPhone": "081222987654"
     },
     {
       "id": "LEAD-2026-002",
@@ -54,13 +55,14 @@
       "lastContactDate": "2026-11-01T16:00:00Z",
       "assignedSalesName": "Rina Sulaeman",
       "interestedVehicle": "Toyota Avanza 1.3 G M/T 2019",
-      "testDriveLocation": "Kp. Babakan Salam, Karangpawitan, Garut"
+      "testDriveLocation": "Kp. Babakan Salam, Karangpawitan, Garut",
+      "customerPhone": "085721889900"
     },
     {
       "id": "LEAD-2026-003",
       "email": "siska.oktaviani@guru.id",
       "notes": "Sangat tertarik dengan kondisi transmisi CVT yang mulus. Sedang menunggu pencairan sertifikasi guru pertengahan bulan.",
-      "status": "Deal",
+      "status": "Negosiasi",
       "dealDate": "2026-11-02",
       "createdAt": "2026-10-10T11:00:00Z",
       "dealValue": 165000000,
@@ -74,37 +76,37 @@
       "stageHistory": [
         {
           "notes": "Sangat tertarik dengan kondisi transmisi CVT yang mulus. Sedang menunggu pencairan sertifikasi guru pertengahan bulan.",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-01T15:45:00Z",
           "updatedByName": "Rina Sulaeman"
         },
         {
           "notes": "Dipindahkan ke tahapan Menanyakan Unit oleh H. Rahmat Hidayat",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-02T06:35:39.882Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Dipindahkan ke tahapan Tertarik oleh H. Rahmat Hidayat",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T08:52:11.788Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Dipindahkan ke tahapan Menanyakan Unit oleh H. Rahmat Hidayat",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-02T08:53:22.521Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Dipindahkan ke tahapan Tertarik oleh H. Rahmat Hidayat",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T08:53:57.096Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Konsumen setuju pelunasan cash di showroom Garut. Unit diserahterimakan lengkap.",
-          "stage": "Deal",
+          "stage": "Negosiasi",
           "dealDate": "2026-11-02",
           "dealValue": 165000000,
           "timestamp": "2026-11-02T09:30:44.903Z",
@@ -116,13 +118,14 @@
       "estimatedBudget": 160000000,
       "lastContactDate": "2026-11-02T09:30:44.903Z",
       "assignedSalesName": "Rina Sulaeman",
-      "interestedVehicle": "Honda Brio Satya E CVT 2022"
+      "interestedVehicle": "Honda Brio Satya E CVT 2022",
+      "customerPhone": "081394551122"
     },
     {
       "id": "LEAD-2026-004",
       "email": "tatang.h@cvmandiri.co.id",
       "notes": "Sudah dikirim spesifikasi bak dan foto kolong chassis. Belum ada respon sejak kemarin lusa.",
-      "status": "Tertarik",
+      "status": "Negosiasi",
       "createdAt": "2026-10-14T08:30:00Z",
       "updatedAt": "2026-11-02T08:53:59.929Z",
       "customerId": "CUST-2026-006",
@@ -133,31 +136,31 @@
       "stageHistory": [
         {
           "notes": "Sudah dikirim spesifikasi bak dan foto kolong chassis. Belum ada respon sejak kemarin lusa.",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T05:22:13.280Z",
           "updatedByName": "Asep Kurniawan"
         },
         {
           "notes": "Dipindahkan ke tahapan Menanyakan Unit oleh H. Rahmat Hidayat",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-02T06:35:49.585Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Dipindahkan ke tahapan Tertarik oleh H. Rahmat Hidayat",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T08:53:10.584Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Dipindahkan ke tahapan Menanyakan Unit oleh H. Rahmat Hidayat",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-02T08:53:51.644Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
           "notes": "Dipindahkan ke tahapan Tertarik oleh H. Rahmat Hidayat",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T08:53:59.929Z",
           "updatedByName": "H. Rahmat Hidayat"
         }
@@ -167,13 +170,14 @@
       "estimatedBudget": 120000000,
       "lastContactDate": "2026-11-02T08:53:59.929Z",
       "assignedSalesName": "Asep Kurniawan",
-      "interestedVehicle": "Daihatsu Gran Max Pickup 1.5 AC/PS 2022"
+      "interestedVehicle": "Daihatsu Gran Max Pickup 1.5 AC/PS 2022",
+      "customerPhone": "082120334455"
     },
     {
       "id": "LEAD-2026-005",
       "email": "rizki.ramdani@gmail.com",
       "notes": "Walk-in mencari Fortuner VRZ warna hitam. Minta diinfokan apabila ada unit masuk yang interiornya mulus.",
-      "status": "Lost",
+      "status": "Hanya Menanyakan",
       "createdAt": "2026-10-22T13:00:00Z",
       "updatedAt": "2026-11-02T09:31:19.156Z",
       "customerId": "CUST-2026-008",
@@ -185,18 +189,18 @@
       "stageHistory": [
         {
           "notes": "Walk-in mencari Fortuner VRZ warna hitam. Minta diinfokan apabila ada unit masuk yang interiornya mulus.",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-01T13:10:00Z",
           "updatedByName": "Asep Kurniawan"
         },
         {
           "notes": "Dipindahkan ke tahapan Tertarik oleh H. Rahmat Hidayat",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T06:35:27.812Z",
           "updatedByName": "H. Rahmat Hidayat"
         },
         {
-          "stage": "Lost",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-02T09:31:19.156Z",
           "lostReason": "Harga tidak cocok, menawar di bawah batas showroom",
           "updatedByName": "Sistem CRM"
@@ -208,13 +212,14 @@
       "lastContactDate": "2026-11-02T09:31:19.156Z",
       "assignedSalesName": "Asep Kurniawan",
       "interestedVehicle": "Toyota Fortuner 2.4 VRZ Diesel A/T 2019",
-      "lostReasonCategory": "Harga tidak cocok"
+      "lostReasonCategory": "Harga tidak cocok",
+      "customerPhone": "087826112233"
     },
     {
       "id": "LEAD-2026-006",
       "email": "eni.rohaeni@batikgarut.com",
       "notes": "Prospek hangat referensi Dr. Nina. Rencana datang ke showroom HR MOTOR hari Rabu sore.",
-      "status": "Tertarik",
+      "status": "Negosiasi",
       "createdAt": "2026-10-25T14:00:00Z",
       "updatedAt": "2026-11-02T06:35:34.318Z",
       "customerId": "CUST-2026-009",
@@ -225,13 +230,13 @@
       "stageHistory": [
         {
           "notes": "Prospek hangat referensi Dr. Nina. Rencana datang ke showroom HR MOTOR hari Rabu sore.",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-02T08:30:00Z",
           "updatedByName": "Rina Sulaeman"
         },
         {
           "notes": "Dipindahkan ke tahapan Tertarik oleh H. Rahmat Hidayat",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T06:35:34.318Z",
           "updatedByName": "H. Rahmat Hidayat"
         }
@@ -241,13 +246,14 @@
       "estimatedBudget": 195000000,
       "lastContactDate": "2026-11-02T06:35:34.318Z",
       "assignedSalesName": "Rina Sulaeman",
-      "interestedVehicle": "Daihatsu Terios R Deluxe A/T 2020"
+      "interestedVehicle": "Daihatsu Terios R Deluxe A/T 2020",
+      "customerPhone": "085223447788"
     },
     {
       "id": "LEAD-2026-007",
       "email": "fahmi.abd@gmail.com",
       "notes": "Tanya simulasi kredit DP 20% tenor 4 tahun. Diberikan estimasi angsuran Rp 3.8 jutaan.",
-      "status": "Tertarik",
+      "status": "Negosiasi",
       "createdAt": "2026-10-28T16:00:00Z",
       "updatedAt": "2026-11-02T05:22:14.111Z",
       "customerId": "CUST-2026-010",
@@ -258,7 +264,7 @@
       "stageHistory": [
         {
           "notes": "Tanya simulasi kredit DP 20% tenor 4 tahun. Diberikan estimasi angsuran Rp 3.8 jutaan.",
-          "stage": "Tertarik",
+          "stage": "Negosiasi",
           "timestamp": "2026-11-02T05:22:14.111Z",
           "updatedByName": "Rina Sulaeman"
         }
@@ -268,13 +274,14 @@
       "estimatedBudget": 165000000,
       "lastContactDate": "2026-11-02T05:22:14.111Z",
       "assignedSalesName": "Rina Sulaeman",
-      "interestedVehicle": "Suzuki Ertiga GX M/T 2019"
+      "interestedVehicle": "Suzuki Ertiga GX M/T 2019",
+      "customerPhone": "089655123456"
     },
     {
       "id": "LEAD-2026-008",
       "email": "agus.gunawan@gmail.com",
       "notes": "Deal pembelian tunai sukses! Unit sudah diserahterimakan.",
-      "status": "Deal",
+      "status": "Negosiasi",
       "dealDate": "2026-10-15",
       "createdAt": "2026-09-12T10:00:00Z",
       "dealValue": 345000000,
@@ -288,7 +295,7 @@
       "stageHistory": [
         {
           "notes": "Deal pembelian tunai sukses! Unit sudah diserahterimakan.",
-          "stage": "Deal",
+          "stage": "Negosiasi",
           "dealDate": "2026-10-15",
           "dealValue": 345000000,
           "timestamp": "2026-10-15T11:00:00Z",
@@ -300,13 +307,14 @@
       "estimatedBudget": 350000000,
       "lastContactDate": "2026-10-15T11:00:00Z",
       "assignedSalesName": "Asep Kurniawan",
-      "interestedVehicle": "Toyota Innova Reborn 2.4 V Diesel A/T 2020"
+      "interestedVehicle": "Toyota Innova Reborn 2.4 V Diesel A/T 2020",
+      "customerPhone": "081221345678"
     },
     {
       "id": "LEAD-2026-009",
       "email": "dr.nina@rsudslamet.id",
       "notes": "Deal pembelian via kredit Mandiri Utama Finance.",
-      "status": "Deal",
+      "status": "Negosiasi",
       "dealDate": "2026-10-18",
       "createdAt": "2026-09-20T11:30:00Z",
       "dealValue": 215000000,
@@ -320,7 +328,7 @@
       "stageHistory": [
         {
           "notes": "Deal pembelian via kredit Mandiri Utama Finance.",
-          "stage": "Deal",
+          "stage": "Negosiasi",
           "dealDate": "2026-10-18",
           "dealValue": 215000000,
           "timestamp": "2026-10-18T14:00:00Z",
@@ -332,13 +340,14 @@
       "estimatedBudget": 220000000,
       "lastContactDate": "2026-10-18T14:00:00Z",
       "assignedSalesName": "Rina Sulaeman",
-      "interestedVehicle": "Honda HR-V 1.5 E CVT 2018"
+      "interestedVehicle": "Honda HR-V 1.5 E CVT 2018",
+      "customerPhone": "081320456789"
     },
     {
       "id": "LEAD-2026-010",
       "email": "yudi.karyadi@gmail.com",
       "notes": "Deal cash bertahap 2 termin, lunas.",
-      "status": "Deal",
+      "status": "Negosiasi",
       "dealDate": "2026-10-27",
       "createdAt": "2026-10-18T14:00:00Z",
       "dealValue": 225000000,
@@ -352,7 +361,7 @@
       "stageHistory": [
         {
           "notes": "Deal cash bertahap 2 termin, lunas.",
-          "stage": "Deal",
+          "stage": "Negosiasi",
           "dealDate": "2026-10-27",
           "dealValue": 225000000,
           "timestamp": "2026-10-27T10:00:00Z",
@@ -364,13 +373,14 @@
       "estimatedBudget": 230000000,
       "lastContactDate": "2026-10-27T10:00:00Z",
       "assignedSalesName": "Asep Kurniawan",
-      "interestedVehicle": "Mitsubishi Xpander Ultimate A/T 2021"
+      "interestedVehicle": "Mitsubishi Xpander Ultimate A/T 2021",
+      "customerPhone": "081322119988"
     },
     {
       "id": "LEAD-2026-011",
       "email": "bambang.s@gmail.com",
       "notes": "Konsumen mencari Jazz RS warna Phoenix Yellow, unit HR MOTOR warna putih mutiara.",
-      "status": "Lost",
+      "status": "Hanya Menanyakan",
       "createdAt": "2026-10-12T09:00:00Z",
       "updatedAt": "2026-10-24T11:00:00Z",
       "leadSource": "Walk-in",
@@ -381,7 +391,7 @@
       "stageHistory": [
         {
           "notes": "Konsumen mencari Jazz RS warna Phoenix Yellow, unit HR MOTOR warna putih mutiara.",
-          "stage": "Lost",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-10-24T11:00:00Z",
           "lostReason": "Membeli unit di showroom Bandung karena mendapatkan warna kuning yang spesifik dicari.",
           "updatedByName": "Asep Kurniawan"
@@ -392,13 +402,14 @@
       "estimatedBudget": 210000000,
       "lastContactDate": "2026-10-24T11:00:00Z",
       "assignedSalesName": "Asep Kurniawan",
-      "interestedVehicle": "Honda Jazz RS CVT 2019"
+      "interestedVehicle": "Honda Jazz RS CVT 2019",
+      "customerPhone": "081299887766"
     },
     {
       "id": "LEAD-2026-012",
       "email": "dadan.sp@gmail.com",
       "notes": "Leasing BCA & Adira reject berkas.",
-      "status": "Lost",
+      "status": "Hanya Menanyakan",
       "createdAt": "2026-10-15T13:00:00Z",
       "updatedAt": "2026-10-26T15:30:00Z",
       "leadSource": "Instagram",
@@ -409,7 +420,7 @@
       "stageHistory": [
         {
           "notes": "Leasing BCA & Adira reject berkas.",
-          "stage": "Lost",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-10-26T15:30:00Z",
           "lostReason": "Pengajuan kredit ditolak oleh pihak leasing (riwayat BI checking merah).",
           "updatedByName": "Rina Sulaeman"
@@ -420,13 +431,14 @@
       "estimatedBudget": 115000000,
       "lastContactDate": "2026-10-26T15:30:00Z",
       "assignedSalesName": "Rina Sulaeman",
-      "interestedVehicle": "Toyota Calya 1.2 G A/T 2020"
+      "interestedVehicle": "Toyota Calya 1.2 G A/T 2020",
+      "customerPhone": "085311223344"
     },
     {
       "id": "LEAD-2026-013",
       "email": "andi.setiawan@gmail.com",
       "notes": "Konsumen menanyakan ketersediaan Honda Brio Satya E CVT tahun 2020-2023 budget max 165jt. Unit belum tersedia di showroom saat ini.",
-      "status": "Menanyakan Unit",
+      "status": "Hanya Menanyakan",
       "createdAt": "2026-11-01T10:00:00Z",
       "updatedAt": "2026-11-01T10:00:00Z",
       "leadSource": "WhatsApp",
@@ -439,7 +451,7 @@
       "stageHistory": [
         {
           "notes": "Chat WhatsApp menanyakan stok Honda Brio Satya E CVT.",
-          "stage": "Menanyakan Unit",
+          "stage": "Hanya Menanyakan",
           "timestamp": "2026-11-01T10:00:00Z",
           "updatedByName": "Asep Kurniawan"
         }
@@ -454,7 +466,8 @@
       "searchBudgetMin": 140000000,
       "assignedSalesName": "Asep Kurniawan",
       "interestedVehicle": "Honda Brio Satya E CVT",
-      "searchTransmission": "CVT"
+      "searchTransmission": "CVT",
+      "customerPhone": "081288997766"
     }
   ],
   "users": [
@@ -1330,7 +1343,12 @@
         "❌ DETAILING"
       ],
       "createdAt": "2026-08-01T08:00:00Z",
-      "updatedAt": "2026-11-03T01:00:00Z"
+      "updatedAt": "2026-11-03T01:00:00Z",
+      "bookingCustomerName": "Ahmad Fauzi",
+      "bookingLeasing": "BCA Finance",
+      "bookingDp": 45000000,
+      "bookingDate": "2026-11-01",
+      "bookingApplicationId": "CRD-2026-001"
     },
     {
       "id": "STK-2026-023",
@@ -3371,7 +3389,9 @@
       "scheduledTime": "10:00",
       "followUpReason": "Prospek sebelumnya berstatus Lost (Harga tidak cocok, menawar di bawah batas showroom). Menanyakan apakah masih mencari mobil atau tertarik dengan unit stok terbaru di HR MOTOR.",
       "communicationLogs": [],
-      "customerPhone": "087826112233"
+      "customerPhone": "087826112233",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-012",
@@ -3390,7 +3410,9 @@
       "scheduledTime": "10:00",
       "followUpReason": "Pengecekan kepuasan 1 tahun pemakaian unit, kondisi kendaraan, dan penawaran tukar tambah (trade-in) atau penjualan kembali ke HR MOTOR.",
       "communicationLogs": [],
-      "customerPhone": "081394551122"
+      "customerPhone": "081394551122",
+      "followUpType": "CUSTOMER",
+      "paymentType": "Cash"
     },
     {
       "id": "FLW-2026-011",
@@ -3410,7 +3432,9 @@
       "followUpReason": "Janji temu inspeksi dan test drive Honda Brio di showroom.",
       "vehicleStockId": "STK-2026-009",
       "communicationLogs": [],
-      "customerPhone": "081288997766"
+      "customerPhone": "081288997766",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-010",
@@ -3441,7 +3465,9 @@
           "nextFollowUpDate": "2026-11-07"
         }
       ],
-      "customerPhone": "081288997766"
+      "customerPhone": "081288997766",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Sudah Dihubungi"
     },
     {
       "id": "FLW-2026-009",
@@ -3461,7 +3487,9 @@
       "followUpReason": "Unit yang dicari konsumen (Honda Brio Satya E CVT 2021) baru saja tersedia di showroom HR MOTOR. Segera hubungi sebelum unit terjual.",
       "vehicleStockId": "STK-2026-009",
       "communicationLogs": [],
-      "customerPhone": "081299887766"
+      "customerPhone": "081299887766",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-008",
@@ -3482,7 +3510,9 @@
       "followUpReason": "Unit yang dicari konsumen (Honda Brio Satya E CVT 2021) baru saja tersedia di showroom HR MOTOR. Segera hubungi sebelum unit terjual.",
       "vehicleStockId": "STK-2026-009",
       "communicationLogs": [],
-      "customerPhone": "081394551122"
+      "customerPhone": "081394551122",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-001",
@@ -3502,7 +3532,9 @@
       "scheduledTime": "10:00",
       "followUpReason": "Follow-up 1 tahun pasca pembelian: Menanyakan kondisi mobil, kepuasan berkendara, dan rencana tukar tambah / upgrade unit.",
       "assignedSalesId": "USR-004",
-      "assignedSalesName": "Rina Sulaeman"
+      "assignedSalesName": "Rina Sulaeman",
+      "followUpType": "CUSTOMER",
+      "paymentType": "Cash"
     },
     {
       "id": "FLW-2026-002",
@@ -3522,7 +3554,9 @@
       "scheduledTime": "13:30",
       "followUpReason": "Follow-up bulanan prospek belum jadi: Sebelumnya mencari Jazz warna kuning. Tanyakan apakah masih mencari mobil atau berminat unit lain.",
       "assignedSalesId": "USR-003",
-      "assignedSalesName": "Asep Kurniawan"
+      "assignedSalesName": "Asep Kurniawan",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-003",
@@ -3543,7 +3577,9 @@
       "followUpReason": "Unit Daihatsu Sigra 2022 Putih baru saja masuk showroom dengan status Tersedia, sangat cocok dengan kriteria budget Rp 130jt konsumen.",
       "vehicleStockId": "STK-2026-004",
       "assignedSalesId": "USR-003",
-      "assignedSalesName": "Asep Kurniawan"
+      "assignedSalesName": "Asep Kurniawan",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-004",
@@ -3563,7 +3599,9 @@
       "scheduledTime": "15:00",
       "followUpReason": "Follow-up bulanan: Sebelumnya pengajuan leasing reject. Tanyakan apakah ada rencana pembayaran cash bertahap atau penjamin berkas keluarga.",
       "assignedSalesId": "USR-004",
-      "assignedSalesName": "Rina Sulaeman"
+      "assignedSalesName": "Rina Sulaeman",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-005",
@@ -3582,7 +3620,9 @@
       "scheduledTime": "10:00",
       "followUpReason": "Follow-up tahunan pasca pembelian: Pengecekan kepuasan 1 tahun dan penawaran tukar tambah mobil keluarga.",
       "assignedSalesId": "USR-005",
-      "assignedSalesName": "Siti Nurhaliza"
+      "assignedSalesName": "Siti Nurhaliza",
+      "followUpType": "CUSTOMER",
+      "paymentType": "Cash"
     },
     {
       "id": "FLW-2026-006",
@@ -3602,7 +3642,9 @@
       "followUpReason": "Unit Avanza 2020 Silver Metalik tersedia di showroom HR MOTOR, sesuai kebutuhan mobil keluarga Rp 180jt.",
       "vehicleStockId": "STK-2026-001",
       "assignedSalesId": "USR-004",
-      "assignedSalesName": "Rina Sulaeman"
+      "assignedSalesName": "Rina Sulaeman",
+      "followUpType": "PROSPECT",
+      "prospectStatus": "Belum Dihubungi"
     },
     {
       "id": "FLW-2026-007",
@@ -3624,7 +3666,9 @@
       "followUpReason": "Follow-up tahunan: Menanyakan kondisi Pajero Sport dan penawaran unit SUV premium terbaru.",
       "assignedSalesId": "USR-003",
       "lastContactDate": "2026-10-15T11:30:00Z",
-      "assignedSalesName": "Asep Kurniawan"
+      "assignedSalesName": "Asep Kurniawan",
+      "followUpType": "CUSTOMER",
+      "paymentType": "Cash"
     }
   ],
   "purchases": [
@@ -5682,6 +5726,37 @@
       "customerPhone": "081221345678",
       "messageContent": "Sampurasun Pak Agus Gunawan, ini Siti dari Customer Care HR MOTOR Garut. Bagaimana pengalaman berkendara Bapak dengan Toyota Innova Reborn setelah 1 bulan pemakaian? Semoga selalu lancar dan nyaman untuk aktivitas keluarga.",
       "lastContactDate": "2026-10-22T14:40:00Z"
+    }
+  ],
+  "creditApplications": [
+    {
+      "id": "CRD-2026-001",
+      "customerId": "CUST-2026-070",
+      "customerName": "Ahmad Fauzi",
+      "customerPhone": "081223344556",
+      "customerAddress": "Jl. Cimanuk No. 88, Tarogong Kidul, Garut",
+      "customerSource": "Walk-in",
+      "vehicleStockId": "STK-2026-022",
+      "vehicleName": "MITSUBISHI XPANDER CROSS 1.5L A/T (2021)",
+      "plateNumber": "Z 1209 EG",
+      "targetLeasing": "BCA Finance",
+      "dealPrice": 235000000,
+      "initialDp": 45000000,
+      "status": "PENDING",
+      "applicationDate": "2026-11-01",
+      "notes": "Pengajuan kredit tenor 4 tahun (47x). Konsumen mengajukan via BCA Finance Garut.",
+      "history": [
+        {
+          "status": "PENDING",
+          "timestamp": "2026-11-01T09:30:00Z",
+          "adminName": "Deni Pratama, S.T.",
+          "notes": "Pengajuan kredit pertama kali dibuat (Status: PENDING), unit mobil otomatis dibooking.",
+          "dpAmount": 45000000,
+          "leasingPartner": "BCA Finance"
+        }
+      ],
+      "createdAt": "2026-11-01T09:30:00Z",
+      "updatedAt": "2026-11-01T09:30:00Z"
     }
   ]
 }

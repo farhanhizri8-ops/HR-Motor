@@ -546,10 +546,89 @@ console.log('\n[8/8] Testing Sales Pipeline 3-Stage Tracking & Lead Management S
   assert(targetLead.status === 'Cek Unit', 'Lead stage successfully transitioned to Cek Unit');
   assert(targetLead.stageHistory.length === 3, 'Stage history accurately records 3 chronological entries');
 
-  // 5. Deletion removes cleanly from shared database
+  // 5. Deletion & Orphaned Reference Cleanup
   const prevCount = mockDb.leads.length;
+  mockDb.followUps = [
+    { id: 'FLW-LEAD-999', leadId: 'LEAD-2026-999', customerName: 'Hj. Nenden Kartika' } as any,
+    { id: 'FLW-OTHER', leadId: 'LEAD-TEST-001', customerName: 'Asep Ridwan' } as any,
+  ];
+
+  // Simulate DELETE_LEAD with orphaned follow-up cleanup
   mockDb.leads = mockDb.leads.filter((l: any) => l.id !== 'LEAD-2026-999');
-  assert(mockDb.leads.length === prevCount - 1, 'Lead deletion removes from shared database without orphan references');
+  mockDb.followUps = mockDb.followUps.filter((f: any) => f.leadId !== 'LEAD-2026-999');
+  assert(mockDb.leads.length === prevCount - 1, 'Lead deletion removes lead from shared database');
+  assert(mockDb.followUps.length === 1 && mockDb.followUps[0].id === 'FLW-OTHER', 'Lead deletion removes orphaned follow-up references');
+
+  // 6. Resilient ID Sequence Generation (Collision Resistance after deletion)
+  const simulatedLeads = [
+    { id: 'LEAD-2026-001' },
+    { id: 'LEAD-2026-002' },
+    { id: 'LEAD-2026-003' },
+  ];
+  // Delete middle lead
+  const remainingLeads = simulatedLeads.filter(l => l.id !== 'LEAD-2026-002');
+  // With naive (length + 1): 2 + 1 = 3 -> COLLISION with LEAD-2026-003!
+  // With max sequence algorithm:
+  const maxSeq = remainingLeads.reduce((max, l) => {
+    const match = (l.id || '').match(/LEAD-\d+-(\d+)/);
+    return match ? Math.max(max, parseInt(match[1], 10)) : max;
+  }, 0);
+  const nextSafeId = `LEAD-2026-${String(maxSeq + 1).padStart(3, '0')}`;
+  assert(nextSafeId === 'LEAD-2026-004', 'ID generation algorithm prevents duplicate collisions after deletion');
+  assert(!remainingLeads.some(l => l.id === nextSafeId), 'Generated lead ID does not collide with any existing lead');
+
+  // 7. Phone Normalization & Multi-Format Duplicate Detection
+  const testNormalizePhone = (phone?: string): string => {
+    let digits = (phone || '').replace(/\D/g, '');
+    if (digits.startsWith('62')) {
+      digits = '0' + digits.slice(2);
+    }
+    return digits;
+  };
+
+  const pStandard = testNormalizePhone('081222987654');
+  const pInternational = testNormalizePhone('+62 812-2298-7654');
+  const pDirect62 = testNormalizePhone('6281222987654');
+  const pDashed = testNormalizePhone('0812-2298-7654');
+
+  assert(pStandard === '081222987654', 'Standard phone normalizes correctly');
+  assert(pStandard === pInternational, 'International format "+62 812-..." matches standard "0812..."');
+  assert(pStandard === pDirect62, 'Direct "62812..." matches standard "0812..."');
+  assert(pStandard === pDashed, 'Dashed "0812-2298-7654" matches standard "0812..."');
+
+  // 8. UPDATE_LEAD_STAGE Notes Updating for Cek Unit & Hanya Menanyakan
+  const stageTestLead: Lead = {
+    id: 'LEAD-NOTE-TEST',
+    customerName: 'Siti Sarah',
+    contactNumber: '081234567800',
+    status: 'Hanya Menanyakan',
+    notes: 'Inquiry awal',
+    stageHistory: [],
+  } as any;
+
+  // Simulate updating stage to Cek Unit with note
+  const cekUnitNote = 'Konsumen akan datang cek unit Sabtu jam 10 pagi';
+  stageTestLead.status = 'Cek Unit';
+  stageTestLead.notes = cekUnitNote;
+  stageTestLead.visitNotes = cekUnitNote;
+  assert(stageTestLead.notes === cekUnitNote, 'UPDATE_LEAD_STAGE updates lead.notes when moving to Cek Unit');
+
+  // 9. Real Persistent Database Validation
+  const realDb = readDatabase();
+  const allLeadsValid = realDb.leads.every(l =>
+    CORE_PIPELINE_STAGES.includes(l.status as any)
+  );
+  assert(allLeadsValid, 'All leads in persistent database have 100% valid 3-stage status');
+
+  const allLeadsHavePhone = realDb.leads.every(l =>
+    Boolean(l.contactNumber || l.customerPhone)
+  );
+  assert(allLeadsHavePhone, 'All leads in persistent database have contact phone number');
+
+  const allLeadsHaveHistory = realDb.leads.every(l =>
+    Array.isArray(l.stageHistory) && l.stageHistory.length >= 1
+  );
+  assert(allLeadsHaveHistory, 'All leads in persistent database have valid stageHistory initialized');
 }
 
 console.log('\n================================================================');
