@@ -9,7 +9,6 @@ import {
   Target,
   GitPullRequest,
   CalendarClock,
-  BarChart3,
   UserCheck,
   History,
   Settings,
@@ -81,12 +80,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       href: '/riwayat-perbaikan',
       icon: Wrench,
       roles: ['Owner', 'CRM Administrator', 'WhatsApp Administrator', 'Sales Representative', 'Marketing'],
-    },
-    {
-      name: 'Reports & Analytics',
-      href: '/reports',
-      icon: BarChart3,
-      roles: ['Owner', 'CRM Administrator', 'Marketing'],
     },
     {
       name: 'User Management',

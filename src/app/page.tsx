@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -21,6 +21,8 @@ import {
   Wrench,
   ShieldCheck,
   Sparkles,
+  LayoutDashboard,
+  BarChart3,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -37,6 +39,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { useCrm } from '@/context/CrmContext';
+import { ReportsAnalyticsView } from '@/app/reports/page';
 
 type DateFilterType =
   | 'hari_ini'
@@ -83,6 +86,17 @@ export default function DashboardPage() {
     formatDate,
     formatWhatsAppLink,
   } = useCrm();
+
+  const [dashboardTab, setDashboardTab] = useState<'operasional' | 'reports'>('operasional');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (tab === 'reports') {
+        setDashboardTab('reports');
+      }
+    }
+  }, []);
 
   const [dateFilter, setDateFilter] = useState<DateFilterType>('bulan_ini');
   const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(10); // Nov
@@ -365,8 +379,54 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Luxury Banner & Showroom Identity */}
-      <div className="crm-card p-6 bg-white border border-warm-200 relative overflow-hidden">
+      {/* Dashboard Executive Mode Switcher: Operasional vs Reports & Analytics */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-warm-200 shadow-xs">
+        <div className="flex items-center gap-1.5 p-1 bg-warm-100 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setDashboardTab('operasional')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              dashboardTab === 'operasional'
+                ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
+                : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-white/70'
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Dashboard Operasional</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDashboardTab('reports')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              dashboardTab === 'reports'
+                ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
+                : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-white/70'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 text-gold-500" />
+            <span>Reports & Analytics</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gold-500/20 text-gold-700">
+              Lengkap
+            </span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 text-[11px] text-charcoal-500 font-medium px-2">
+          {dashboardTab === 'reports' ? (
+            <span>Analisis eksekutif penjualan, tren bulanan, saluran promosi, dan ekspor data</span>
+          ) : (
+            <span>Ringkasan aktivitas transaksi, stok unit, dan follow-up showroom</span>
+          )}
+        </div>
+      </div>
+
+      {dashboardTab === 'reports' ? (
+        <ReportsAnalyticsView />
+      ) : (
+        <>
+          {/* Top Luxury Banner & Showroom Identity */}
+          <div className="crm-card p-6 bg-white border border-warm-200 relative overflow-hidden">
         {/* Subtle decorative gold light accent */}
         <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-gold-50/70 via-gold-50/20 to-transparent pointer-events-none" />
 
@@ -1031,6 +1091,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

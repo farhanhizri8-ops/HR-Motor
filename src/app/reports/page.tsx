@@ -74,7 +74,7 @@ const PIE_PALETTE = [
 
 type PeriodFilter = 'all' | 'this_month' | 'last_month' | 'sep_2026' | 'this_quarter' | 'this_year' | 'year_2025';
 
-export default function ReportsAnalyticsPage() {
+export function ReportsAnalyticsView({ className = '' }: { className?: string }) {
   const {
     leads,
     purchases,
@@ -656,7 +656,7 @@ export default function ReportsAnalyticsPage() {
   }
 
   return (
-    <div className="space-y-7 pb-10">
+    <div className={`space-y-7 pb-10 ${className}`}>
       {/* NOTIFICATION BANNER JIKA EKSPOR SUKSES */}
       {exportSuccess && (
         <div className="p-3.5 bg-gold-50 border border-gold-400 rounded-xl text-xs font-bold text-gold-900 flex items-center justify-between shadow-sm animate-fadeIn">
@@ -1454,4 +1454,8 @@ export default function ReportsAnalyticsPage() {
       </div>
     </div>
   );
+}
+
+export default function ReportsAnalyticsPage() {
+  return <ReportsAnalyticsView />;
 }
