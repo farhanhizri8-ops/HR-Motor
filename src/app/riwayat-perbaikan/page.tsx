@@ -29,7 +29,6 @@ import {
   DollarSign,
   TrendingUp,
   FileSpreadsheet,
-  RotateCcw,
   Sparkles,
   PieChart as PieChartIcon,
   Percent,
@@ -121,7 +120,6 @@ export default function RiwayatPerbaikanGaransiPage() {
   } = useCrm();
 
   // Active sub-tab: 'all' (Semua: Dashboard & Tabel) | 'list' (Tabel Saja) | 'reports' (Visualisasi Saja)
-  const [activeTab, setActiveTab] = useState<'all' | 'list' | 'reports'>('all');
 
   // Month & Year Selector for Metric: Total Uang Perbaikan Selama Satu Bulan
   const currentDate = new Date();
@@ -1137,9 +1135,9 @@ export default function RiwayatPerbaikanGaransiPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* 5 METRIK UTAMA DASHBOARD GARANSI (Permintaan Pengguna)                      */}
+      {/* 4 METRIK UTAMA DASHBOARD GARANSI                                         */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* 1. Total Uang Perbaikan Selama Satu Bulan */}
         <div className="crm-card p-4 bg-gradient-to-br from-white to-[#FAF9F5] border-gold-500/40 relative">
           <div className="flex items-center justify-between text-charcoal-600 mb-1 gap-1">
@@ -1203,25 +1201,7 @@ export default function RiwayatPerbaikanGaransiPage() {
           </div>
         </div>
 
-        {/* 2. Total Pelanggan yang Meminta Perbaikan */}
-        <div className="crm-card p-4">
-          <div className="flex items-center justify-between text-charcoal-400 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-blue-600" />
-              Pelanggan Klaim
-            </span>
-            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200">
-              Unik
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-black text-charcoal-900">{warrantyMetrics.totalUniqueCustomers}</span>
-            <span className="text-xs text-charcoal-500 font-semibold">pelanggan</span>
-          </div>
-          <p className="text-[10px] text-charcoal-400 mt-1">Mengajukan klaim garansi gratis</p>
-        </div>
-
-        {/* 3. Persentase Pelanggan Garansi dari Semua Penjualan */}
+        {/* 2. Persentase Pelanggan Garansi dari Semua Penjualan */}
         <div className="crm-card p-4">
           <div className="flex items-center justify-between text-charcoal-400 mb-1">
             <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 flex items-center gap-1">
@@ -1374,66 +1354,11 @@ export default function RiwayatPerbaikanGaransiPage() {
       </div>
 
 
-      {/* Sub-Tab Navigasi Halaman */}
-      <div className="flex items-center justify-between border-b border-[#EAE8E3] overflow-x-auto w-full min-w-0">
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'all'
-                ? 'border-gold-500 text-gold-600'
-                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-gold-500" />
-            <span>Semua (Dashboard &amp; Tabel)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('list')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'list'
-                ? 'border-gold-500 text-gold-600'
-                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>Tabel Data Garansi ({filteredClaims.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`flex items-center gap-2 py-3 px-3 text-xs font-bold border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'reports'
-                ? 'border-gold-500 text-gold-600'
-                : 'border-transparent text-charcoal-500 hover:text-charcoal-900'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span>Dashboard &amp; Visualisasi Owner HR MOTOR</span>
-          </button>
-        </div>
-
-        {customerFilter !== 'Semua' && (
-          <div className="flex items-center gap-1.5 px-3 py-1 text-xs text-gold-800 bg-gold-50/80 border border-gold-300 rounded-lg">
-            <span>Filter Konsumen: <strong>{customerFilter}</strong></span>
-            <button
-              onClick={() => setCustomerFilter('Semua')}
-              className="ml-1 text-gold-700 hover:text-gold-900"
-              title="Hapus filter konsumen"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* ========================================================================= */}
-      {/* TAB: TABEL DATA GARANSI PERBAIKAN                                         */}
+      {/* TABEL DATA GARANSI PERBAIKAN                                              */}
       {/* ========================================================================= */}
-      {(activeTab === 'all' || activeTab === 'list') && (
-        <div className="space-y-4">
-          {/* Toolbar Pencarian & Filter */}
+      <div className="space-y-4">
+        {/* Toolbar Pencarian & Filter */}
           <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
             {/* Input Pencarian */}
             <div className="relative flex-1">
@@ -1474,19 +1399,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </select>
               </div>
 
-              {/* Filter Status Garansi 1 Bulan */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] text-slate-500 font-medium">Garansi:</span>
-                <select
-                  value={warrantyFilter}
-                  onChange={(e) => setWarrantyFilter(e.target.value as any)}
-                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-gold-500"
-                >
-                  <option value="Semua">Semua Status</option>
-                  <option value="Dalam Garansi (Gratis)">Gratis &lt; 1 Bulan (≤ 30 Hari)</option>
-                  <option value="Di Luar Garansi">Di Luar Garansi (&gt; 30 Hari)</option>
-                </select>
-              </div>
+              
 
               {/* Filter Status Perbaikan */}
               <div className="flex items-center gap-1.5">
@@ -1538,31 +1451,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </select>
               </div>
 
-              {/* Reset Filter Button */}
-              {(categoryFilter !== 'Semua' ||
-                warrantyFilter !== 'Semua' ||
-                statusFilter !== 'Semua' ||
-                tableYearFilter !== 'Semua' ||
-                tableMonthFilter !== 'Semua' ||
-                searchQuery ||
-                customerFilter !== 'Semua') && (
-                <button
-                  onClick={() => {
-                    setCategoryFilter('Semua');
-                    setWarrantyFilter('Semua');
-                    setStatusFilter('Semua');
-                    setTableYearFilter('Semua');
-                    setTableMonthFilter('Semua');
-                    setCustomerFilter('Semua');
-                    setSearchQuery('');
-                  }}
-                  className="flex items-center gap-1 text-[11px] text-slate-500 hover:text-rose-600 px-2 py-1 rounded transition-colors"
-                  title="Reset Semua Filter"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span>Reset</span>
-                </button>
-              )}
+              
             </div>
           </div>
 
@@ -1579,9 +1468,9 @@ export default function RiwayatPerbaikanGaransiPage() {
                     <th className="py-3 px-3 text-center">Kategori</th>
                     <th className="py-3 px-3">Keluhan Perbaikan</th>
                     <th className="py-3 px-3">Bagian Diperbaiki</th>
-                    <th className="py-3 px-3">Bengkel Rekanan Rujukan</th>
+                    
                     <th className="py-3 px-3 text-right">Biaya (Rp)</th>
-                    <th className="py-3 px-3 text-center">Status Garansi</th>
+                    
                     <th className="py-3 px-3 text-center">Status Perbaikan</th>
                     <th className="py-3 px-3 text-center w-32">Aksi</th>
                   </tr>
@@ -1589,7 +1478,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredClaims.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="py-12 text-center text-slate-500">
+                      <td colSpan={10} className="py-12 text-center text-slate-500">
 
                         <ShieldCheck className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                         <p className="font-semibold text-slate-700">Tidak ada klaim garansi perbaikan ditemukan</p>
@@ -1686,15 +1575,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                             </p>
                           </td>
 
-                          {/* 8. Bengkel Rekanan Rujukan */}
-                          <td className="py-3 px-3 max-w-[170px]">
-                            <div className="flex items-start gap-1 text-[11px] text-slate-700">
-                              <Building2 className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2 font-medium">
-                                {claim.workshop || 'Bengkel Rekanan HR MOTOR Garut'}
-                              </span>
-                            </div>
-                          </td>
+                          
 
                           {/* 9. Biaya Perbaikan (Rp) */}
                           <td className="py-3 px-3 text-right whitespace-nowrap">
@@ -1706,29 +1587,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                             </span>
                           </td>
 
-                          {/* 10. Status Garansi (Badge "Gratis < 1 Bulan") */}
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full ${
-                                wCheck.isWithinWarranty
-                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                  : 'bg-amber-100 text-amber-800 border border-amber-300'
-                              }`}
-                              title={wCheck.notes}
-                            >
-                              {wCheck.isWithinWarranty ? (
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                              ) : (
-                                <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                              )}
-                              <span>{wCheck.badgeLabel}</span>
-                            </span>
-                            <div className="text-[9px] text-slate-400 mt-0.5">
-                              {wCheck.isWithinWarranty
-                                ? `Hari ke-${wCheck.daysDiff}`
-                                : `Lewat ${Math.max(0, wCheck.daysDiff - 30)} hari`}
-                            </div>
-                          </td>
+                          
 
                           {/* 11. Status Perbaikan */}
                           <td className="py-3 px-3 text-center whitespace-nowrap">
@@ -1856,20 +1715,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                         >
                           {claim.status || 'Selesai'}
                         </span>
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                            wCheck.isWithinWarranty
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : 'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}
-                        >
-                          {wCheck.isWithinWarranty ? (
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                          ) : (
-                            <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                          )}
-                          <span>{wCheck.badgeLabel}</span>
-                        </span>
+                        
                       </div>
                     </div>
 
@@ -1939,15 +1785,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                         </p>
                       </div>
 
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                          Bengkel Rekanan Rujukan:
-                        </span>
-                        <p className="text-xs text-slate-800 flex items-center gap-1">
-                          <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{claim.workshop || 'Bengkel Rekanan HR MOTOR'}</span>
-                        </p>
-                      </div>
+                      
                     </div>
 
                     {/* Biaya & Tombol Aksi */}
@@ -2007,13 +1845,12 @@ export default function RiwayatPerbaikanGaransiPage() {
             )}
           </div>
         </div>
-      )}
+      
 
       {/* ========================================================================= */}
-      {/* TAB: DASHBOARD & VISUALISASI OWNER HR MOTOR                                */}
+      {/* DASHBOARD & VISUALISASI OWNER HR MOTOR                                    */}
       {/* ========================================================================= */}
-      {(activeTab === 'all' || activeTab === 'reports') && (
-        <div className="space-y-6">
+      <div className="space-y-6">
           {/* Header Periode Laporan */}
           <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
@@ -2290,7 +2127,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             </div>
           </div>
         </div>
-      )}
+      
 
       {/* ========================================================================= */}
       {/* MODAL 1: FORMULIR INPUT SEDERHANA ("+ Catat Klaim Garansi")               */}
@@ -2540,37 +2377,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 />
               </div>
 
-              {/* 5. BENGKEL REKANAN HR MOTOR YANG DISARANKAN */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
-                  <span>Bengkel Rekanan HR MOTOR yang Disarankan</span>
-                  <span className="text-[10px] text-slate-500 font-normal">Rujukan Resmi Showroom Garut</span>
-                </label>
-                <select
-                  value={formData.workshop}
-                  onChange={(e) => setFormData({ ...formData, workshop: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white text-slate-800"
-                >
-                  {RECOMMENDED_WORKSHOPS.map((ws) => (
-                    <option key={ws} value={ws}>
-                      {ws}
-                    </option>
-                  ))}
-                  <option value="Lainnya">+ Ketik Bengkel Rekanan Lainnya</option>
-                </select>
-
-                {formData.workshop === 'Lainnya' && (
-                  <input
-                    type="text"
-                    placeholder="Ketik nama bengkel rujukan..."
-                    value={formData.customWorkshop}
-                    onChange={(e) => setFormData({ ...formData, customWorkshop: e.target.value })}
-                    className="w-full text-xs py-2 px-3 mt-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500"
-                  />
-                )}
-              </div>
-
-              {/* 6. BIAYA PERBAIKAN (RP) */}
+              {/* 5. BIAYA PERBAIKAN (RP) */}
               <div className="p-3.5 bg-gold-50/60 border border-gold-300 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold text-slate-900">
@@ -3052,25 +2859,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
-                  <span>Bengkel Rekanan Rujukan</span>
-                  <span className="text-[10px] text-slate-400">Pilih rujukan resmi atau ketik manual</span>
-                </label>
-                <input
-                  type="text"
-                  list="editWorkshopOptions"
-                  placeholder="Ketik atau pilih bengkel rekanan rujukan..."
-                  value={editFormData.workshop}
-                  onChange={(e) => setEditFormData({ ...editFormData, workshop: e.target.value })}
-                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white"
-                />
-                <datalist id="editWorkshopOptions">
-                  {RECOMMENDED_WORKSHOPS.map((ws) => (
-                    <option key={ws} value={ws} />
-                  ))}
-                </datalist>
-              </div>
+              
 
               <div className="p-3 bg-gold-50/60 border border-gold-300 rounded-xl">
                 <label className="block text-xs font-bold text-slate-900 mb-1">
