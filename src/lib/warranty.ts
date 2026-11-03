@@ -86,3 +86,53 @@ export function checkWarrantyStatus(purchaseDateStr?: string, repairDateStr?: st
         : `Melewati masa garansi 30 hari (+ ${daysDiff - 30} hari)`,
   };
 }
+
+export interface FleetHealthResult {
+  healthPercentage: string;
+  grade: 'Grade A+ (Sangat Prima)' | 'Grade A (Prima & Terkontrol)' | 'Grade B (Standar Baik)' | 'Perlu Evaluasi QC';
+  badgeColor: string;
+  textColor: string;
+  description: string;
+}
+
+// Helper to calculate showroom fleet health card metrics based on warranty claim ratio
+export function calculateFleetHealth(claimRatio: number | string): FleetHealthResult {
+  const ratio = typeof claimRatio === 'string' ? parseFloat(claimRatio) || 0 : (isNaN(claimRatio) ? 0 : claimRatio);
+  const health = Math.max(0, Math.min(100, 100 - ratio));
+  const healthFormatted = health.toFixed(1);
+
+  if (health >= 90) {
+    return {
+      healthPercentage: healthFormatted,
+      grade: 'Grade A+ (Sangat Prima)',
+      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      textColor: 'text-emerald-400',
+      description: 'Kondisi armada showroom sangat prima, minim kendala garansi pasca penjualan (< 10% klaim).',
+    };
+  } else if (health >= 80) {
+    return {
+      healthPercentage: healthFormatted,
+      grade: 'Grade A (Prima & Terkontrol)',
+      badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      textColor: 'text-blue-400',
+      description: 'Kondisi armada showroom dalam batas toleransi sehat dan terkontrol dengan baik (10-20% klaim).',
+    };
+  } else if (health >= 70) {
+    return {
+      healthPercentage: healthFormatted,
+      grade: 'Grade B (Standar Baik)',
+      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+      textColor: 'text-amber-400',
+      description: 'Kondisi armada standar showroom, perhatikan komponen perbaikan yang sering berulang.',
+    };
+  } else {
+    return {
+      healthPercentage: healthFormatted,
+      grade: 'Perlu Evaluasi QC',
+      badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+      textColor: 'text-rose-400',
+      description: 'Frekuensi klaim tinggi (> 30%), disarankan audit inspeksi pra-jual unit kendaraan masuk.',
+    };
+  }
+}
+

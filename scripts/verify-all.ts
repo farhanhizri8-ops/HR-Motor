@@ -636,7 +636,7 @@ console.log('\n[8/8] Testing Sales Pipeline 3-Stage Tracking & Lead Management S
 // ----------------------------------------------------------------------
 console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard Metrics...');
 {
-  const { checkWarrantyStatus, parseRupiahInput } = require('../src/lib/warranty');
+  const { checkWarrantyStatus, parseRupiahInput, calculateFleetHealth } = require('../src/lib/warranty');
 
   // 1. Garansi 30 Hari Calculation & Badge Labels & Timezone Expiry Date
   const testSameDay = checkWarrantyStatus('2026-10-01', '2026-10-01');
@@ -757,6 +757,26 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   const ratio = ((uniqueKeys.size / totalSales) * 100).toFixed(1);
   assert(ratio === '15.0', 'Percentage of warranty customers against total sales is 15.0%');
 
+  // Kartu Kesehatan Armada Showroom HR MOTOR (Fleet Health Calculation)
+  const fleetHealth15 = calculateFleetHealth(ratio);
+  assert(fleetHealth15.healthPercentage === '85.0', 'Fleet health for 15.0% claim ratio is 85.0% free of claims');
+  assert(fleetHealth15.grade === 'Grade A (Prima & Terkontrol)', 'Fleet health grade for 85.0% is Grade A (Prima & Terkontrol)');
+
+  const fleetHealth8 = calculateFleetHealth(8.0);
+  assert(fleetHealth8.healthPercentage === '92.0', 'Fleet health for 8.0% claim ratio is 92.0% free of claims');
+  assert(fleetHealth8.grade === 'Grade A+ (Sangat Prima)', 'Fleet health grade for 92.0% is Grade A+ (Sangat Prima)');
+
+  // Monthly Claim Filter: Total Uang Perbaikan Selama Satu Bulan
+  const oct2026Cost = sampleClaims
+    .filter(c => c.claimDate.startsWith('2026-10') && isRealized(c))
+    .reduce((sum, c) => sum + c.totalCost, 0);
+  assert(oct2026Cost === 1850000, 'Total uang perbaikan garansi bulan Oktober 2026 is Rp 1.850.000');
+
+  const sep2026Cost = sampleClaims
+    .filter(c => c.claimDate.startsWith('2026-09') && isRealized(c))
+    .reduce((sum, c) => sum + c.totalCost, 0);
+  assert(sep2026Cost === 850000, 'Total uang perbaikan garansi bulan September 2026 is Rp 850.000');
+
   // Distinct vehicles without plate numbers belonging to different owners do not falsely merge
   const noPlateCars = [
     { customerPhone: '081111111', carName: 'Avanza', vehicleYear: 2021, plateNumber: '-' },
@@ -768,12 +788,36 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   }));
   assert(noPlateKeys.size === 2, 'Distinct owners with unplated identical car models produce 2 separate vehicle records');
 
-  // Category frequency ranking
+  // Category frequency ranking & Top Category identification
   const catCounts: Record<string, number> = {};
   sampleClaims.forEach(c => { catCounts[c.damageCategory] = (catCounts[c.damageCategory] || 0) + 1; });
   assert(catCounts['Sistem Rem'] === 1, 'Sistem Rem count is 1');
   assert(catCounts['Kaki-kaki & Suspensi'] === 1, 'Kaki-kaki & Suspensi count is 1');
   assert(catCounts['Kelistrikan & AC'] === 1, 'Kelistrikan & AC count is 1');
+
+  // 5 Data Utama Input Formulir Garansi & SPK Contract Integrity
+  const testInputFormClaim = {
+    customerName: 'Agus Gunawan',
+    customerPhone: '081221345678',
+    vehicleBrand: 'Toyota',
+    vehicleModel: 'Innova Reborn 2.4 V Diesel A/T',
+    vehicleYear: 2020,
+    plateNumber: 'Z 1524 DB',
+    purchaseDate: '2026-09-12',
+    damageCategory: 'Sistem Rem',
+    complaintOrDamage: 'Suara decit rem depan',
+    partsToRepair: 'Brake pad depan & piringan rotor rem',
+    repairCost: 850000,
+    workshop: 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
+    status: 'Selesai',
+  };
+  assert(Boolean(testInputFormClaim.customerName && testInputFormClaim.customerPhone), '1. Data Pelanggan is present');
+  assert(Boolean(testInputFormClaim.damageCategory), '2. Kategori Perbaikan is present');
+  assert(Boolean(testInputFormClaim.complaintOrDamage), '3. Keluhan Perbaikan is present');
+  assert(Boolean(testInputFormClaim.partsToRepair), '4. Bagian yang Diperbaiki is present');
+  assert(testInputFormClaim.repairCost > 0, '5. Biaya perbaikan is greater than 0');
+  assert(testInputFormClaim.workshop.includes('Rujukan HR MOTOR'), 'Workshop defaults to recommended HR MOTOR workshop');
+  assert(testInputFormClaim.status === 'Selesai', 'Status defaults to Selesai');
 
   // Verify Plate Number & Workshop on sample claims
   assert(sampleClaims.every(c => Boolean(c.plateNumber)), 'Every sample claim has a plateNumber');
@@ -788,6 +832,7 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   assert(testPathMatch('/garansi-perbaikan/'), '/garansi-perbaikan/ with trailing slash matches warranty menu');
   assert(testPathMatch('/riwayat-perbaikan'), '/riwayat-perbaikan matches warranty menu');
 }
+
 
 console.log('\n================================================================');
 console.log(`SUMMARY: ${passCount} PASSED, ${failCount} FAILED`);

@@ -64,7 +64,9 @@ import {
   RECOMMENDED_WORKSHOPS,
   parseRupiahInput,
   checkWarrantyStatus,
+  calculateFleetHealth,
 } from '@/lib/warranty';
+
 
 const CAR_BRANDS = [
   'Toyota',
@@ -134,6 +136,7 @@ export default function RiwayatPerbaikanGaransiPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('Semua');
   const [warrantyFilter, setWarrantyFilter] = useState<'Semua' | 'Dalam Garansi (Gratis)' | 'Di Luar Garansi'>('Semua');
+  const [statusFilter, setStatusFilter] = useState<string>('Semua');
   const [tableYearFilter, setTableYearFilter] = useState<string>('Semua');
   const [tableMonthFilter, setTableMonthFilter] = useState<string>('Semua');
   const [customerFilter, setCustomerFilter] = useState<string>('Semua');
@@ -146,7 +149,7 @@ export default function RiwayatPerbaikanGaransiPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  // Form State for Adding New Warranty Claim
+  // Form State for Adding New Warranty Claim (5 Data Utama Sesuai Kebutuhan)
   const [formData, setFormData] = useState({
     selectedPurchaseKey: '',
     isManualMode: false,
@@ -166,6 +169,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     customWorkshop: '',
     repairCost: 0,
     repairActionDescription: '',
+    status: 'Selesai' as RepairStatus,
     notes: '',
     saveNewCustomer: false,
   });
@@ -189,6 +193,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     workshop: string;
     repairActionDescription: string;
     repairCost: number;
+    status: RepairStatus;
     notes: string;
   } | null>(null);
 
@@ -412,6 +417,9 @@ export default function RiwayatPerbaikanGaransiPage() {
     ).length;
     const outsideCount = totalClaimsCount - withinCount;
 
+    // Kartu Kesehatan Armada Showroom HR MOTOR
+    const fleetHealth = calculateFleetHealth(claimRatioPercentage);
+
     return {
       totalClaimsCount,
       totalCostSelectedMonth,
@@ -419,6 +427,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       totalUniqueCustomers,
       totalCarSales,
       claimRatioPercentage,
+      fleetHealth,
       totalUniqueUnits,
       avgPerbaikanPerUnit,
       rankedUnits,
@@ -428,6 +437,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       outsideCount,
     };
   }, [repairClaims, purchases, customers, selectedMonth, selectedYear]);
+
 
   // Monthly Timeline Trend Data
   const monthlyTimelineData = useMemo(() => {
@@ -509,17 +519,21 @@ export default function RiwayatPerbaikanGaransiPage() {
         claim.customerPhone === customerFilter ||
         claim.customerName.toLowerCase() === customerFilter.toLowerCase();
 
-      return matchSearch && matchCategory && matchWarranty && matchYear && matchMonth && matchCustomer;
+      const matchStatus = statusFilter === 'Semua' || (claim.status || 'Selesai') === statusFilter;
+
+      return matchSearch && matchCategory && matchWarranty && matchYear && matchMonth && matchCustomer && matchStatus;
     });
   }, [
     repairClaims,
     searchQuery,
     categoryFilter,
     warrantyFilter,
+    statusFilter,
     tableYearFilter,
     tableMonthFilter,
     customerFilter,
   ]);
+
 
   // Handle Customer Selection in Add Form (Auto-fill)
   const handleSelectCustomerPurchase = (key: string) => {
@@ -602,7 +616,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       sparepartCost: cost,
       serviceCost: 0,
       totalCost: cost,
-      status: 'Selesai',
+      status: formData.status || 'Selesai',
       notes: formData.notes.trim() || 'Garansi Perbaikan Gratis (< 1 Bulan) HR MOTOR Garut',
       completedDate: formData.claimDate,
     };
@@ -650,6 +664,7 @@ export default function RiwayatPerbaikanGaransiPage() {
         customWorkshop: '',
         repairCost: 0,
         repairActionDescription: '',
+        status: 'Selesai',
         notes: '',
         saveNewCustomer: false,
       });
@@ -678,6 +693,7 @@ export default function RiwayatPerbaikanGaransiPage() {
       workshop: claim.workshop || 'Bengkel Garut Motor Mandiri (Rujukan HR MOTOR)',
       repairActionDescription: claim.repairActionDescription || claim.actionTaken || '',
       repairCost: claim.totalCost || 0,
+      status: claim.status || 'Selesai',
       notes: claim.notes || '',
     });
     setIsEditModalOpen(true);
@@ -712,10 +728,11 @@ export default function RiwayatPerbaikanGaransiPage() {
       sparepartCost: cost,
       serviceCost: 0,
       totalCost: cost,
-      status: 'Selesai',
+      status: editFormData.status || 'Selesai',
       notes: editFormData.notes.trim() || undefined,
       completedDate: editFormData.claimDate,
     });
+
 
     if (res.success) {
       setIsEditModalOpen(false);
@@ -821,7 +838,7 @@ export default function RiwayatPerbaikanGaransiPage() {
     );
 
     const tableHeaders = [
-      ['No', 'Tiket & Tgl', 'Pelanggan & WA', 'Mobil & Plat', 'Kategori', 'Keluhan', 'Bagian Diperbaiki', 'Bengkel Rekanan', 'Biaya', 'Status Garansi'],
+      ['No', 'Tiket & Tgl', 'Pelanggan & WA', 'Mobil & Plat', 'Kategori', 'Keluhan', 'Bagian Diperbaiki', 'Bengkel Rekanan', 'Biaya', 'Status Garansi', 'Status Perbaikan'],
     ];
 
     const tableRows = filteredClaims.map((c, idx) => {
@@ -837,6 +854,7 @@ export default function RiwayatPerbaikanGaransiPage() {
         (c.workshop || 'Bengkel Rekanan').slice(0, 24),
         formatRupiah(c.totalCost),
         wInfo.badgeLabel,
+        c.status || 'Selesai',
       ];
     });
 
@@ -851,6 +869,138 @@ export default function RiwayatPerbaikanGaransiPage() {
     });
 
     doc.save(`Garansi_Perbaikan_HR_MOTOR_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  // Cetak SPK Garansi HR MOTOR (Surat Perintah Kerja Perbaikan Resmi)
+  const handlePrintSPK = (claim: RepairClaim) => {
+    const doc = new jsPDF('portrait');
+    const wInfo = checkWarrantyStatus(claim.purchaseDate, claim.claimDate);
+
+    // Header Showroom Hitam Elegan
+    doc.setFillColor(28, 28, 28);
+    doc.rect(0, 0, 210, 26, 'F');
+
+    doc.setTextColor(217, 154, 50); // Gold
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.text('HR MOTOR GARUT', 14, 11);
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Showroom Mobil Bekas Berkualitas & Bergaransi Resmi Garut', 14, 17);
+    doc.text('Jl. Raya Garut - Samarang, Tarogong Kidul, Garut | WhatsApp: 0812-2345-0001', 14, 22);
+
+    // Title SPK
+    doc.setTextColor(28, 28, 28);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('SURAT PERINTAH KERJA (SPK) PERBAIKAN GARANSI', 14, 35);
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Nomor Tiket: ${claim.claimNumber || claim.id}`, 14, 41);
+    doc.text(`Tanggal SPK: ${formatDate(claim.claimDate)}`, 130, 41);
+
+    // Subtitle Jaminan Garansi Showroom
+    doc.setFillColor(248, 247, 244);
+    doc.roundedRect(14, 46, 182, 10, 2, 2, 'F');
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(
+      'JAMINAN GARANSI SHOWROOM: 100% BIAYA PERBAIKAN DITANGGUNG HR MOTOR GARUT (GRATIS KONSUMEN)',
+      18,
+      52
+    );
+
+    // Table 1: Informasi Konsumen & Unit Kendaraan
+    autoTable(doc, {
+      startY: 59,
+      theme: 'grid',
+      head: [['INFORMASI KONSUMEN & KENDARAAN', 'DETAIL DATA']],
+      body: [
+        ['Nama Pelanggan', claim.customerName],
+        ['Nomor WhatsApp / HP', claim.customerPhone],
+        ['Unit Kendaraan', `${claim.vehicleBrand} ${claim.vehicleModel} (${claim.vehicleYear})`],
+        ['Nomor Polisi (Plat)', claim.plateNumber || '-'],
+        ['Tanggal Pembelian Mobil', claim.purchaseDate ? formatDate(claim.purchaseDate) : '-'],
+        ['Status Garansi Showroom', `${wInfo.badgeLabel} — ${wInfo.notes}`],
+      ],
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [28, 28, 28], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 65, fontStyle: 'bold', fillColor: [248, 248, 248] },
+        1: { cellWidth: 117 },
+      },
+    });
+
+    const afterT1Y = (doc as any).lastAutoTable.finalY + 5;
+
+    // Table 2: Rincian Perbaikan & Rujukan Bengkel
+    autoTable(doc, {
+      startY: afterT1Y,
+      theme: 'grid',
+      head: [['RINCIAN PERBAIKAN GARANSI', 'KETERANGAN']],
+      body: [
+        ['Bengkel Rekanan Rujukan', claim.workshop || 'Bengkel Rekanan HR MOTOR Garut'],
+        ['Kategori Perbaikan', claim.damageCategory],
+        ['Keluhan Konsumen', claim.complaintOrDamage || claim.complaint || '-'],
+        ['Bagian / Komponen Diperbaiki', claim.partsToRepair || claim.damagedParts || '-'],
+        ['Tindakan Perbaikan Teknisi', claim.repairActionDescription || claim.actionTaken || '-'],
+        ['Status Pengerjaan', claim.status || 'Selesai'],
+      ],
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [28, 28, 28], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 65, fontStyle: 'bold', fillColor: [248, 248, 248] },
+        1: { cellWidth: 117 },
+      },
+    });
+
+    const afterT2Y = (doc as any).lastAutoTable.finalY + 5;
+
+    // Table 3: Rincian Biaya Garansi
+    autoTable(doc, {
+      startY: afterT2Y,
+      theme: 'grid',
+      head: [['RINCIAN BIAYA PERBAIKAN', 'NOMINAL (RP)']],
+      body: [
+        ['Beban Biaya Konsumen', 'Rp 0 (GRATIS / 100% FREE)'],
+        ['Total Tagihan Bengkel Rekanan', formatRupiah(claim.totalCost)],
+        ['Penanggung Beban Biaya', '100% Ditanggung Pihak Showroom HR MOTOR Garut'],
+      ],
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [28, 28, 28], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 65, fontStyle: 'bold', fillColor: [248, 248, 248] },
+        1: { cellWidth: 117, fontStyle: 'bold' },
+      },
+    });
+
+    const afterT3Y = (doc as any).lastAutoTable.finalY + 12;
+
+    // Signature section
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+
+    const signY = afterT3Y > 235 ? 245 : afterT3Y;
+
+    doc.text('Konsumen / Pemilik Unit,', 20, signY);
+    doc.text('(_______________________)', 20, signY + 22);
+    doc.text(claim.customerName, 20, signY + 27);
+
+    doc.text('Bengkel Rekanan Rujukan,', 85, signY);
+    doc.text('(_______________________)', 85, signY + 22);
+    doc.text('Cap & Tanda Tangan Bengkel', 85, signY + 27);
+
+    doc.text('Showroom HR MOTOR Garut,', 150, signY);
+    doc.text('(_______________________)', 150, signY + 22);
+    doc.text('Owner / CRM HR MOTOR', 150, signY + 27);
+
+    doc.save(`SPK_Garansi_${claim.claimNumber || claim.id}.pdf`);
   };
 
   // WhatsApp Message Generator
@@ -1086,13 +1236,87 @@ export default function RiwayatPerbaikanGaransiPage() {
           <div className="text-base font-black text-charcoal-900 truncate">
             {warrantyMetrics.topCategory ? warrantyMetrics.topCategory.name : 'Belum Ada Klaim'}
           </div>
+          {/* Visual progress bar persentase frekuensi */}
+          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div
+              className="bg-rose-500 h-full rounded-full transition-all duration-500"
+              style={{ width: `${warrantyMetrics.topCategory?.percentage || 0}%` }}
+            />
+          </div>
           <p className="text-[10px] text-charcoal-500 mt-1 font-medium">
             {warrantyMetrics.topCategory
-              ? `${warrantyMetrics.topCategory.count} kasus (${warrantyMetrics.topCategory.percentage}% total perbaikan)`
+              ? `${warrantyMetrics.topCategory.count} kasus (${warrantyMetrics.topCategory.percentage}% frekuensi)`
               : 'Belum ada data perbaikan garansi'}
           </p>
         </div>
       </div>
+
+      {/* Kartu Kesehatan Armada Showroom HR MOTOR */}
+      <div className="crm-card p-4 sm:p-5 bg-gradient-to-r from-[#141E16] via-[#1C241E] to-[#141414] text-white border border-emerald-500/40 relative overflow-hidden shadow-lg">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30 shadow-inner">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold text-emerald-400 tracking-wider uppercase flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                  Kartu Kesehatan Armada Showroom HR MOTOR
+                </span>
+                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${warrantyMetrics.fleetHealth.badgeColor}`}>
+                  {warrantyMetrics.fleetHealth.grade}
+                </span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-white mt-1 tracking-tight">
+                {warrantyMetrics.fleetHealth.healthPercentage}% Armada Mobil Bebas Masalah Garansi
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                {warrantyMetrics.fleetHealth.description} Hanya <strong>{warrantyMetrics.claimRatioPercentage}%</strong> ({warrantyMetrics.totalUniqueCustomers} dari {warrantyMetrics.totalCarSales} mobil terjual) yang mengajukan klaim perbaikan garansi 1 bulan. Seluruh unit HR MOTOR terlindungi garansi perbaikan gratis ke bengkel rujukan resmi Garut.
+              </p>
+            </div>
+          </div>
+
+          {/* Mini Health Meter */}
+          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xs p-3 rounded-xl border border-white/10 shrink-0">
+            <div className="text-right">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Indeks Bebas Klaim
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
+                {warrantyMetrics.fleetHealth.healthPercentage}%
+              </div>
+              <div className="text-[9px] text-slate-400">
+                Kondisi Armada Prima
+              </div>
+            </div>
+            <div className="w-14 h-14 relative flex items-center justify-center">
+              <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-slate-800"
+                  strokeWidth="3.5"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-emerald-500"
+                  strokeDasharray={`${Math.min(100, Math.max(0, parseFloat(warrantyMetrics.fleetHealth.healthPercentage)))}, 100`}
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <span className="absolute text-[10px] font-black text-white">
+                {Math.round(parseFloat(warrantyMetrics.fleetHealth.healthPercentage))}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       {/* Sub-Tab Navigasi Halaman */}
       <div className="flex items-center justify-between border-b border-[#EAE8E3] overflow-x-auto w-full min-w-0">
@@ -1196,6 +1420,22 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </select>
               </div>
 
+              {/* Filter Status Perbaikan */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-slate-500 font-medium">Status:</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="text-xs py-1.5 px-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                >
+                  <option value="Semua">Semua Status</option>
+                  <option value="Selesai">Selesai</option>
+                  <option value="Dalam Proses">Dalam Proses</option>
+                  <option value="Menunggu">Menunggu</option>
+                  <option value="Dibatalkan">Dibatalkan</option>
+                </select>
+              </div>
+
               {/* Filter Tahun */}
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] text-slate-500 font-medium">Tahun:</span>
@@ -1213,6 +1453,7 @@ export default function RiwayatPerbaikanGaransiPage() {
               {/* Reset Filter Button */}
               {(categoryFilter !== 'Semua' ||
                 warrantyFilter !== 'Semua' ||
+                statusFilter !== 'Semua' ||
                 tableYearFilter !== 'Semua' ||
                 searchQuery ||
                 customerFilter !== 'Semua') && (
@@ -1220,6 +1461,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                   onClick={() => {
                     setCategoryFilter('Semua');
                     setWarrantyFilter('Semua');
+                    setStatusFilter('Semua');
                     setTableYearFilter('Semua');
                     setTableMonthFilter('Semua');
                     setCustomerFilter('Semua');
@@ -1243,7 +1485,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-3 w-12 text-center">No</th>
                     <th className="py-3 px-3">Tiket &amp; Tanggal</th>
-                    <th className="py-3 px-3">Pelanggan</th>
+                    <th className="py-3 px-3">Pelanggan &amp; WA</th>
                     <th className="py-3 px-3">Unit Mobil &amp; Plat</th>
                     <th className="py-3 px-3 text-center">Kategori</th>
                     <th className="py-3 px-3">Keluhan Perbaikan</th>
@@ -1251,13 +1493,15 @@ export default function RiwayatPerbaikanGaransiPage() {
                     <th className="py-3 px-3">Bengkel Rekanan Rujukan</th>
                     <th className="py-3 px-3 text-right">Biaya (Rp)</th>
                     <th className="py-3 px-3 text-center">Status Garansi</th>
-                    <th className="py-3 px-3 text-center w-28">Aksi</th>
+                    <th className="py-3 px-3 text-center">Status Perbaikan</th>
+                    <th className="py-3 px-3 text-center w-32">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredClaims.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="py-12 text-center text-slate-500">
+                      <td colSpan={12} className="py-12 text-center text-slate-500">
+
                         <ShieldCheck className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                         <p className="font-semibold text-slate-700">Tidak ada klaim garansi perbaikan ditemukan</p>
                         <p className="text-[11px] text-slate-400 mt-0.5">
@@ -1397,7 +1641,24 @@ export default function RiwayatPerbaikanGaransiPage() {
                             </div>
                           </td>
 
-                          {/* 11. Aksi (Detail, Edit, Hapus, WA) */}
+                          {/* 11. Status Perbaikan */}
+                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                            <span
+                              className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
+                                claim.status === 'Selesai'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : claim.status === 'Dalam Proses'
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  : claim.status === 'Menunggu'
+                                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                  : 'bg-rose-100 text-rose-800 border border-rose-200'
+                              }`}
+                            >
+                              {claim.status || 'Selesai'}
+                            </span>
+                          </td>
+
+                          {/* 12. Aksi (Detail, Edit, Cetak SPK, Hapus) */}
                           <td className="py-3 px-3 text-center">
                             <div className="flex items-center justify-center gap-1">
                               <button
@@ -1420,6 +1681,14 @@ export default function RiwayatPerbaikanGaransiPage() {
                               </button>
 
                               <button
+                                onClick={() => handlePrintSPK(claim)}
+                                className="p-1.5 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
+                                title="Cetak SPK Garansi HR MOTOR"
+                              >
+                                <Printer className="w-4 h-4 text-emerald-600" />
+                              </button>
+
+                              <button
                                 onClick={() => setDeleteConfirmId(claim.id)}
                                 className="p-1.5 text-slate-600 hover:text-rose-600 hover:bg-slate-100 rounded-md transition-colors"
                                 title="Hapus Data Garansi"
@@ -1429,6 +1698,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                             </div>
                           </td>
                         </tr>
+
                       );
                     })
                   )}
@@ -1474,7 +1744,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                   >
                     {/* Top Row: Ticket + Status Badge */}
                     <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-mono font-bold text-xs text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
                           {claim.claimNumber || claim.id}
                         </span>
@@ -1483,21 +1753,37 @@ export default function RiwayatPerbaikanGaransiPage() {
                         </span>
                       </div>
 
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
-                          wCheck.isWithinWarranty
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                            : 'bg-amber-100 text-amber-800 border border-amber-300'
-                        }`}
-                      >
-                        {wCheck.isWithinWarranty ? (
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                        ) : (
-                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                        )}
-                        <span>{wCheck.badgeLabel}</span>
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                            claim.status === 'Selesai'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : claim.status === 'Dalam Proses'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                              : claim.status === 'Menunggu'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-rose-100 text-rose-800 border border-rose-200'
+                          }`}
+                        >
+                          {claim.status || 'Selesai'}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                            wCheck.isWithinWarranty
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : 'bg-amber-100 text-amber-800 border border-amber-300'
+                          }`}
+                        >
+                          {wCheck.isWithinWarranty ? (
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          ) : (
+                            <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                          )}
+                          <span>{wCheck.badgeLabel}</span>
+                        </span>
+                      </div>
                     </div>
+
 
                     {/* Pelanggan & WhatsApp */}
                     <div className="flex items-center justify-between gap-2">
@@ -1608,6 +1894,15 @@ export default function RiwayatPerbaikanGaransiPage() {
                         </button>
 
                         <button
+                          onClick={() => handlePrintSPK(claim)}
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg transition-colors flex items-center gap-1 border border-emerald-200"
+                          title="Cetak SPK"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>SPK</span>
+                        </button>
+
+                        <button
                           onClick={() => setDeleteConfirmId(claim.id)}
                           className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                           title="Hapus"
@@ -1615,6 +1910,7 @@ export default function RiwayatPerbaikanGaransiPage() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
+
                     </div>
                   </div>
                 );
@@ -2204,10 +2500,27 @@ export default function RiwayatPerbaikanGaransiPage() {
                 </div>
               </div>
 
+              {/* Status Perbaikan */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Status Perbaikan
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as RepairStatus })}
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white font-medium text-slate-800"
+                >
+                  <option value="Selesai">Selesai (Sudah Diperbaiki)</option>
+                  <option value="Dalam Proses">Dalam Proses Pengerjaan</option>
+                  <option value="Menunggu">Menunggu Jadwal / Sparepart</option>
+                </select>
+              </div>
+
               {/* Tindakan Perbaikan Opsional */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Tindakan Teknisi / Catatan (Opsional)
+
                 </label>
                 <input
                   type="text"
@@ -2449,13 +2762,24 @@ export default function RiwayatPerbaikanGaransiPage() {
                 <span>Hapus Klaim</span>
               </button>
 
-              <button
-                onClick={() => setIsDetailModalOpen(false)}
-                className="px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
-              >
-                Tutup
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePrintSPK(selectedClaim)}
+                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg shadow-xs transition-all flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4 text-emerald-600" />
+                  <span>Cetak SPK</span>
+                </button>
+
+                <button
+                  onClick={() => setIsDetailModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
+
           </div>
         </div>
       )}
@@ -2673,7 +2997,26 @@ export default function RiwayatPerbaikanGaransiPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Status Perbaikan
+                </label>
+                <select
+                  value={editFormData.status || 'Selesai'}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, status: e.target.value as RepairStatus })
+                  }
+                  className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gold-500 bg-white font-medium text-slate-800"
+                >
+                  <option value="Selesai">Selesai (Sudah Diperbaiki)</option>
+                  <option value="Dalam Proses">Dalam Proses Pengerjaan</option>
+                  <option value="Menunggu">Menunggu Jadwal / Sparepart</option>
+                  <option value="Dibatalkan">Dibatalkan</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Tindakan Teknisi / Catatan
+
                 </label>
                 <input
                   type="text"
