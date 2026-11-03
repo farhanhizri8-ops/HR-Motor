@@ -662,8 +662,8 @@ export default function StokUnitPage() {
         </div>
       </div>
 
-      {/* DASHBOARD RINGKASAN STOK UNIT (6 KPI Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+      {/* DASHBOARD RINGKASAN STOK UNIT (4 KPI Cards) */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Unit */}
         <div className="crm-card p-3 sm:p-4">
           <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
@@ -710,32 +710,6 @@ export default function StokUnitPage() {
           </div>
           <div className="text-xl sm:text-2xl font-black text-charcoal-800">{dashboardStats.terjual} Unit</div>
           <div className="text-[10px] text-charcoal-500 mt-0.5 truncate">Deal Selesai</div>
-        </div>
-
-        {/* Paket Kredit Tersedia */}
-        <div className="crm-card p-3 sm:p-4 border-l-4 border-l-gold-500">
-          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gold-700">Paket Kredit</span>
-            <div className="w-6 h-6 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center shrink-0">
-              <BadgePercent className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-gold-600">{dashboardStats.denganKredit} Unit</div>
-          <div className="text-[10px] text-gold-800 mt-0.5 font-semibold truncate">DP Mulai Rp 15 Juta</div>
-        </div>
-
-        {/* Total Nilai Aset */}
-        <div className="crm-card p-3 sm:p-4 bg-[#FAF9F5] border-gold-500/40">
-          <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-gold-700">Nilai Aset</span>
-            <div className="w-6 h-6 rounded-lg bg-gold-100 text-gold-700 flex items-center justify-center shrink-0">
-              <DollarSign className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div className="text-base sm:text-lg lg:text-xl font-black text-charcoal-900 truncate" title={formatRupiah(dashboardStats.totalAssetValue)}>
-            {formatRupiah(dashboardStats.totalAssetValue)}
-          </div>
-          <div className="text-[10px] text-charcoal-500 mt-0.5 font-medium truncate">Rata2: {formatRupiah(dashboardStats.avgPrice)}</div>
         </div>
       </div>
 
