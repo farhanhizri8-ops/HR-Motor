@@ -10,6 +10,84 @@ interface QuickActionModalProps {
   onClose: () => void;
 }
 
+function guessVehicleCategory(brand: string, model: string): VehicleCategory {
+  const combined = `${brand} ${model}`.toLowerCase();
+  if (
+    combined.includes('avanza') ||
+    combined.includes('innova') ||
+    combined.includes('xpander') ||
+    combined.includes('sigra') ||
+    combined.includes('calya') ||
+    combined.includes('mobilio') ||
+    combined.includes('ertiga') ||
+    combined.includes('serena') ||
+    combined.includes('cortez') ||
+    combined.includes('confero') ||
+    combined.includes('veloz') ||
+    combined.includes('sienta') ||
+    combined.includes('livina') ||
+    combined.includes('br-v') ||
+    combined.includes('brv')
+  ) {
+    return 'MPV';
+  }
+  if (
+    combined.includes('pajero') ||
+    combined.includes('fortuner') ||
+    combined.includes('rush') ||
+    combined.includes('terios') ||
+    combined.includes('cr-v') ||
+    combined.includes('crv') ||
+    combined.includes('hr-v') ||
+    combined.includes('hrv') ||
+    combined.includes('wr-v') ||
+    combined.includes('wrv') ||
+    combined.includes('raize') ||
+    combined.includes('rocky') ||
+    combined.includes('creta') ||
+    combined.includes('almaz') ||
+    combined.includes('outlander') ||
+    combined.includes('mu-x')
+  ) {
+    return 'SUV';
+  }
+  if (
+    combined.includes('brio') ||
+    combined.includes('agya') ||
+    combined.includes('ayla') ||
+    combined.includes('karimun') ||
+    combined.includes('ignis') ||
+    combined.includes('sirion') ||
+    combined.includes('picanto') ||
+    combined.includes('march') ||
+    combined.includes('mirage') ||
+    combined.includes('datsun go')
+  ) {
+    return 'City Car';
+  }
+  if (
+    combined.includes('yaris') ||
+    combined.includes('jazz') ||
+    combined.includes('baleno') ||
+    combined.includes('swift') ||
+    combined.includes('mazda 2')
+  ) {
+    return 'Hatchback';
+  }
+  if (
+    combined.includes('civic') ||
+    combined.includes('corolla') ||
+    combined.includes('altis') ||
+    combined.includes('camry') ||
+    combined.includes('accord') ||
+    combined.includes('city') ||
+    combined.includes('vios')
+  ) {
+    return 'Sedan';
+  }
+  return 'MPV';
+}
+
 export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onClose }) => {
   const { addCustomer, addLead, addFollowUp, logCommunication, addRepairClaim, customers, leads, users, currentUser, stocks } = useCrm();
 
@@ -413,14 +491,15 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
                     onChange={(e) => {
                       const val = e.target.value;
                       const matched = readyStocks.find(
-                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase() === val.toLowerCase()
+                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase().trim() === val.toLowerCase().trim()
                       );
                       if (matched) {
                         setCustForm((prev) => ({
                           ...prev,
                           interestedVehicle: `${matched.brand} ${matched.model} ${matched.year}`,
+                          vehicleType: guessVehicleCategory(matched.brand, matched.model),
                           budget: String(matched.price || prev.budget),
-                          notes: prev.notes || `Unit Ready Stok: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
+                          notes: prev.notes || `Unit Ready Stok Showroom: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
                         }));
                       } else {
                         setCustForm({ ...custForm, interestedVehicle: val });
@@ -546,14 +625,14 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
                     onChange={(e) => {
                       const val = e.target.value;
                       const matched = readyStocks.find(
-                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase() === val.toLowerCase()
+                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase().trim() === val.toLowerCase().trim()
                       );
                       if (matched) {
                         setLeadForm((prev) => ({
                           ...prev,
                           interestedVehicle: `${matched.brand} ${matched.model} ${matched.year}`,
                           estimatedBudget: String(matched.price || prev.estimatedBudget),
-                          notes: prev.notes || `Unit Ready Stok: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
+                          notes: prev.notes || `Unit Ready Stok Showroom: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
                         }));
                       } else {
                         setLeadForm({ ...leadForm, interestedVehicle: val });

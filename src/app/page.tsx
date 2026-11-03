@@ -384,7 +384,12 @@ export default function DashboardPage() {
         <div className="flex items-center gap-1.5 p-1 bg-warm-100 rounded-xl">
           <button
             type="button"
-            onClick={() => setDashboardTab('operasional')}
+            onClick={() => {
+              setDashboardTab('operasional');
+              if (typeof window !== 'undefined') {
+                window.history.replaceState(null, '', '/');
+              }
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               dashboardTab === 'operasional'
                 ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
@@ -397,7 +402,12 @@ export default function DashboardPage() {
 
           <button
             type="button"
-            onClick={() => setDashboardTab('reports')}
+            onClick={() => {
+              setDashboardTab('reports');
+              if (typeof window !== 'undefined') {
+                window.history.replaceState(null, '', '/?tab=reports');
+              }
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               dashboardTab === 'reports'
                 ? 'bg-charcoal-900 text-gold-400 shadow-luxury'

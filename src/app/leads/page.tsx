@@ -30,6 +30,7 @@ export default function LeadsPage() {
     leads,
     users,
     currentUser,
+    stocks,
     addLead,
     updateLead,
     updateLeadStage,
@@ -39,6 +40,10 @@ export default function LeadsPage() {
     formatDate,
     formatWhatsAppLink,
   } = useCrm();
+
+  const readyStocks = useMemo(() => {
+    return (stocks || []).filter((s) => s.status === 'Tersedia');
+  }, [stocks]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSource, setFilterSource] = useState('ALL');
@@ -595,15 +600,43 @@ export default function LeadsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-charcoal-800 mb-1">Unit Mobil Diminati</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-charcoal-800">Unit Mobil Diminati</label>
+                    {readyStocks.length > 0 && (
+                      <span className="text-[10px] text-emerald-600 font-semibold">{readyStocks.length} unit ready</span>
+                    )}
+                  </div>
                   <input
                     type="text"
+                    list="leads-ready-stocks"
                     required
                     value={formData.interestedVehicle}
-                    onChange={(e) => setFormData({ ...formData, interestedVehicle: e.target.value })}
-                    placeholder="Toyota Avanza 1.3 G 2019"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const matched = readyStocks.find(
+                        (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase().trim() === val.toLowerCase().trim()
+                      );
+                      if (matched) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          interestedVehicle: `${matched.brand} ${matched.model} ${matched.year}`,
+                          estimatedBudget: String(matched.price || prev.estimatedBudget),
+                          notes: prev.notes || `Unit Ready Stok Showroom: ${matched.brand} ${matched.model} (${matched.licensePlate || matched.plateNumber || '-'})`,
+                        }));
+                      } else {
+                        setFormData({ ...formData, interestedVehicle: val });
+                      }
+                    }}
+                    placeholder="Pilih dari stok ready atau ketik..."
                     className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-medium"
                   />
+                  <datalist id="leads-ready-stocks">
+                    {readyStocks.map((s) => (
+                      <option key={s.id} value={`${s.brand} ${s.model} ${s.year}`}>
+                        {s.licensePlate || s.plateNumber ? `[${s.licensePlate || s.plateNumber}] ` : ''}Rp {s.price?.toLocaleString('id-ID')} • {s.color}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">Estimasi Budget (Rp)</label>

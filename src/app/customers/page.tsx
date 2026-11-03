@@ -137,7 +137,7 @@ function printKwitansiToIframe(kwitansi: KwitansiData) {
     }
     html, body {
       width: 100%;
-      height: auto;
+      height: 100%;
       background: #ffffff;
       font-family: Arial, Helvetica, sans-serif;
       color: #000000;
@@ -146,7 +146,7 @@ function printKwitansiToIframe(kwitansi: KwitansiData) {
     .print-wrapper {
       width: 100%;
       max-width: 190mm;
-      margin: 0 auto;
+      margin: 8mm auto 0 auto;
       page-break-after: avoid !important;
       page-break-inside: avoid !important;
       break-after: avoid !important;
@@ -501,6 +501,18 @@ export default function CustomersPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // Sinkronisasi class kwitansi-open ke body untuk CSS print isolation
+  useEffect(() => {
+    if (selectedKwitansi) {
+      document.body.classList.add('kwitansi-open');
+    } else {
+      document.body.classList.remove('kwitansi-open');
+    }
+    return () => {
+      document.body.classList.remove('kwitansi-open');
+    };
+  }, [selectedKwitansi]);
 
   // Ready stocks dropdown & search state for "Mobil Diminati"
   const [isStockDropdownOpen, setIsStockDropdownOpen] = useState(false);
@@ -1173,17 +1185,33 @@ export default function CustomersPage() {
                   <div className="relative">
                     <input
                       type="text"
+                      list="customer-ready-stocks"
                       required
                       value={formData.interestedVehicle}
                       onFocus={() => setIsStockDropdownOpen(true)}
                       onChange={(e) => {
-                        setFormData({ ...formData, interestedVehicle: e.target.value });
-                        setStockSearchQuery(e.target.value);
-                        setIsStockDropdownOpen(true);
+                        const val = e.target.value;
+                        const matched = readyStocks.find(
+                          (s) => `${s.brand} ${s.model} ${s.year}`.toLowerCase().trim() === val.toLowerCase().trim()
+                        );
+                        if (matched) {
+                          handleSelectStock(matched);
+                        } else {
+                          setFormData({ ...formData, interestedVehicle: val });
+                          setStockSearchQuery(val);
+                          setIsStockDropdownOpen(true);
+                        }
                       }}
                       placeholder="Contoh: Innova Reborn 2020 (klik untuk pilih stok)"
                       className="w-full text-xs px-3.5 py-2.5 pr-8 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl focus:outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 text-charcoal-900 font-medium"
                     />
+                    <datalist id="customer-ready-stocks">
+                      {readyStocks.map((s) => (
+                        <option key={s.id} value={`${s.brand} ${s.model} ${s.year}`}>
+                          {s.licensePlate || s.plateNumber ? `[${s.licensePlate || s.plateNumber}] ` : ''}Rp {s.price?.toLocaleString('id-ID')} • {s.color}
+                        </option>
+                      ))}
+                    </datalist>
                     <button
                       type="button"
                       onClick={() => setIsStockDropdownOpen((prev) => !prev)}

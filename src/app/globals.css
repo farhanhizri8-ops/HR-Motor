@@ -181,8 +181,9 @@ body {
     margin: 0;
   }
 
-  html,
-  body {
+  /* Single-page portrait containment specifically for Kwitansi Showroom HR MOTOR */
+  body:has(#printable-kwitansi),
+  body.kwitansi-open {
     width: 100% !important;
     height: 100% !important;
     max-height: 100% !important;
@@ -194,21 +195,24 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* Sembunyikan seluruh elemen lain di halaman web */
-  body * {
+  /* Sembunyikan seluruh elemen web lain hanya ketika kwitansi sedang dicetak */
+  body:has(#printable-kwitansi) *,
+  body.kwitansi-open * {
     visibility: hidden !important;
   }
 
   /* Tampilkan hanya wadah kwitansi dan seluruh isinya */
-  #printable-kwitansi,
-  #printable-kwitansi * {
+  body:has(#printable-kwitansi) #printable-kwitansi,
+  body:has(#printable-kwitansi) #printable-kwitansi *,
+  body.kwitansi-open #printable-kwitansi,
+  body.kwitansi-open #printable-kwitansi * {
     visibility: visible !important;
   }
 
   #printable-kwitansi {
     position: absolute !important;
     left: 0 !important;
-    top: 0 !important;
+    top: 8mm !important;
     right: 0 !important;
     width: 100% !important;
     max-width: 190mm !important;
