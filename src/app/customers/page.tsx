@@ -1248,15 +1248,6 @@ export default function CustomersPage() {
               <CreditCard className="w-4 h-4 text-gold-400" />
               <span>+ Pengajuan Kredit Baru</span>
             </button>
-
-            <button
-              type="button"
-              onClick={openAddModal}
-              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-warm-50 text-charcoal-700 hover:text-charcoal-900 border border-[#EAE8E3] font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer w-full sm:w-auto"
-            >
-              <Plus className="w-4 h-4 text-gold-600" />
-              <span>+ Tambah Pelanggan</span>
-            </button>
           </div>
         </div>
 
