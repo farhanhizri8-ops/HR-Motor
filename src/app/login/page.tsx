@@ -1,7 +1,7 @@
 import { LoginScreen } from '@/components/LoginScreen';
 
 export const metadata = {
-  title: 'Login & Autentikasi — HR MOTOR CRM',
+  title: 'Login & Autentikasi — HR MOTOR',
   description: 'Portal Masuk dan Registrasi Karyawan Showroom HR MOTOR Garut.',
 };
 

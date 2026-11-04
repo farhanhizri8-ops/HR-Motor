@@ -1,7 +1,7 @@
 {
-  "name": "HR MOTOR CRM - Dealership Mobil Bekas Garut",
+  "name": "HR MOTOR - Dealership Mobil Bekas Garut",
   "short_name": "HR MOTOR",
-  "description": "Sistem Manajemen Transaksi, Stok Kendaraan & CRM Terpadu HR MOTOR Garut",
+  "description": "Sistem Manajemen Transaksi, Stok Kendaraan & Penjualan HR MOTOR Garut",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

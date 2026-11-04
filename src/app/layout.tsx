@@ -4,8 +4,8 @@ import { CrmLayout } from '@/components/CrmLayout';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://hr-motor.vercel.app'),
-  title: 'HR MOTOR CRM — Dealership Mobil Bekas Garut',
-  description: 'Sistem Manajemen Hubungan Pelanggan (CRM) Terpadu HR MOTOR Garut, Jawa Barat.',
+  title: 'HR MOTOR — Showroom Mobil Bekas Garut',
+  description: 'Sistem Manajemen Showroom Terpadu HR MOTOR Garut, Jawa Barat.',
   manifest: '/manifest.webmanifest?v=8',
   icons: {
     icon: [
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico?v=8',
   },
   openGraph: {
-    title: 'HR MOTOR CRM — Dealership Mobil Bekas Garut',
-    description: 'Sistem Manajemen Hubungan Pelanggan (CRM) Terpadu HR MOTOR Garut, Jawa Barat.',
+    title: 'HR MOTOR — Showroom Mobil Bekas Garut',
+    description: 'Sistem Manajemen Showroom Terpadu HR MOTOR Garut, Jawa Barat.',
     images: [{ url: '/icon-512.png?v=8', width: 512, height: 512, alt: 'HR MOTOR' }],
   },
   appleWebApp: {
