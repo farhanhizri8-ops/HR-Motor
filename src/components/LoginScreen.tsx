@@ -100,20 +100,24 @@ export const LoginScreen: React.FC = () => {
       role: regRole,
       password: regPassword,
     });
-    setLoading(false);
 
     if (res.success) {
-      setSuccessMsg(
-        'Pengajuan akun berhasil dikirim! Status akun Anda adalah "Menunggu Persetujuan". Silakan hubungi Owner (farhanhizri8@gmail.com) untuk disetujui sebelum login.'
-      );
-      setMode('login');
-      setEmail(regEmail.trim());
-      setPassword('');
-      setRegName('');
-      setRegEmail('');
-      setRegPhone('');
-      setRegPassword('');
+      // Di HP maupun Laptop: setelah daftar sekali langsung otomatis login ke sistem
+      const loginRes = await login(regEmail.trim(), regPassword);
+      setLoading(false);
+      if (loginRes.success) {
+        router.push('/');
+        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+          window.location.href = '/';
+        }
+      } else {
+        setSuccessMsg('Pendaftaran akun berhasil! Silakan masukkan kata sandi untuk login.');
+        setMode('login');
+        setEmail(regEmail.trim());
+        setPassword('');
+      }
     } else {
+      setLoading(false);
       setErrorMsg(res.error || 'Gagal mengajukan akun baru.');
     }
   };

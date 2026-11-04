@@ -28,12 +28,12 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1F1F1F] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F8F7F4] flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3 animate-pulse">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png?v=3" alt="HR MOTOR" className="h-14 w-auto object-contain" />
-          <p className="text-xs text-gold-400 font-semibold tracking-wider uppercase">
-            Memuat HR MOTOR CRM...
+          <img src="/emblem-transparent.png" alt="HR MOTOR" className="h-16 w-auto object-contain drop-shadow-sm" />
+          <p className="text-xs text-charcoal-700 font-bold tracking-wider uppercase">
+            Memuat HR MOTOR...
           </p>
         </div>
       </div>
@@ -47,12 +47,12 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
   // If already authenticated and visiting /login, transition cleanly to dashboard
   if (pathname === '/login') {
     return (
-      <div className="min-h-screen bg-[#1F1F1F] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F8F7F4] flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png?v=3" alt="HR MOTOR" className="h-14 w-auto object-contain animate-pulse" />
-          <p className="text-xs text-gold-400 font-semibold tracking-wider uppercase">
-            Membuka Dashboard CRM...
+          <img src="/emblem-transparent.png" alt="HR MOTOR" className="h-16 w-auto object-contain animate-pulse drop-shadow-sm" />
+          <p className="text-xs text-gold-600 font-bold tracking-wider uppercase">
+            Membuka HR MOTOR...
           </p>
         </div>
       </div>

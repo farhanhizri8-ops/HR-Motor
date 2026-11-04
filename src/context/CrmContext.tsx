@@ -163,6 +163,31 @@ interface CrmContextType {
   formatWhatsAppLink: (phone?: string, message?: string) => string;
 }
 
+export const isMobileClient = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const ua = (navigator.userAgent || navigator.vendor || (window as any).opera || '').toLowerCase();
+    const isMobileUA = /android|iphone|ipod|ipad|windows phone|iemobile|mobile|blackberry|bb10|opera mini|crios/i.test(ua);
+    if (isMobileUA) return true;
+
+    const isStandalone = (window.navigator as any).standalone === true || 
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if (isStandalone) return true;
+
+    const hasTouch = (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0) || ('ontouchstart' in window);
+    const screenWidth = Math.min(
+      window.innerWidth || 9999,
+      (window.screen && window.screen.width) || 9999
+    );
+    if (hasTouch && screenWidth <= 1024) return true;
+
+    if (localStorage.getItem('hr_motor_is_mobile_device') === 'true') {
+      return true;
+    }
+  } catch (e) {}
+  return false;
+};
+
 const CrmContext = createContext<CrmContextType | undefined>(undefined);
 
 export const CrmProvider = ({ children }: { children: ReactNode }) => {
@@ -187,19 +212,44 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
 
   // Sync with API on mount & Restore session
   useEffect(() => {
-    // Purge persistent localStorage so user is required to authenticate on new sessions
     try {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('hr_motor_session');
-        const sessionStr = sessionStorage.getItem('hr_motor_session');
-        if (sessionStr) {
-          const parsed = JSON.parse(sessionStr) as User;
-          if (parsed && parsed.email) {
-            setCurrentUser(parsed);
-            setIsAuthenticated(true);
+        const isMobile = isMobileClient();
+        if (isMobile) {
+          // DI HP (Smartphone / Tablet): Sesi disimpan permanen di localStorage
+          try {
+            localStorage.setItem('hr_motor_is_mobile_device', 'true');
+          } catch (e) {}
+
+          const mobileSaved = localStorage.getItem('hr_motor_mobile_session') || localStorage.getItem('hr_motor_session');
+          const sessionSaved = sessionStorage.getItem('hr_motor_session');
+          const raw = mobileSaved || sessionSaved;
+
+          if (raw) {
+            const parsed = JSON.parse(raw) as User;
+            if (parsed && parsed.email) {
+              setCurrentUser(parsed);
+              setIsAuthenticated(true);
+              localStorage.setItem('hr_motor_mobile_session', raw);
+              sessionStorage.setItem('hr_motor_session', raw);
+            }
+          } else {
+            setIsAuthenticated(false);
           }
         } else {
-          setIsAuthenticated(false);
+          // DI LAPTOP (Desktop): Wajib login ulang setiap kali browser laptop dibuka / sesi baru
+          const sessionSaved = sessionStorage.getItem('hr_motor_session');
+          if (sessionSaved) {
+            const parsed = JSON.parse(sessionSaved) as User;
+            if (parsed && parsed.email) {
+              setCurrentUser(parsed);
+              setIsAuthenticated(true);
+            } else {
+              setIsAuthenticated(false);
+            }
+          } else {
+            setIsAuthenticated(false);
+          }
         }
       }
     } catch (e) {
@@ -229,19 +279,29 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
               setUsers(d.users);
               // Refresh current user data if session active
               if (typeof window !== 'undefined') {
-                const sessionStr = sessionStorage.getItem('hr_motor_session');
+                const isMobile = isMobileClient();
+                const sessionStr = isMobile
+                  ? (localStorage.getItem('hr_motor_mobile_session') || sessionStorage.getItem('hr_motor_session'))
+                  : sessionStorage.getItem('hr_motor_session');
+
                 if (sessionStr) {
-                  const parsed = JSON.parse(sessionStr) as User;
-                  const fresh = d.users.find((u: User) => u.email.toLowerCase() === parsed.email.toLowerCase());
-                  if (fresh) {
-                    if (!fresh.isApproved) {
-                      // Account was revoked/unapproved
-                      setIsAuthenticated(false);
-                      sessionStorage.removeItem('hr_motor_session');
-                    } else {
-                      setCurrentUser(fresh);
+                  try {
+                    const parsed = JSON.parse(sessionStr) as User;
+                    const fresh = d.users.find((u: User) => u.email.toLowerCase() === parsed.email.toLowerCase());
+                    if (fresh) {
+                      if (!fresh.isActive) {
+                        setIsAuthenticated(false);
+                        sessionStorage.removeItem('hr_motor_session');
+                        localStorage.removeItem('hr_motor_mobile_session');
+                      } else {
+                        setCurrentUser(fresh);
+                        if (isMobile) {
+                          localStorage.setItem('hr_motor_mobile_session', JSON.stringify(fresh));
+                        }
+                        sessionStorage.setItem('hr_motor_session', JSON.stringify(fresh));
+                      }
                     }
-                  }
+                  } catch (e) {}
                 }
               }
             }
@@ -274,6 +334,10 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(true);
     if (typeof window !== 'undefined') {
       try {
+        const isMobile = isMobileClient();
+        if (isMobile) {
+          localStorage.setItem('hr_motor_mobile_session', JSON.stringify(user));
+        }
         sessionStorage.setItem('hr_motor_session', JSON.stringify(user));
       } catch (e) {}
     }
@@ -499,9 +563,22 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(true);
         if (typeof window !== 'undefined') {
           try {
-            sessionStorage.setItem('hr_motor_session', JSON.stringify(loggedUser));
-            localStorage.removeItem('hr_motor_session');
-          } catch (e) {}
+            const isMobile = isMobileClient();
+            if (isMobile) {
+              // DI HP (Smartphone / Tablet): Simpan sesi secara permanen di localStorage
+              // Tidak akan meminta login lagi meskipun HP dimatikan atau layar terkunci
+              localStorage.setItem('hr_motor_mobile_session', JSON.stringify(loggedUser));
+              localStorage.setItem('hr_motor_is_mobile_device', 'true');
+              sessionStorage.setItem('hr_motor_session', JSON.stringify(loggedUser));
+            } else {
+              // DI LAPTOP: Hanya disimpan di sessionStorage (wajib login kembali saat browser laptop dibuka baru)
+              sessionStorage.setItem('hr_motor_session', JSON.stringify(loggedUser));
+              localStorage.removeItem('hr_motor_mobile_session');
+              localStorage.removeItem('hr_motor_is_mobile_device');
+            }
+          } catch (e) {
+            console.warn('Could not save session to storage', e);
+          }
         }
 
         if (data.data) {
@@ -527,7 +604,9 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== 'undefined') {
       try {
         sessionStorage.removeItem('hr_motor_session');
+        localStorage.removeItem('hr_motor_mobile_session');
         localStorage.removeItem('hr_motor_session');
+        localStorage.removeItem('hr_motor_is_mobile_device');
       } catch (e) {}
       window.location.href = '/';
     }

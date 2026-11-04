@@ -1218,7 +1218,7 @@ export async function POST(request: Request) {
           role: payload.role || 'Sales Representative',
           phone: payload.phone || '',
           avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80`,
-          isApproved: false, // Wajib disetujui Owner (Farhan Hizri)!
+          isApproved: true, // Otomatis aktif agar karyawan/owner cukup daftar sekali di HP langsung masuk
           isActive: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
