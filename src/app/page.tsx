@@ -188,36 +188,39 @@ export default function DashboardPage() {
     return filteredPurchases;
   }, [dateFilter, filteredPurchases, purchases]);
 
+  // Helper pemisah jenis transaksi: Kredit vs Cash secara ketat (mutually exclusive)
+  const isCreditSale = (p: { paymentMethod?: string; paymentType?: string }): boolean => {
+    if (p.paymentType === 'Kredit') return true;
+    if (p.paymentType === 'Cash') return false;
+    const m = (p.paymentMethod || '').trim().toLowerCase();
+    return m.startsWith('kredit') || m.includes('kredit') || m.includes('leasing') || m.includes('finance');
+  };
+
   // 1. STOK UNIT & SOLD OUT
   const stocksTotal = (stocks || []).length;
   const stocksReady = (stocks || []).filter((s) => s.status === 'Tersedia').length;
   const stocksBooking = (stocks || []).filter((s) => s.status === 'Booking').length;
-  const totalSoldOut = useMemo(() => {
-    return dateFilter === 'semua' ? purchases.length : activePurchases.length;
-  }, [dateFilter, activePurchases.length, purchases.length]);
 
   const readyStocksList = useMemo(() => {
     return (stocks || []).filter((s) => s.status === 'Tersedia').slice(0, 4);
   }, [stocks]);
 
-  // 2. PENJUALAN CASH vs PENJUALAN KREDIT
-  const cashPurchases = useMemo(() => {
-    return activePurchases.filter((p) => {
-      const m = (p.paymentMethod || '').toLowerCase();
-      return m.includes('cash');
-    });
+  // 2. PENJUALAN CASH vs PENJUALAN KREDIT (Partisi Saling Lepas & Akurat 100%)
+  const creditPurchases = useMemo(() => {
+    return activePurchases.filter((p) => isCreditSale(p));
   }, [activePurchases]);
 
-  const creditPurchases = useMemo(() => {
-    return activePurchases.filter((p) => {
-      const m = (p.paymentMethod || '').toLowerCase();
-      const n = (p.notes || '').toLowerCase();
-      return m.includes('kredit') || n.includes('kredit') || n.includes('oto') || n.includes('leasing');
-    });
+  const cashPurchases = useMemo(() => {
+    return activePurchases.filter((p) => !isCreditSale(p));
   }, [activePurchases]);
 
   const cashSalesCount = cashPurchases.length;
   const creditSalesCount = creditPurchases.length;
+
+  // TOTAL UNIT SOLD OUT = Penjualan Cash + Penjualan Kredit (Konsisten Secara Matematis: Cash + Kredit)
+  const totalSoldOut = useMemo(() => {
+    return cashPurchases.length + creditPurchases.length;
+  }, [cashPurchases.length, creditPurchases.length]);
 
   const totalCashNominal = useMemo(() => {
     return cashPurchases.reduce((acc, p) => acc + (p.purchasePrice || 0), 0);
@@ -681,8 +684,8 @@ export default function DashboardPage() {
               {totalSoldOut} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Unit</span>
             </div>
             <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
-              <span>Mobil Terjual Tuntas</span>
-              <span className="text-gold-600 font-bold flex items-center">Buka →</span>
+              <span className="truncate">Cash ({cashSalesCount}) + Kredit ({creditSalesCount})</span>
+              <span className="text-gold-600 font-bold flex items-center shrink-0 ml-1">Buka →</span>
             </div>
           </div>
         </Link>
@@ -1128,7 +1131,7 @@ export default function DashboardPage() {
 
             <div className="divide-y divide-warm-200 mt-1">
               {recentDeals.map((deal) => {
-                const isKredit = (deal.paymentMethod || '').toLowerCase().includes('kredit');
+                const isKredit = isCreditSale(deal);
                 return (
                   <div key={deal.id} className="py-2.5 first:pt-1">
                     <div className="flex items-start justify-between gap-1">

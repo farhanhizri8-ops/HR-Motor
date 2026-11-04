@@ -844,9 +844,19 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
               {totalUnitsSold} <span className="text-xs font-semibold text-[#666666]">Unit</span>
             </span>
             <div className="flex items-center gap-1 text-[10px] font-bold mt-1">
-              <span className="text-emerald-700">Cash: {filteredPurchases.filter((p) => p.paymentType === 'Cash' || !p.paymentType).length}</span>
+              <span className="text-emerald-700">
+                Cash: {filteredPurchases.filter((p) => {
+                  const m = (p.paymentMethod || '').toLowerCase();
+                  return p.paymentType === 'Cash' || (!p.paymentType && !m.includes('kredit') && !m.includes('leasing') && !m.includes('finance'));
+                }).length}
+              </span>
               <span className="text-charcoal-400">•</span>
-              <span className="text-indigo-700">Kredit: {filteredPurchases.filter((p) => p.paymentType === 'Kredit' || (p.paymentMethod && p.paymentMethod.toLowerCase().includes('kredit'))).length}</span>
+              <span className="text-indigo-700">
+                Kredit: {filteredPurchases.filter((p) => {
+                  const m = (p.paymentMethod || '').toLowerCase();
+                  return p.paymentType === 'Kredit' || m.includes('kredit') || m.includes('leasing') || m.includes('finance');
+                }).length}
+              </span>
             </div>
           </div>
 
