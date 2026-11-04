@@ -197,16 +197,6 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* Quick Action Button (Luxury Gold) */}
-        <button
-          onClick={onOpenQuickAction}
-          className="btn-gold flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider w-8.5 h-8.5 sm:w-auto py-1.5 sm:py-2 px-0 sm:px-3.5 shadow-gold shrink-0"
-          title="Aksi Cepat Showroom"
-        >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span className="hidden sm:inline">Aksi Cepat</span>
-        </button>
-
         {/* Role & Profile Switcher Dropdown */}
         <div className="relative">
           <button

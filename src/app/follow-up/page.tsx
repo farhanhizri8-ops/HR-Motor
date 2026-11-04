@@ -125,7 +125,6 @@ export default function FollowUpPage() {
   const [filterCustomerStatus, setFilterCustomerStatus] = useState<string>('Semua');
   const [filterProspectStatus, setFilterProspectStatus] = useState<string>('Semua');
   const [filterTimeTab, setFilterTimeTab] = useState<'all' | 'today' | 'overdue' | 'upcoming'>('all');
-  const [showQuestionGuide, setShowQuestionGuide] = useState(true);
 
   // Modals state
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
@@ -935,55 +934,6 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <div className="text-xl font-black text-emerald-700 mt-0.5">{customerStats.selesai}</div>
               <span className="text-[10px] text-emerald-600 font-medium truncate block">Siklus tuntas</span>
             </div>
-          </div>
-
-          {/* 5 OPERATIONAL QUESTIONS GUIDE BOX */}
-          <div className="crm-card overflow-hidden border-gold-500/30">
-            <div
-              onClick={() => setShowQuestionGuide(!showQuestionGuide)}
-              className="p-3.5 sm:p-4 bg-charcoal-900 text-white flex items-center justify-between cursor-pointer select-none"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gold-500 text-charcoal-950 flex items-center justify-center font-black text-xs shrink-0">
-                  5Q
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-white tracking-wide">
-                    Panduan 5 Pertanyaan Operasional Follow-up Showroom HR MOTOR Garut
-                  </h3>
-                  <p className="text-[11px] text-charcoal-300">
-                    Wajib diajukan saat menghubungi pembeli (Otomatis terisi dalam template WhatsApp resmi)
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gold-400 font-medium shrink-0">
-                <span className="hidden sm:inline">{showQuestionGuide ? 'Tutup Rincian' : 'Buka Rincian'}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showQuestionGuide ? 'rotate-180' : ''}`} />
-              </div>
-            </div>
-
-            {showQuestionGuide && (
-              <div className="p-3.5 sm:p-4 bg-[#FAF9F5] border-t border-[#EAE8E3] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
-                {SHOWROOM_OPERATIONAL_QUESTIONS.map((q) => (
-                  <div key={q.num} className="bg-white p-3 rounded-xl border border-[#EAE8E3] space-y-1.5 shadow-2xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-gold-500 text-charcoal-950 font-black text-[10px] flex items-center justify-center shrink-0">
-                        {q.num}
-                      </span>
-                      <strong className="text-[11px] font-black text-charcoal-900 uppercase">
-                        {q.title}
-                      </strong>
-                    </div>
-                    <p className="text-charcoal-800 font-medium italic">
-                      &quot;{q.question}&quot;
-                    </p>
-                    <p className="text-[10px] text-charcoal-500 pt-1 border-t border-charcoal-100">
-                      <strong>Tujuan:</strong> {q.purpose}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Urgent Admin Follow-Up Reminder Banner */}
