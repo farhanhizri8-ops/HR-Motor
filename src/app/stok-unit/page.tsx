@@ -42,6 +42,8 @@ import {
   Camera,
   Wrench,
   Percent,
+  Save,
+  Pencil,
 } from 'lucide-react';
 
 const COMMON_BRANDS = ['Semua', 'Toyota', 'Honda', 'Daihatsu', 'Mitsubishi', 'Suzuki'];
@@ -98,6 +100,9 @@ export default function StokUnitPage() {
   const [calcDpNominal, setCalcDpNominal] = useState<number>(25000000);
   const [calcTenorYears, setCalcTenorYears] = useState<number>(4); // 4 years (47x)
   const [calcInterestRate, setCalcInterestRate] = useState<number>(8); // 8% flat/year
+  const [calcInstallment35x, setCalcInstallment35x] = useState<string>('');
+  const [calcInstallment47x, setCalcInstallment47x] = useState<string>('');
+  const [calcInstallment59x, setCalcInstallment59x] = useState<string>('');
 
   // Form State for Add / Edit
   const [formData, setFormData] = useState<{
@@ -282,9 +287,42 @@ export default function StokUnitPage() {
     });
   }, [selectedStock, leads]);
 
+  // Helper: Hitung estimasi 3 tenor angsuran leasing showroom HR MOTOR (35x, 47x, 59x)
+  const calculateEstimatedInstallments = (carPrice: number, dpNominal: number) => {
+    const principal = Math.max(0, carPrice - dpNominal);
+    if (principal <= 0) {
+      return { installment35x: '', installment47x: '', installment59x: '' };
+    }
+
+    // 35x (3 Tahun): ~8% flat per tahun (standar showroom HR MOTOR)
+    const total35 = principal * (1 + 0.08 * 3);
+    const val35 = Math.round(total35 / 35 / 1000);
+    const formatted35 = `${val35.toLocaleString('id-ID')} (35x)`;
+
+    // 47x (4 Tahun): ~8.5% flat per tahun
+    const total47 = principal * (1 + 0.085 * 4);
+    const val47 = Math.round(total47 / 47 / 1000);
+    const formatted47 = `${val47.toLocaleString('id-ID')} (47x)`;
+
+    // 59x (5 Tahun): ~9% flat per tahun
+    const total59 = principal * (1 + 0.09 * 5);
+    const val59 = Math.round(total59 / 59 / 1000);
+    const formatted59 = `${val59.toLocaleString('id-ID')} (59x)`;
+
+    return {
+      installment35x: formatted35,
+      installment47x: formatted47,
+      installment59x: formatted59,
+    };
+  };
+
   // Open Add Modal
   const handleOpenAdd = () => {
-    const nextNum = stocks.length + 1;
+    const nextNum = (stocks || []).reduce((max, s) => Math.max(max, Number(s.stockNumber) || 0), 0) + 1;
+    const defaultPrice = 150000000;
+    const defaultDp = Math.round(defaultPrice * 0.2);
+    const est = calculateEstimatedInstallments(defaultPrice, defaultDp);
+
     setFormData({
       stockNumber: nextNum,
       merkType: '',
@@ -296,15 +334,15 @@ export default function StokUnitPage() {
       fuel: 'Bensin',
       mileage: 30000,
       odometerDisplay: '30RB',
-      price: 150000000,
+      price: defaultPrice,
       entryDate: new Date().toISOString().split('T')[0],
       description: '',
       status: 'Tersedia',
       licensePlate: `Z ${1100 + nextNum} DA`,
-      creditDp: '',
-      installment35x: '',
-      installment47x: '',
-      installment59x: '',
+      creditDp: String(defaultDp),
+      installment35x: est.installment35x,
+      installment47x: est.installment47x,
+      installment59x: est.installment59x,
       readinessNotes: '',
       photos: [
         'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80',
@@ -319,6 +357,12 @@ export default function StokUnitPage() {
   // Open Edit Modal
   const handleOpenEdit = (stock: VehicleStock) => {
     setSelectedStock(stock);
+    const carPrice = stock.price || 150000000;
+    const defaultDp = stock.creditDp !== undefined && stock.creditDp !== null && stock.creditDp > 0
+      ? stock.creditDp
+      : Math.round(carPrice * 0.2);
+    const est = calculateEstimatedInstallments(carPrice, defaultDp);
+
     setFormData({
       stockNumber: stock.stockNumber || 1,
       merkType: stock.merkType || `${stock.brand} ${stock.model}`,
@@ -335,10 +379,10 @@ export default function StokUnitPage() {
       description: stock.description || '',
       status: stock.status,
       licensePlate: stock.licensePlate || '',
-      creditDp: stock.creditDp ? String(stock.creditDp) : '',
-      installment35x: stock.installment35x || '',
-      installment47x: stock.installment47x || '',
-      installment59x: stock.installment59x || '',
+      creditDp: stock.creditDp ? String(stock.creditDp) : String(defaultDp),
+      installment35x: stock.installment35x || est.installment35x,
+      installment47x: stock.installment47x || est.installment47x,
+      installment59x: stock.installment59x || est.installment59x,
       readinessNotes: stock.readinessNotes ? stock.readinessNotes.join(', ') : '',
       photos: stock.photos && stock.photos.length > 0 ? [...stock.photos] : [],
       newPhotoUrl: '',
@@ -347,18 +391,137 @@ export default function StokUnitPage() {
     setShowEditModal(true);
   };
 
+  // Helper perubahan harga & DP di modal Tambah/Edit
+  const handlePriceChangeInForm = (newPrice: number) => {
+    setFormData((prev) => {
+      const currentDpNum = Number(prev.creditDp) || 0;
+      const prevPriceNum = Number(prev.price) || 0;
+      const wasAutoDp = prevPriceNum > 0 && Math.abs(currentDpNum - Math.round(prevPriceNum * 0.2)) < 2000000;
+
+      let nextDp = prev.creditDp;
+      let next35 = prev.installment35x;
+      let next47 = prev.installment47x;
+      let next59 = prev.installment59x;
+
+      if (!prev.creditDp || wasAutoDp || currentDpNum === 0) {
+        const dpVal = Math.round(newPrice * 0.2);
+        nextDp = String(dpVal);
+        const est = calculateEstimatedInstallments(newPrice, dpVal);
+        next35 = est.installment35x;
+        next47 = est.installment47x;
+        next59 = est.installment59x;
+      }
+
+      return {
+        ...prev,
+        price: newPrice,
+        creditDp: nextDp,
+        installment35x: next35,
+        installment47x: next47,
+        installment59x: next59,
+      };
+    });
+  };
+
+  const handleDpChangeInForm = (newDpStr: string) => {
+    const dpVal = Number(newDpStr) || 0;
+    const price = Number(formData.price) || 0;
+    if (dpVal > 0 && price > 0) {
+      const est = calculateEstimatedInstallments(price, dpVal);
+      setFormData((prev) => ({
+        ...prev,
+        creditDp: newDpStr,
+        installment35x: est.installment35x,
+        installment47x: est.installment47x,
+        installment59x: est.installment59x,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        creditDp: newDpStr,
+      }));
+    }
+  };
+
+  const handleAutoFillCreditInForm = (pct: number = 20) => {
+    const price = Number(formData.price) || 0;
+    if (price <= 0) return;
+    const dp = Math.round(price * (pct / 100));
+    const est = calculateEstimatedInstallments(price, dp);
+    setFormData((prev) => ({
+      ...prev,
+      creditDp: String(dp),
+      installment35x: est.installment35x,
+      installment47x: est.installment47x,
+      installment59x: est.installment59x,
+    }));
+  };
+
   // Open Detail Modal
   const handleOpenDetail = (stock: VehicleStock) => {
     setSelectedStock(stock);
     setShowDetailModal(true);
   };
 
-  // Open Credit Calculator for a specific vehicle
+  // Open Credit Calculator & Package Setting for a specific vehicle
   const handleOpenCalculator = (stock: VehicleStock) => {
     setSelectedStock(stock);
-    setCalcCarPrice(stock.price || 150000000);
-    setCalcDpNominal(stock.creditDp || Math.round((stock.price || 150000000) * 0.2));
+    const carPrice = stock.price || 150000000;
+    const defaultDp = stock.creditDp !== undefined && stock.creditDp !== null && stock.creditDp > 0
+      ? stock.creditDp
+      : Math.round(carPrice * 0.2);
+    setCalcCarPrice(carPrice);
+    setCalcDpNominal(defaultDp);
+
+    const est = calculateEstimatedInstallments(carPrice, defaultDp);
+    setCalcInstallment35x(stock.installment35x || est.installment35x);
+    setCalcInstallment47x(stock.installment47x || est.installment47x);
+    setCalcInstallment59x(stock.installment59x || est.installment59x);
+
     setShowCreditCalculatorModal(true);
+  };
+
+  const handleUpdateCalcDp = (newDp: number) => {
+    setCalcDpNominal(newDp);
+    const est = calculateEstimatedInstallments(calcCarPrice, newDp);
+    setCalcInstallment35x(est.installment35x);
+    setCalcInstallment47x(est.installment47x);
+    setCalcInstallment59x(est.installment59x);
+  };
+
+  const handleSaveCreditPackage = async () => {
+    if (!selectedStock) return;
+    setIsSubmitting(true);
+    try {
+      await updateStock({
+        id: selectedStock.id,
+        creditDp: calcDpNominal > 0 ? Number(calcDpNominal) : undefined,
+        installment35x: calcInstallment35x.trim() || undefined,
+        installment47x: calcInstallment47x.trim() || undefined,
+        installment59x: calcInstallment59x.trim() || undefined,
+        leasingPartners: ['OTO', 'MUF', 'ADIRA'],
+      });
+      setShowCreditCalculatorModal(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClearCreditPackage = async () => {
+    if (!selectedStock) return;
+    setIsSubmitting(true);
+    try {
+      await updateStock({
+        id: selectedStock.id,
+        creditDp: undefined,
+        installment35x: undefined,
+        installment47x: undefined,
+        installment59x: undefined,
+      });
+      setShowCreditCalculatorModal(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Handle Photo management
@@ -1068,10 +1231,18 @@ export default function StokUnitPage() {
                         {/* 8. PAKET KREDIT (DP & TENOR) */}
                         <td className="py-3.5 px-4 text-center whitespace-nowrap">
                           {stock.creditDp || stock.installment35x || stock.installment47x || stock.installment59x ? (
-                            <div className="inline-flex flex-col items-center gap-1">
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCalculator(stock);
+                              }}
+                              className="inline-flex flex-col items-center gap-1 cursor-pointer group/kredit p-1 rounded-lg hover:bg-gold-50/50 transition-all"
+                              title="Klik untuk ubah / sesuaikan estimasi DP & cicilan unit ini"
+                            >
                               {stock.creditDp && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-gold-50 text-gold-900 border border-gold-300 font-extrabold text-[10px] shadow-xs">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-gold-100/80 text-gold-950 border border-gold-300 font-extrabold text-[10px] shadow-xs group-hover/kredit:bg-gold-200">
                                   DP {formatRupiah(stock.creditDp)}
+                                  <Pencil className="w-2.5 h-2.5 text-gold-700 ml-0.5 opacity-60 group-hover/kredit:opacity-100" />
                                 </span>
                               )}
                               <div className="flex items-center gap-1 text-[10px] text-charcoal-600 font-mono">
@@ -1099,9 +1270,11 @@ export default function StokUnitPage() {
                                 e.stopPropagation();
                                 handleOpenCalculator(stock);
                               }}
-                              className="text-[10px] text-gold-700 font-bold hover:underline bg-gold-50/60 hover:bg-gold-100 px-2 py-1 rounded border border-gold-200 transition-colors"
+                              className="text-[10px] text-gold-900 font-bold hover:bg-gold-100 bg-gold-50/90 px-2.5 py-1 rounded-lg border border-gold-300 shadow-2xs transition-all flex items-center gap-1 mx-auto cursor-pointer"
+                              title="Klik untuk memasukkan DP & estimasi cicilan unit ini"
                             >
-                              + Hitung Kredit
+                              <Calculator className="w-3 h-3 text-gold-600" />
+                              <span>+ Hitung Kredit</span>
                             </button>
                           )}
                         </td>
@@ -1339,19 +1512,34 @@ export default function StokUnitPage() {
                           </div>
 
                           {/* Simulasi Kredit DP & Cicilan */}
-                          {stock.creditDp ? (
-                            <div className="mt-0.5 text-[9px] leading-tight">
-                              <span className="text-gold-800 font-bold block">
-                                DP {formatRupiah(stock.creditDp)}
+                          {stock.creditDp || stock.installment35x || stock.installment47x || stock.installment59x ? (
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCalculator(stock);
+                              }}
+                              className="mt-0.5 text-[9px] leading-tight cursor-pointer hover:opacity-80 p-0.5 rounded"
+                              title="Klik untuk ubah estimasi DP & cicilan"
+                            >
+                              <span className="text-gold-900 font-extrabold block flex items-center justify-end gap-0.5">
+                                DP {stock.creditDp ? formatRupiah(stock.creditDp) : 'Tersedia'}
+                                <Pencil className="w-2 h-2 text-gold-700" />
                               </span>
                               <span className="text-charcoal-500 font-mono block">
-                                {stock.installment47x || stock.installment35x || ''}
+                                {stock.installment47x || stock.installment35x || stock.installment59x || ''}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-[9px] text-charcoal-400 block mt-0.5 italic">
-                              Cash Only
-                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenCalculator(stock);
+                              }}
+                              className="text-[9px] text-gold-800 font-bold underline block mt-0.5 ml-auto cursor-pointer"
+                            >
+                              + Hitung Kredit
+                            </button>
                           )}
                         </td>
 
@@ -1424,7 +1612,7 @@ export default function StokUnitPage() {
       {/* ========================================================================= */}
       {/* MODAL 1: KALKULATOR SIMULASI KREDIT SHOWROOM                              */}
       {/* ========================================================================= */}
-      {showCreditCalculatorModal && (
+      {showCreditCalculatorModal && selectedStock && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
@@ -1434,9 +1622,9 @@ export default function StokUnitPage() {
                   <Calculator className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Kalkulator Simulasi Kredit Showroom</h3>
+                  <h3 className="text-sm font-bold text-white">Atur &amp; Hitung Paket Kredit Showroom</h3>
                   <p className="text-[11px] text-charcoal-400 truncate max-w-[220px] sm:max-w-xs">
-                    {selectedStock ? `${selectedStock.merkType || selectedStock.model}` : 'Hitung estimasi DP & cicilan showroom'}
+                    {selectedStock.merkType || selectedStock.model} ({selectedStock.year}) • No #{selectedStock.stockNumber}
                   </p>
                 </div>
               </div>
@@ -1449,32 +1637,30 @@ export default function StokUnitPage() {
             </div>
 
             <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
-              {/* Harga Kendaraan */}
-              <div>
-                <label className="block text-xs font-semibold text-charcoal-700 mb-1">
-                  Harga Unit Mobil (OTR)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 font-bold text-xs">Rp</span>
-                  <input
-                    type="number"
-                    step="1000000"
-                    value={calcCarPrice}
-                    onChange={(e) => setCalcCarPrice(Number(e.target.value) || 0)}
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-warm-300 rounded-lg font-bold font-mono text-charcoal-900 focus:outline-none focus:border-gold-500"
-                  />
+              {/* Info Mobil & Harga Cash */}
+              <div className="p-3 bg-[#FAF9F5] rounded-xl border border-warm-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] text-charcoal-500 font-medium uppercase tracking-wider block">Harga Tunai OTR</span>
+                  <span className="text-base font-black text-charcoal-950 font-mono">{formatRupiah(calcCarPrice)}</span>
                 </div>
-                <p className="text-[10px] text-charcoal-500 mt-1 font-mono">
-                  {formatRupiah(calcCarPrice)}
-                </p>
+                <div className="text-right">
+                  <span className="text-[10px] text-charcoal-500 font-medium uppercase tracking-wider block">Status Paket</span>
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                    selectedStock.creditDp ? 'bg-gold-100 text-gold-900 border border-gold-300' : 'bg-warm-100 text-charcoal-600'
+                  }`}>
+                    {selectedStock.creditDp ? 'Sudah Ada Paket' : 'Belum Ada Paket'}
+                  </span>
+                </div>
               </div>
 
               {/* Uang Muka (DP) */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-charcoal-700">Uang Muka / DP</label>
-                  <span className="text-[11px] font-bold text-gold-700">
-                    {calcCarPrice > 0 ? `${Math.round((calcDpNominal / calcCarPrice) * 100)}%` : '0%'}
+                  <label className="text-xs font-bold text-charcoal-800">
+                    Uang Muka / DP (Rp) *
+                  </label>
+                  <span className="text-[11px] font-bold text-gold-800 bg-gold-50 px-2 py-0.5 rounded border border-gold-200">
+                    {calcCarPrice > 0 ? `${Math.round((calcDpNominal / calcCarPrice) * 100)}% dari Harga OTR` : '0%'}
                   </span>
                 </div>
                 <div className="relative">
@@ -1483,71 +1669,96 @@ export default function StokUnitPage() {
                     type="number"
                     step="1000000"
                     value={calcDpNominal}
-                    onChange={(e) => setCalcDpNominal(Number(e.target.value) || 0)}
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-warm-300 rounded-lg font-bold font-mono text-charcoal-900 focus:outline-none focus:border-gold-500"
+                    onChange={(e) => handleUpdateCalcDp(Number(e.target.value) || 0)}
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-warm-300 rounded-lg font-bold font-mono text-charcoal-950 bg-white focus:outline-none focus:border-gold-500"
                   />
                 </div>
+                <p className="text-[10px] text-charcoal-500 mt-1 font-mono">
+                  {formatRupiah(calcDpNominal)} (Pokok Hutang: {formatRupiah(Math.max(0, calcCarPrice - calcDpNominal))})
+                </p>
+
                 {/* DP Shortcut Buttons */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1.5">
+                <div className="grid grid-cols-4 gap-1.5 mt-2">
                   {[15, 20, 25, 30].map((pct) => (
                     <button
                       key={pct}
                       type="button"
-                      onClick={() => setCalcDpNominal(Math.round(calcCarPrice * (pct / 100)))}
-                      className="px-2 py-1 rounded text-[10px] font-semibold bg-warm-100 hover:bg-gold-50 text-charcoal-700 border border-warm-200 transition-colors text-center"
-                    >
-                      DP {pct}% ({formatRupiah(Math.round(calcCarPrice * (pct / 100)))})
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tenor Pilihan */}
-              <div>
-                <label className="block text-xs font-semibold text-charcoal-700 mb-1">
-                  Jangka Waktu Tenor
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { year: 2, label: '2 Thn (23x)' },
-                    { year: 3, label: '3 Thn (35x)' },
-                    { year: 4, label: '4 Thn (47x)' },
-                    { year: 5, label: '5 Thn (59x)' },
-                  ].map((t) => (
-                    <button
-                      key={t.year}
-                      type="button"
-                      onClick={() => setCalcTenorYears(t.year)}
-                      className={`py-2 px-1 text-center rounded-lg border text-xs font-bold transition-all ${
-                        calcTenorYears === t.year
-                          ? 'bg-charcoal-900 text-gold-400 border-charcoal-900 shadow-xs'
-                          : 'bg-warm-50 text-charcoal-700 border-warm-200 hover:border-gold-400'
+                      onClick={() => handleUpdateCalcDp(Math.round(calcCarPrice * (pct / 100)))}
+                      className={`px-2 py-1 rounded text-[10px] font-bold border transition-colors text-center ${
+                        calcCarPrice > 0 && Math.round((calcDpNominal / calcCarPrice) * 100) === pct
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                          : 'bg-warm-100 hover:bg-gold-50 text-charcoal-700 border-warm-200'
                       }`}
                     >
-                      {t.label}
+                      DP {pct}%
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Estimasi Hasil Cicilan Box */}
-              <div className="p-4 rounded-xl bg-gradient-to-br from-[#1C1C1C] to-[#121212] text-white border border-[#2A2A2A] shadow-md space-y-2">
-                <div className="flex items-center justify-between text-charcoal-400 text-xs">
-                  <span>Estimasi Cicilan per Bulan</span>
-                  <span className="badge-gold text-[9px]">Bunga ~{calcInterestRate}% Flat</span>
+              {/* 3 Tenor Angsuran Showroom */}
+              <div className="space-y-2 pt-2 border-t border-warm-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-charcoal-800">
+                    Estimasi Angsuran / Cicilan per Tenor:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const est = calculateEstimatedInstallments(calcCarPrice, calcDpNominal);
+                      setCalcInstallment35x(est.installment35x);
+                      setCalcInstallment47x(est.installment47x);
+                      setCalcInstallment59x(est.installment59x);
+                    }}
+                    className="text-[10px] text-gold-700 font-bold hover:underline flex items-center gap-1"
+                  >
+                    <Sparkles className="w-3 h-3 text-gold-600" />
+                    <span>Hitung Ulang Otomatis</span>
+                  </button>
                 </div>
-                <div className="text-2xl font-black text-gold-400 tracking-tight font-mono">
-                  {formatRupiah(calculatedMonthly)} <span className="text-xs text-charcoal-300 font-normal">/ bulan</span>
-                </div>
-                <div className="text-[11px] text-charcoal-400 border-t border-[#2A2A2A] pt-2 flex items-center justify-between">
-                  <span>Pokok Hutang: {formatRupiah(Math.max(0, calcCarPrice - calcDpNominal))}</span>
-                  <span>Tenor: {calcTenorYears} Tahun</span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="bg-[#FAF9F5] p-2.5 rounded-xl border border-warm-200 space-y-1">
+                    <span className="text-[10px] font-bold text-charcoal-600 block">35x (3 Tahun)</span>
+                    <input
+                      type="text"
+                      placeholder="5.350 (35x)"
+                      value={calcInstallment35x}
+                      onChange={(e) => setCalcInstallment35x(e.target.value)}
+                      className="w-full p-1.5 border border-warm-300 rounded-lg font-mono font-bold text-xs bg-white text-charcoal-900 focus:outline-none focus:border-gold-500"
+                    />
+                    <span className="text-[9px] text-charcoal-400 block font-sans">Bunga ~8% flat</span>
+                  </div>
+
+                  <div className="bg-[#FAF9F5] p-2.5 rounded-xl border border-warm-200 space-y-1">
+                    <span className="text-[10px] font-bold text-charcoal-600 block">47x (4 Tahun)</span>
+                    <input
+                      type="text"
+                      placeholder="4.335 (47x)"
+                      value={calcInstallment47x}
+                      onChange={(e) => setCalcInstallment47x(e.target.value)}
+                      className="w-full p-1.5 border border-warm-300 rounded-lg font-mono font-bold text-xs bg-white text-charcoal-900 focus:outline-none focus:border-gold-500"
+                    />
+                    <span className="text-[9px] text-charcoal-400 block font-sans">Bunga ~8.5% flat</span>
+                  </div>
+
+                  <div className="bg-[#FAF9F5] p-2.5 rounded-xl border border-warm-200 space-y-1">
+                    <span className="text-[10px] font-bold text-charcoal-600 block">59x (5 Tahun)</span>
+                    <input
+                      type="text"
+                      placeholder="4.065 (59x)"
+                      value={calcInstallment59x}
+                      onChange={(e) => setCalcInstallment59x(e.target.value)}
+                      className="w-full p-1.5 border border-warm-300 rounded-lg font-mono font-bold text-xs bg-white text-charcoal-900 focus:outline-none focus:border-gold-500"
+                    />
+                    <span className="text-[9px] text-charcoal-400 block font-sans">Bunga ~9% flat</span>
+                  </div>
                 </div>
               </div>
 
               {/* Mitra Pembiayaan Showroom */}
               <div className="p-2.5 rounded-lg bg-warm-50 border border-warm-200 flex items-center justify-between text-xs">
-                <span className="text-[11px] text-charcoal-600 font-medium">Mitra Pembiayaan Resmi:</span>
+                <span className="text-[11px] text-charcoal-600 font-medium">Mitra Leasing Showroom:</span>
                 <div className="flex items-center gap-1.5">
                   <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-white border border-warm-200 text-charcoal-800">OTO</span>
                   <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-white border border-warm-200 text-charcoal-800">MUF</span>
@@ -1555,15 +1766,37 @@ export default function StokUnitPage() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-2 pt-2">
+              {/* Actions Button */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-warm-200">
                 <button
                   type="button"
-                  onClick={() => setShowCreditCalculatorModal(false)}
-                  className="w-full py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-white font-bold text-xs transition-colors shadow-xs"
+                  onClick={handleSaveCreditPackage}
+                  disabled={isSubmitting}
+                  className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-charcoal-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
                 >
-                  Tutup Kalkulator
+                  <Save className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Paket Kredit ke Unit Ini'}</span>
                 </button>
+
+                <div className="flex items-center gap-2">
+                  {selectedStock.creditDp ? (
+                    <button
+                      type="button"
+                      onClick={handleClearCreditPackage}
+                      disabled={isSubmitting}
+                      className="flex-1 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors"
+                    >
+                      Hapus Paket Kredit (Cash Only)
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setShowCreditCalculatorModal(false)}
+                    className="flex-1 py-2 rounded-xl bg-warm-100 hover:bg-warm-200 text-charcoal-700 font-bold text-xs transition-colors"
+                  >
+                    Batal
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1961,64 +2194,128 @@ export default function StokUnitPage() {
                 </div>
               </div>
 
-              {/* Harga Cash & Paket Kredit */}
-              <div className="p-3.5 bg-warm-50 rounded-xl border border-warm-200 space-y-3">
-                <span className="font-bold text-charcoal-900 block text-xs">Harga Cash & Simulasi Kredit Showroom</span>
+              {/* Harga Cash & Paket Kredit Showroom */}
+              <div className="p-3.5 bg-gradient-to-br from-amber-50/60 to-warm-50 rounded-xl border border-amber-200 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 border-b border-amber-200/80">
+                  <div className="flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-amber-700" />
+                    <span className="font-black text-charcoal-900 text-xs uppercase tracking-wide">
+                      Harga Cash &amp; Estimasi Paket Kredit Showroom
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleAutoFillCreditInForm(20)}
+                    className="text-[11px] font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
+                    title="Hitung ulang estimasi DP 20% dan cicilan otomatis"
+                  >
+                    <Sparkles className="w-3 h-3 text-amber-600" />
+                    <span>⚡ Hitung Estimasi Otomatis (DP 20%)</span>
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-charcoal-700 mb-1">Harga Cash (Rp) *</label>
-                    <input
-                      type="number"
-                      step="1000000"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) || 0 })}
-                      className="w-full p-2 border border-warm-300 rounded-lg font-mono font-bold bg-white"
-                    />
+                    <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                      Harga Tunai OTR (Rp) *
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 font-bold text-xs">Rp</span>
+                      <input
+                        type="number"
+                        step="1000000"
+                        required
+                        value={formData.price}
+                        onChange={(e) => handlePriceChangeInForm(Number(e.target.value) || 0)}
+                        className="w-full pl-9 pr-3 py-2 border border-warm-300 rounded-lg font-mono font-black text-charcoal-950 bg-white text-sm focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+                    <p className="text-[10px] text-charcoal-500 mt-1 font-mono">
+                      {formatRupiah(formData.price)} Cash OTR
+                    </p>
                   </div>
+
                   <div>
-                    <label className="block font-semibold text-charcoal-700 mb-1">Uang Muka (DP Rp)</label>
-                    <input
-                      type="number"
-                      step="1000000"
-                      placeholder="Contoh: 15000000"
-                      value={formData.creditDp}
-                      onChange={(e) => setFormData({ ...formData, creditDp: e.target.value })}
-                      className="w-full p-2 border border-warm-300 rounded-lg font-mono bg-white"
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-charcoal-800">
+                        Uang Muka (DP Rp)
+                      </label>
+                      <span className="text-[10px] font-bold text-gold-800 bg-gold-50 px-1.5 py-0.2 rounded border border-gold-200">
+                        {formData.price > 0 && formData.creditDp ? `~${Math.round((Number(formData.creditDp) / formData.price) * 100)}% OTR` : 'Pilihan DP'}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 font-bold text-xs">Rp</span>
+                      <input
+                        type="number"
+                        step="1000000"
+                        placeholder="Contoh: 25000000"
+                        value={formData.creditDp}
+                        onChange={(e) => handleDpChangeInForm(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 border border-warm-300 rounded-lg font-mono font-bold text-charcoal-950 bg-white text-sm focus:outline-none focus:border-gold-500"
+                      />
+                    </div>
+                    {/* DP Shortcut Buttons */}
+                    <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                      <span className="text-[9px] text-charcoal-400 font-medium">Pilih %:</span>
+                      {[15, 20, 25, 30].map((pct) => (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => handleAutoFillCreditInForm(pct)}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors ${
+                            formData.price > 0 && Math.round((Number(formData.creditDp) / formData.price) * 100) === pct
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                              : 'bg-white text-charcoal-700 border-warm-200 hover:bg-gold-50'
+                          }`}
+                        >
+                          {pct}%
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Cicilan 35x (3 Thn)</label>
-                    <input
-                      type="text"
-                      placeholder="5.350 (35x)"
-                      value={formData.installment35x}
-                      onChange={(e) => setFormData({ ...formData, installment35x: e.target.value })}
-                      className="w-full p-1.5 border border-warm-300 rounded-lg font-mono bg-white text-xs"
-                    />
+                {/* 3 Tenor Angsuran */}
+                <div>
+                  <label className="block text-[11px] font-bold text-charcoal-700 mb-1">
+                    Estimasi Angsuran / Cicilan per Tenor (Dihitung Otomatis atau Diubah Manual):
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="bg-white p-2 rounded-lg border border-warm-200">
+                      <label className="block text-[10px] font-bold text-charcoal-600 mb-0.5">Cicilan 35x (3 Thn)</label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: 5.350 (35x)"
+                        value={formData.installment35x}
+                        onChange={(e) => setFormData({ ...formData, installment35x: e.target.value })}
+                        className="w-full p-1.5 border border-warm-300 rounded-md font-mono font-bold text-xs bg-warm-50/50 focus:bg-white text-charcoal-900"
+                      />
+                    </div>
+                    <div className="bg-white p-2 rounded-lg border border-warm-200">
+                      <label className="block text-[10px] font-bold text-charcoal-600 mb-0.5">Cicilan 47x (4 Thn)</label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: 4.335 (47x)"
+                        value={formData.installment47x}
+                        onChange={(e) => setFormData({ ...formData, installment47x: e.target.value })}
+                        className="w-full p-1.5 border border-warm-300 rounded-md font-mono font-bold text-xs bg-warm-50/50 focus:bg-white text-charcoal-900"
+                      />
+                    </div>
+                    <div className="bg-white p-2 rounded-lg border border-warm-200">
+                      <label className="block text-[10px] font-bold text-charcoal-600 mb-0.5">Cicilan 59x (5 Thn)</label>
+                      <input
+                        type="text"
+                        placeholder="Contoh: 4.065 (59x)"
+                        value={formData.installment59x}
+                        onChange={(e) => setFormData({ ...formData, installment59x: e.target.value })}
+                        className="w-full p-1.5 border border-warm-300 rounded-md font-mono font-bold text-xs bg-warm-50/50 focus:bg-white text-charcoal-900"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Cicilan 47x (4 Thn)</label>
-                    <input
-                      type="text"
-                      placeholder="4.335 (47x)"
-                      value={formData.installment47x}
-                      onChange={(e) => setFormData({ ...formData, installment47x: e.target.value })}
-                      className="w-full p-1.5 border border-warm-300 rounded-lg font-mono bg-white text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Cicilan 59x (5 Thn)</label>
-                    <input
-                      type="text"
-                      placeholder="4.065 (59x)"
-                      value={formData.installment59x}
-                      onChange={(e) => setFormData({ ...formData, installment59x: e.target.value })}
-                      className="w-full p-1.5 border border-warm-300 rounded-lg font-mono bg-white text-xs"
-                    />
-                  </div>
+                  <p className="text-[10px] text-charcoal-400 mt-1">
+                    * Estimasi bunga flat leasing resmi rekanan Garut (OTO, MUF, Adira). Data otomatis tampil di tabel stok unit.
+                  </p>
                 </div>
               </div>
 
