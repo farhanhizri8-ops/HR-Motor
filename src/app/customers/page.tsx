@@ -1223,15 +1223,15 @@ export default function CustomersPage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="badge-gold">Database Konsumen & Penjualan</span>
+              <span className="badge-gold">Basis Data Konsumen &amp; Penjualan</span>
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
-              Database Pelanggan & Transaksi Penjualan
+              Basis Data Pelanggan &amp; Transaksi Penjualan
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
-              Sistem satu pintu kelola pembeli resmi (Cash & Kredit ACC), pengajuan kredit leasing (Menunggu ACC & Ditolak), dan cetak kwitansi kasir showroom.
+              Sistem satu pintu kelola pembeli resmi (Tunai &amp; Kredit ACC), pengajuan kredit leasing (Menunggu ACC &amp; Ditolak), dan cetak kwitansi kasir showroom.
             </p>
           </div>
 
@@ -1246,7 +1246,7 @@ export default function CustomersPage() {
               className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
             >
               <Banknote className="w-4 h-4" />
-              <span>+ Transaksi Cash Baru</span>
+              <span>+ Transaksi Tunai Baru</span>
             </button>
 
             <button

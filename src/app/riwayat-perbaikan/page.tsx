@@ -1789,7 +1789,7 @@ export default function RiwayatPerbaikanGaransiPage() {
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-gold-700 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-gold-600" />
-                Executive Dashboard Owner
+                Ringkasan Eksekutif Owner
               </span>
               <h3 className="text-base font-bold text-slate-900 mt-0.5">
                 Analitik &amp; Visualisasi Garansi Perbaikan Showroom HR MOTOR

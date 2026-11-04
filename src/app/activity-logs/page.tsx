@@ -48,16 +48,16 @@ export default function ActivityLogsPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="badge-gold">
-                Audit Trail & Kepatuhan
+                Jejak Audit &amp; Kepatuhan
               </span>
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs text-charcoal-400 font-medium tracking-wide">Log Aktivitas Sistem</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
-              Audit Trail & Activity Logs
+              Catatan Jejak Audit &amp; Riwayat Aktivitas
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
-              Catatan kronologis seluruh tindakan staf, penambahan armada, perubahan status pipeline, dan interaksi konsumen di HR MOTOR Garut.
+              Catatan kronologis seluruh tindakan staf, penambahan armada, perubahan status interaksi, dan aktivitas konsumen di HR MOTOR Garut.
             </p>
           </div>
         </div>
@@ -81,14 +81,14 @@ export default function ActivityLogsPage() {
           onChange={(e) => setFilterEntity(e.target.value)}
           className="text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none font-semibold text-charcoal-800 focus:border-gold-500"
         >
-          <option value="ALL">Semua Entitas CRM</option>
+          <option value="ALL">Semua Entitas Showroom</option>
           <option value="Pelanggan">Pelanggan</option>
-          <option value="Prospek">Prospek / Leads</option>
-          <option value="Follow-up">Follow-up</option>
+          <option value="Prospek">Prospek Calon Pembeli</option>
+          <option value="Follow-up">Tindak Lanjut (Follow-up)</option>
           <option value="Komunikasi">Komunikasi</option>
-          <option value="Deal">Transaksi Deal</option>
+          <option value="Deal">Transaksi Penjualan</option>
           <option value="Komplain">Komplain</option>
-          <option value="User">Pengguna / User</option>
+          <option value="User">Pengguna Sistem</option>
         </select>
       </div>
 
@@ -103,7 +103,7 @@ export default function ActivityLogsPage() {
                 <th className="py-3.5 px-4">Peran</th>
                 <th className="py-3.5 px-4">Entitas</th>
                 <th className="py-3.5 px-4">Tindakan / Aksi</th>
-                <th className="py-3.5 px-4">Detail Perubahan</th>
+                <th className="py-3.5 px-4">Rincian Perubahan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAE8E3] text-xs">

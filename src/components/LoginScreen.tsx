@@ -235,7 +235,7 @@ export const LoginScreen: React.FC = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="karyawan1@gmail.com"
+                      placeholder="Masukkan alamat email akun"
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-warm-50 border border-warm-200 text-charcoal-900 text-xs placeholder:text-charcoal-400 focus:bg-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors font-medium"
                     />
                   </div>

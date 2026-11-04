@@ -627,13 +627,13 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3 text-charcoal-600 font-medium text-[11px] flex-wrap">
-            <span>Sold Out: <strong className="text-charcoal-900 font-bold">{totalSoldOut} Unit</strong></span>
+            <span>Terjual: <strong className="text-charcoal-900 font-bold">{totalSoldOut} Unit</strong></span>
             <span>•</span>
-            <span>Cash: <strong className="text-emerald-700 font-bold">{cashSalesCount} Unit</strong></span>
+            <span>Tunai: <strong className="text-emerald-700 font-bold">{cashSalesCount} Unit</strong></span>
             <span>•</span>
             <span>Kredit: <strong className="text-gold-700 font-bold">{creditSalesCount} Unit</strong></span>
             <span>•</span>
-            <span>Follow-up: <strong className="text-charcoal-900 font-bold">{followedUpCustomersCount} Konsumen</strong></span>
+            <span>Tindak Lanjut: <strong className="text-charcoal-900 font-bold">{followedUpCustomersCount} Konsumen</strong></span>
           </div>
         </div>
       </div>
@@ -649,7 +649,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-600 uppercase tracking-wider truncate">
-              Stok Unit Ready
+              Stok Mobil Tersedia
             </span>
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
               <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -660,7 +660,7 @@ export default function DashboardPage() {
               {stocksReady} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Unit</span>
             </div>
             <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
-              <span>Siap Test Drive</span>
+              <span>Siap Uji Kendara</span>
               <span className="text-gold-600 font-bold flex items-center">Buka →</span>
             </div>
           </div>
@@ -673,7 +673,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-700 uppercase tracking-wider truncate">
-              Total Unit Sold Out
+              Total Mobil Terjual
             </span>
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-charcoal-100 text-charcoal-800 border border-charcoal-200 flex items-center justify-center shrink-0 group-hover:bg-charcoal-900 group-hover:text-gold-400 transition-colors">
               <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -684,7 +684,7 @@ export default function DashboardPage() {
               {totalSoldOut} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Unit</span>
             </div>
             <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
-              <span className="truncate">Cash ({cashSalesCount}) + Kredit ({creditSalesCount})</span>
+              <span className="truncate">Tunai ({cashSalesCount}) + Kredit ({creditSalesCount})</span>
               <span className="text-gold-600 font-bold flex items-center shrink-0 ml-1">Buka →</span>
             </div>
           </div>
@@ -698,7 +698,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <span className="text-[10px] sm:text-[11px] font-bold text-emerald-800 uppercase tracking-wider truncate flex items-center gap-1">
               <Banknote className="w-3.5 h-3.5 text-emerald-600" />
-              Penjualan Cash
+              Penjualan Tunai
             </span>
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <Banknote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -709,7 +709,7 @@ export default function DashboardPage() {
               {cashSalesCount} <span className="text-xs sm:text-sm font-bold text-emerald-800">Unit</span>
             </div>
             <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
-              <span title={formatRupiah(totalCashNominal)}>Cash Keras &amp; Bertahap</span>
+              <span title={formatRupiah(totalCashNominal)}>Pembayaran Tunai Langsung</span>
               <span className="text-emerald-700 font-bold flex items-center">Buka →</span>
             </div>
           </div>
@@ -812,7 +812,7 @@ export default function DashboardPage() {
               {totalLeads} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Calon</span>
             </div>
             <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
-              <span>3 Tahap Pipeline</span>
+              <span>3 Tahapan Interaksi</span>
               <span className="text-gold-600 font-bold flex items-center">Buka →</span>
             </div>
           </div>
@@ -935,7 +935,7 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-xs sm:text-sm font-bold text-charcoal-900 flex items-center gap-1.5">
                   <GitPullRequest className="w-4 h-4 text-gold-600 shrink-0" />
-                  <span>Distribusi 3 Tahapan Sales Pipeline</span>
+                  <span>Distribusi 3 Tahapan Prospek Penjualan</span>
                 </h2>
                 <p className="text-[11px] text-charcoal-500 mt-0.5">
                   Prospek aktif calon pembeli mobil showroom
@@ -945,7 +945,7 @@ export default function DashboardPage() {
                 href="/leads"
                 className="text-[11px] font-bold text-gold-700 hover:text-gold-800 flex items-center gap-0.5 shrink-0"
               >
-                <span>Buka Pipeline</span>
+                <span>Buka Alur Penjualan</span>
                 <ArrowUpRight className="w-3 h-3" />
               </Link>
             </div>
@@ -984,7 +984,7 @@ export default function DashboardPage() {
           <div className="mt-3.5 pt-2.5 border-t border-warm-200 flex items-center justify-between text-[11px]">
             <span className="text-charcoal-500">Total Prospek Aktif: <strong className="text-charcoal-900">{totalLeads} Calon</strong></span>
             <Link href="/leads" className="text-gold-700 font-bold hover:underline">
-              Kelola Kanban Pipeline →
+              Kelola Alur Penjualan →
             </Link>
           </div>
         </div>
@@ -1137,7 +1137,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
               <div className="flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-blue-600" />
-                <h3 className="text-xs font-bold text-charcoal-900">Konsumen Sudah Follow-up</h3>
+                <h3 className="text-xs font-bold text-charcoal-900">Konsumen Sudah Dihubungi</h3>
               </div>
               <Link href="/follow-up" className="text-[11px] font-bold text-gold-700 hover:underline">
                 Kelola ({followedUpCustomersCount}) →
@@ -1152,7 +1152,7 @@ export default function DashboardPage() {
                   <div key={flw.id} className="py-2.5 first:pt-1">
                     <p className="text-xs font-bold text-charcoal-900 truncate">{flw.customerName}</p>
                     <p className="text-[11px] text-charcoal-500 truncate mt-0.5">
-                      {flw.vehicleInfo || flw.category || 'Follow-up showroom'}
+                      {flw.vehicleInfo || flw.category || 'Tindak lanjut showroom'}
                     </p>
                     <div className="flex items-center gap-1.5 text-[10px] text-blue-800 font-semibold mt-1">
                       <Check className="w-3 h-3 text-blue-600 shrink-0" />
@@ -1169,7 +1169,7 @@ export default function DashboardPage() {
               href="/follow-up"
               className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
             >
-              <span>Buka Follow-up Management</span>
+              <span>Buka Jadwal Tindak Lanjut</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -1283,7 +1283,7 @@ export default function DashboardPage() {
               href="/leads"
               className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
             >
-              <span>Kelola Prospek &amp; Pipeline</span>
+              <span>Kelola Prospek &amp; Penjualan</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -1295,7 +1295,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
               <div className="flex items-center gap-2">
                 <Car className="w-4 h-4 text-gold-600" />
-                <h3 className="text-xs font-bold text-charcoal-900">Unit Siap Jual (Ready)</h3>
+                <h3 className="text-xs font-bold text-charcoal-900">Mobil Siap Jual (Tersedia)</h3>
               </div>
               <Link href="/stok-unit" className="text-[11px] font-bold text-gold-700 hover:underline">
                 Stok ({stocksReady}) →

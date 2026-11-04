@@ -71,11 +71,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Logo View */}
         <Link href="/" className="flex lg:hidden items-center">
-          <div className="bg-white px-2 py-1 rounded-lg border border-gold-500/30 shadow-2xs flex items-center justify-center">
+          <div className="bg-white px-2 py-1 rounded-xl border border-gold-500/40 shadow-xs flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.png?v=3"
-              alt="HR MOTOR Logo"
+              src="/logo-hr-motor.png"
+              alt="Logo Resmi HR MOTOR"
               className="h-6 sm:h-7 w-auto object-contain"
             />
           </div>

@@ -138,13 +138,13 @@ export default function UserManagementPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="badge-gold">
-                Keamanan & Hak Akses
+                Keamanan &amp; Hak Akses
               </span>
               <span className="text-xs text-charcoal-300">•</span>
-              <span className="text-xs text-charcoal-400 font-medium tracking-wide">RBAC (Role-Based Access Control)</span>
+              <span className="text-xs text-charcoal-400 font-medium tracking-wide">Otorisasi Jabatan Showroom</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
-              Manajemen Pengguna & Otorisasi RBAC
+              Manajemen Pengguna &amp; Otorisasi Jabatan
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
               Kelola akun staf HR MOTOR Garut, otorisasi persetujuan Owner, hapus akun yang tidak aktif, dan kontrol izin modul.
@@ -224,7 +224,7 @@ export default function UserManagementPage() {
       <div className="crm-card p-5 space-y-4">
         <div>
           <h2 className="text-base font-black text-charcoal-900">
-            Matriks Hak Akses Modul CRM (Role & Permissions Matrix)
+            Matriks Hak Akses Modul Showroom HR MOTOR
           </h2>
           <p className="text-xs text-charcoal-500 mt-0.5">
             Struktur wewenang operasional dealer mobil bekas HR MOTOR Garut
@@ -236,13 +236,13 @@ export default function UserManagementPage() {
             <thead>
               <tr>
                 <th className="py-3 px-3">Peran / Jabatan</th>
-                <th className="py-3 px-3">Database Pelanggan</th>
-                <th className="py-3 px-3">Leads & Pipeline</th>
-                <th className="py-3 px-3">Follow-up</th>
+                <th className="py-3 px-3">Basis Data Pelanggan</th>
+                <th className="py-3 px-3">Prospek &amp; Penjualan</th>
+                <th className="py-3 px-3">Tindak Lanjut</th>
                 <th className="py-3 px-3">Komunikasi WA</th>
-                <th className="py-3 px-3">Garansi & Bengkel</th>
-                <th className="py-3 px-3">Stok Unit</th>
-                <th className="py-3 px-3">Manajemen User</th>
+                <th className="py-3 px-3">Garansi &amp; Bengkel</th>
+                <th className="py-3 px-3">Stok Mobil</th>
+                <th className="py-3 px-3">Manajemen Pengguna</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAE8E3] text-xs">

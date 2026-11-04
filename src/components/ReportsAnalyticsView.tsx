@@ -688,15 +688,15 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF6EE] text-[#926017] border border-[#EAD7B0]">
                 <Sparkles className="w-3 h-3 text-[#D99A32]" />
-                EXECUTIVE DEALERSHIP ANALYTICS
+                ANALISIS KINERJA EKSEKUTIF
               </span>
               <span className="text-xs text-[#666666] font-medium">• HR MOTOR Garut</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
-              Reports & Analytics
+              Laporan &amp; Analisis Kinerja Showroom
             </h1>
             <p className="text-xs lg:text-sm text-[#666666] max-w-2xl">
-              Analisis performa penjualan, efektivitas saluran promosi, funnel pipeline, lost leads, dan inventori armada showroom HR MOTOR.
+              Analisis performa penjualan, efektivitas saluran promosi, corong interaksi calon pembeli, dan inventori armada mobil showroom HR MOTOR.
             </p>
           </div>
 
@@ -734,7 +734,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
               title="Unduh laporan lengkap format Microsoft Excel (5 sheet)"
             >
               <FileSpreadsheet className="w-4 h-4 text-[#D99A32]" />
-              <span>{exportingExcel ? 'Memproses...' : 'Export Excel'}</span>
+              <span>{exportingExcel ? 'Memproses...' : 'Unduh Rekap Excel'}</span>
             </button>
 
             {/* Tombol Export PDF */}
@@ -745,7 +745,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
               title="Unduh laporan resmi format PDF lengkap dengan kop surat"
             >
               <FileText className="w-4 h-4 text-[#1A1A1A]" />
-              <span>{exportingPdf ? 'Mencetak...' : 'Export PDF'}</span>
+              <span>{exportingPdf ? 'Mencetak...' : 'Unduh Rekap PDF'}</span>
             </button>
           </div>
         </div>

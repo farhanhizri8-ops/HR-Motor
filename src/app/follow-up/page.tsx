@@ -716,12 +716,12 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl lg:text-2xl font-black tracking-tight text-charcoal-900">
-                  Follow-up & Retensi Showroom
+                  Tindak Lanjut &amp; Hubungan Konsumen
                 </h1>
                 <span className="badge-gold">HR MOTOR Garut</span>
               </div>
               <p className="text-xs text-charcoal-500 mt-0.5">
-                Sistem Terpadu: Follow-up Berkala Pembeli (1 Tahun) & Pencocokan Otomatis Calon Pembeli Cari Mobil
+                Sistem Terpadu: Tindak Lanjut Berkala Pembeli (1 Tahun) &amp; Pencocokan Otomatis Calon Pembeli Cari Mobil
               </p>
             </div>
           </div>
@@ -749,7 +749,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               className="btn-gold inline-flex items-center justify-center gap-2 text-xs shadow-md w-full md:w-auto py-2.5"
             >
               <Plus className="w-4 h-4" />
-              <span>Jadwalkan Follow-up Pembeli Baru</span>
+              <span>Jadwalkan Tindak Lanjut Pembeli Baru</span>
             </button>
           ) : (
             <button

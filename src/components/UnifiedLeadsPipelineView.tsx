@@ -564,7 +564,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
             <div className="flex items-center gap-2">
               <span className="badge-gold flex items-center gap-1.5 text-[11px]">
                 <GitPullRequest className="w-3.5 h-3.5 text-gold-700" />
-                <span>Leads & Sales Pipeline</span>
+                <span>Prospek & Penjualan Mobil</span>
               </span>
               <span className="text-xs text-charcoal-300">•</span>
               <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -572,7 +572,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-charcoal-900 mt-1 tracking-tight">
-              Leads & Sales Pipeline Calon Pembeli
+              Prospek & Alur Penjualan Calon Pembeli
             </h1>
             <p className="text-xs sm:text-sm text-charcoal-500 mt-1 max-w-3xl leading-relaxed">
               Kelola seluruh calon pembeli mobil showroom HR MOTOR Garut dari WhatsApp, medsos, dan walk-in.
@@ -605,10 +605,10 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
                     ? 'bg-white text-charcoal-950 shadow-xs border border-[#D5D2CB]'
                     : 'text-charcoal-600 hover:text-charcoal-900'
                 }`}
-                title="Tampilkan dalam bentuk papan kanban 3 kolom"
+                title="Tampilkan dalam bentuk papan alur interaksi 3 kolom"
               >
                 <Layers className="w-3.5 h-3.5 text-gold-600" />
-                <span>📊 Papan Kanban Pipeline (3 Kolom)</span>
+                <span>📊 Papan Alur Interaksi (3 Kolom)</span>
               </button>
             </div>
 
@@ -629,7 +629,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-gold-600" />
               <h2 className="text-xs font-black uppercase tracking-wider text-charcoal-700">
-                Dashboard Perkembangan Interaksi Konsumen
+                Ringkasan Perkembangan Interaksi Konsumen
               </h2>
             </div>
             {filterStage !== 'ALL' && (
@@ -783,7 +783,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs mb-2">
               <span className="font-bold text-charcoal-800 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-gold-600" />
-                <span>Corong Konversi Tahapan Interaksi (Funnel Pipeline)</span>
+                <span>Corong Konversi Tahapan Interaksi Calon Pembeli</span>
               </span>
               <span className="text-[11px] text-charcoal-500">
                 Klik kartu tahap di atas untuk memfilter data di bawah
@@ -1024,7 +1024,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
                       <button
                         onClick={() => openStageChangeModal(lead)}
                         className="py-2 px-2.5 rounded-xl bg-gold-50 text-gold-800 border border-gold-300 text-xs font-bold inline-flex items-center justify-center gap-1"
-                        title="Ubah Tahap Pipeline"
+                        title="Ubah Tahapan Prospek"
                       >
                         <Layers className="w-3.5 h-3.5 text-gold-600" />
                         <span>Tahap</span>
@@ -1062,7 +1062,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
                     <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700">Sumber</th>
                     <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700">Unit Diminati</th>
                     <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700">Estimasi Budget</th>
-                    <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700">Tahap Pipeline</th>
+                    <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700">Tahapan Prospek</th>
                     <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700">Kontak Terakhir</th>
                     <th className="py-3.5 px-4 font-bold text-xs text-charcoal-700 text-center">Aksi</th>
                   </tr>
@@ -1181,7 +1181,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
                               <button
                                 onClick={() => openStageChangeModal(lead)}
                                 className="p-1.5 rounded-lg text-gold-700 bg-gold-50/70 hover:bg-gold-100/70 transition-colors border border-gold-200"
-                                title="Ubah Tahap Pipeline"
+                                title="Ubah Tahapan Prospek"
                               >
                                 <Layers className="w-4 h-4" />
                               </button>
@@ -1564,7 +1564,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
 
                 <div>
                   <label className="block text-xs font-bold text-charcoal-800 mb-1">
-                    Tahap Pipeline <span className="text-rose-500">*</span>
+                    Tahapan Prospek <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={formData.status}
@@ -1721,7 +1721,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
             <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-3">
               <div>
                 <span className="badge-gold text-[10px]">Perkembangan Interaksi</span>
-                <h3 className="text-base font-black text-charcoal-900 mt-0.5">Ubah Tahap Pipeline</h3>
+                <h3 className="text-base font-black text-charcoal-900 mt-0.5">Ubah Tahapan Prospek</h3>
               </div>
               <button
                 onClick={() => setStageChangeLead(null)}

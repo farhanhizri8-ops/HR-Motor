@@ -194,10 +194,10 @@ export default function SettingsDealerPage() {
               <span className="text-xs text-[#666666] font-medium">• HR MOTOR Garut</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
-              Ekosistem Plugin & Pengaturan Dealer
+              Integrasi Layanan &amp; Pengaturan Showroom
             </h1>
             <p className="text-xs lg:text-sm text-[#666666]">
-              Kelola modul integrasi cloud Supabase, hosting Vercel, gateway WhatsApp, pembiayaan leasing, dan konfigurasi showroom.
+              Kelola modul integrasi cloud Supabase, hosting Vercel, gateway WhatsApp, pembiayaan leasing, dan konfigurasi profil HR MOTOR Garut.
             </p>
           </div>
 
@@ -209,7 +209,7 @@ export default function SettingsDealerPage() {
                 Status Sistem Cloud
               </span>
               <span className="text-xs font-black text-[#242424]">
-                Semua Plugin Aktif (100% Online)
+                Semua Layanan Aktif (100% Online)
               </span>
             </div>
           </div>
@@ -226,7 +226,7 @@ export default function SettingsDealerPage() {
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Plugin & Integrasi Cloud (5)</span>
+            <span>Layanan &amp; Integrasi Cloud (5)</span>
           </button>
 
           <button

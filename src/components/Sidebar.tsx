@@ -41,60 +41,77 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navigationItems = [
     {
-      name: 'Dashboard',
+      name: 'Dasbor Utama',
       href: '/',
       icon: LayoutDashboard,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
     },
     {
-      name: 'Database Pelanggan',
+      name: 'Basis Data Pelanggan',
       href: '/customers',
       icon: Users,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
     },
     {
-      name: 'Leads & Pipeline',
+      name: 'Prospek & Penjualan',
       href: '/leads',
       icon: GitPullRequest,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
     },
     {
-      name: 'Manajemen Stok Unit',
+      name: 'Stok Mobil Showroom',
       href: '/stok-unit',
       icon: Car,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'Marketing'],
     },
     {
-      name: 'Follow-up Management',
+      name: 'Tindak Lanjut Konsumen',
       href: '/follow-up',
       icon: CalendarClock,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
     },
     {
-      name: 'Garansi Perbaikan',
+      name: 'Garansi & Servis Mobil',
       href: '/riwayat-perbaikan',
       icon: ShieldCheck,
       roles: ['Owner', 'CRM Administrator', 'WhatsApp Administrator', 'Sales Representative', 'Marketing'],
     },
     {
-      name: 'User Management',
+      name: 'Manajemen Pengguna',
       href: '/users',
       icon: UserCheck,
       roles: ['Owner'],
     },
     {
-      name: 'Activity Logs',
+      name: 'Catatan Riwayat Aktivitas',
       href: '/activity-logs',
       icon: History,
       roles: ['Owner', 'CRM Administrator'],
     },
     {
-      name: 'Settings Dealer',
+      name: 'Pengaturan Showroom',
       href: '/settings',
       icon: Settings,
       roles: ['Owner', 'CRM Administrator'],
     },
   ];
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'Owner':
+        return 'Pemilik (Owner)';
+      case 'CRM Administrator':
+        return 'Admin Showroom';
+      case 'Sales Representative':
+        return 'Sales Eksekutif';
+      case 'WhatsApp Administrator':
+        return 'Admin WhatsApp';
+      case 'Marketing':
+        return 'Pemasaran';
+      default:
+        return role;
+    }
+  };
 
   const filteredNav = navigationItems.filter((item) =>
     item.roles.includes(currentUser.role)
@@ -130,14 +147,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Real Official HR MOTOR Logo Badge - Modern Luxury Container */}
             <div
-              className={`flex items-center justify-center bg-gradient-to-b from-[#262626] to-[#1A1A1A] rounded-xl border border-gold-500/50 shadow-lg transition-all group-hover:border-gold-400 px-3 py-1.5 h-12 w-auto max-w-[170px] ${
+              className={`flex items-center justify-center bg-gradient-to-b from-[#262626] to-[#141414] rounded-xl border border-gold-500/50 shadow-luxury transition-all group-hover:border-gold-400 group-hover:shadow-gold-500/20 px-3 py-1.5 h-12 w-auto max-w-[180px] ${
                 collapsed ? 'lg:p-1.5 lg:w-12 lg:h-12 lg:max-w-none' : ''
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/logo.png?v=3"
-                alt="Logo HR MOTOR"
+                src={collapsed ? '/logo.png?v=3' : '/logo-hr-motor.png'}
+                alt="Logo Resmi HR MOTOR"
                 className="h-full w-auto object-contain drop-shadow"
               />
             </div>
@@ -237,13 +254,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
                   <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
-                    {currentUser.role}
+                    {getRoleDisplayName(currentUser.role)}
                   </p>
                 </div>
               </div>
               <button
                 onClick={logout}
-                title="Keluar dari akun CRM"
+                title="Keluar dari Akun"
                 className="p-2 text-slate-400 hover:text-rose-400 hover:bg-[#202020] rounded-lg transition-colors shrink-0"
               >
                 <LogOut className="w-4 h-4" />

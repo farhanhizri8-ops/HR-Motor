@@ -615,7 +615,7 @@ export default function StokUnitPage() {
                 </span>
               </div>
               <p className="text-xs text-charcoal-500 mt-0.5">
-                Katalog digital resmi inventaris mobil showroom: {dashboardStats.total} total armada, {dashboardStats.tersedia} ready test drive.
+                Katalog digital resmi inventaris mobil showroom: {dashboardStats.total} total armada, {dashboardStats.tersedia} unit siap uji kendara.
               </p>
             </div>
           </div>
@@ -677,19 +677,19 @@ export default function StokUnitPage() {
         {/* Ready Stock */}
         <div className="crm-card p-3 sm:p-4 border-l-4 border-l-emerald-500">
           <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-800">Ready Stock</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-800">Unit Tersedia</span>
             <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-emerald-700">{dashboardStats.tersedia} Unit</div>
-          <div className="text-[10px] text-emerald-800 mt-0.5 font-semibold truncate">Siap Test Drive</div>
+          <div className="text-[10px] text-emerald-800 mt-0.5 font-semibold truncate">Siap Uji Kendara</div>
         </div>
 
         {/* Booking */}
         <div className="crm-card p-3 sm:p-4 border-l-4 border-l-amber-500">
           <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-800">Booking</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-800">Dibooking</span>
             <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
               <Clock className="w-3.5 h-3.5" />
             </div>
@@ -701,13 +701,13 @@ export default function StokUnitPage() {
         {/* Terjual / Sold Out */}
         <div className="crm-card p-3 sm:p-4 border-l-4 border-l-charcoal-500">
           <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-charcoal-700">Sold Out</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-charcoal-700">Sudah Terjual</span>
             <div className="w-6 h-6 rounded-lg bg-charcoal-100 text-charcoal-700 flex items-center justify-center shrink-0">
               <ShoppingBag className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-charcoal-800">{dashboardStats.terjual} Unit</div>
-          <div className="text-[10px] text-charcoal-500 mt-0.5 truncate">Deal Selesai</div>
+          <div className="text-[10px] text-charcoal-500 mt-0.5 truncate">Transaksi Selesai</div>
         </div>
       </div>
 
@@ -748,7 +748,7 @@ export default function StokUnitPage() {
               : 'text-amber-800 hover:text-amber-950'
           }`}
         >
-          <span className="text-[10px] block opacity-90 uppercase tracking-wider">Boking</span>
+          <span className="text-[10px] block opacity-90 uppercase tracking-wider">Dibooking</span>
           <span className="text-sm font-black text-amber-700">{dashboardStats.booking}</span>
         </button>
 
@@ -761,7 +761,7 @@ export default function StokUnitPage() {
               : 'text-charcoal-500 hover:text-charcoal-800'
           }`}
         >
-          <span className="text-[10px] block opacity-80 uppercase tracking-wider">Sold</span>
+          <span className="text-[10px] block opacity-80 uppercase tracking-wider">Terjual</span>
           <span className="text-sm font-black text-charcoal-700">{dashboardStats.terjual}</span>
         </button>
       </div>
@@ -854,9 +854,9 @@ export default function StokUnitPage() {
               className="px-2.5 py-1.5 bg-warm-50 border border-warm-200 rounded-xl text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
             >
               <option value="Semua">Semua Status ({stocks.length})</option>
-              <option value="Tersedia">Ready Showroom ({dashboardStats.tersedia})</option>
-              <option value="Booking">Boking Kredit ({dashboardStats.booking})</option>
-              <option value="Terjual">Sold Out ({dashboardStats.terjual})</option>
+              <option value="Tersedia">Tersedia Siap Jual ({dashboardStats.tersedia})</option>
+              <option value="Booking">Dibooking Konsumen ({dashboardStats.booking})</option>
+              <option value="Terjual">Sudah Terjual ({dashboardStats.terjual})</option>
             </select>
 
             {/* Tahun */}
