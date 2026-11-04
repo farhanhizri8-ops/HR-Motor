@@ -191,43 +191,6 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
     modified = true;
   }
 
-  // Ensure Dani Muhammad Ramdani and Andika exist as sales/staff
-  const dani = db.users.find((u) => u.name.toLowerCase().includes('dani') || u.id === 'USR-008');
-  if (!dani) {
-    db.users.push({
-      id: 'USR-008',
-      name: 'Dani Muhammad Ramdani',
-      email: 'dani.ramdani@hrmotor.id',
-      role: 'Sales Representative',
-      phone: '081223450008',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80',
-      password: 'Garut2005',
-      isApproved: true,
-      isActive: true,
-      createdAt: '2026-05-01T08:00:00Z',
-      updatedAt: '2026-05-01T08:00:00Z',
-    });
-    modified = true;
-  }
-
-  const andika = db.users.find((u) => u.name.toLowerCase().includes('andika') || u.id === 'USR-009');
-  if (!andika) {
-    db.users.push({
-      id: 'USR-009',
-      name: 'Andika',
-      email: 'andika@hrmotor.id',
-      role: 'Sales Representative',
-      phone: '081223450009',
-      avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=120&auto=format&fit=crop&q=80',
-      password: 'Garut2005',
-      isApproved: true,
-      isActive: true,
-      createdAt: '2026-05-01T08:00:00Z',
-      updatedAt: '2026-05-01T08:00:00Z',
-    });
-    modified = true;
-  }
-
   return modified;
 }
 

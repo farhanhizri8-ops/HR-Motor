@@ -100,24 +100,34 @@ export const LoginScreen: React.FC = () => {
       role: regRole,
       password: regPassword,
     });
+    setLoading(false);
 
     if (res.success) {
-      // Di HP maupun Laptop: setelah daftar sekali langsung otomatis login ke sistem
-      const loginRes = await login(regEmail.trim(), regPassword);
-      setLoading(false);
-      if (loginRes.success) {
-        router.push('/');
-        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-          window.location.href = '/';
+      const isOwnerEmail =
+        regEmail.trim().toLowerCase() === 'farhanhizri8@gmail.com' ||
+        regEmail.trim().toLowerCase() === 'farhanhizri8gmail.com';
+
+      if (isOwnerEmail) {
+        setLoading(true);
+        const loginRes = await login(regEmail.trim(), regPassword);
+        setLoading(false);
+        if (loginRes.success) {
+          router.push('/');
+          if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+            window.location.href = '/';
+          }
+          return;
         }
-      } else {
-        setSuccessMsg('Pendaftaran akun berhasil! Silakan masukkan kata sandi untuk login.');
-        setMode('login');
-        setEmail(regEmail.trim());
-        setPassword('');
       }
+
+      // Karyawan / akun baru wajib menunggu persetujuan (approval) Owner
+      setSuccessMsg(
+        'Pendaftaran akun berhasil diajukan! Akun Anda sedang menunggu persetujuan (approval) dari Owner HR MOTOR (Farhan Hizri - farhanhizri8@gmail.com). Anda baru bisa login setelah disetujui.'
+      );
+      setMode('login');
+      setEmail(regEmail.trim());
+      setPassword('');
     } else {
-      setLoading(false);
       setErrorMsg(res.error || 'Gagal mengajukan akun baru.');
     }
   };

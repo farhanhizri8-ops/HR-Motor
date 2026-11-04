@@ -151,6 +151,8 @@ interface CrmContextType {
   deleteRepairClaim: (id: string) => Promise<{ success: boolean; error?: string }>;
   
   approveUser: (id: string) => Promise<{ success: boolean; error?: string }>;
+  rejectUser: (id: string) => Promise<{ success: boolean; error?: string }>;
+  deleteUser: (id: string) => Promise<{ success: boolean; error?: string }>;
   changeUserRole: (id: string, role: User['role']) => Promise<{ success: boolean; error?: string }>;
   registerUser: (data: { name: string; email: string; role: User['role']; phone?: string; password?: string }) => Promise<{ success: boolean; error?: string }>;
   
@@ -622,6 +624,26 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('APPROVE_USER', { id });
   };
 
+  const rejectUser = async (id: string) => {
+    if (currentUser.role !== 'Owner' && !currentUser.email.toLowerCase().includes('farhanhizri8')) {
+      return {
+        success: false,
+        error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menolak pendaftaran akun.'
+      };
+    }
+    return executeApiMutation('REJECT_USER', { id });
+  };
+
+  const deleteUser = async (id: string) => {
+    if (currentUser.role !== 'Owner' && currentUser.role !== 'CRM Administrator' && !currentUser.email.toLowerCase().includes('farhanhizri8')) {
+      return {
+        success: false,
+        error: 'Akses Ditolak: Hanya akun Owner atau Administrator yang berhak menghapus akun pengguna.'
+      };
+    }
+    return executeApiMutation('DELETE_USER', { id });
+  };
+
   const changeUserRole = async (id: string, role: User['role']) => {
     return executeApiMutation('CHANGE_USER_ROLE', { id, role });
   };
@@ -788,6 +810,8 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         updateRepairClaim,
         deleteRepairClaim,
         approveUser,
+        rejectUser,
+        deleteUser,
         changeUserRole,
         registerUser,
         resetToDemo,

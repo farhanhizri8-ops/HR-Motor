@@ -1140,7 +1140,10 @@ export async function POST(request: Request) {
         // Check regular user
         const user = db.users.find((u) => u.email.toLowerCase() === email);
         if (!user) {
-          return NextResponse.json({ success: false, error: 'Email belum terdaftar di sistem HR MOTOR.' }, { status: 404 });
+          return NextResponse.json({
+            success: false,
+            error: 'Akun tidak ditemukan atau telah dihapus oleh Owner. Silakan lakukan pendaftaran akun baru dan tunggu persetujuan Owner.'
+          }, { status: 404 });
         }
 
         const expectedPw = user.password || 'Garut2005';
@@ -1181,6 +1184,89 @@ export async function POST(request: Request) {
         break;
       }
 
+      case 'REJECT_USER': {
+        const isOwnerRequester =
+          currentUser?.role === 'Owner' ||
+          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+
+        if (!isOwnerRequester) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menolak pendaftaran akun.'
+          }, { status: 403 });
+        }
+
+        const target = db.users.find((user) => user.id === payload.id);
+        if (!target) {
+          return NextResponse.json({ success: false, error: 'User tidak ditemukan' }, { status: 404 });
+        }
+
+        if (target.role === 'Owner' || target.email.toLowerCase().includes('farhanhizri8')) {
+          return NextResponse.json({ success: false, error: 'Akun Owner tidak dapat ditolak.' }, { status: 400 });
+        }
+
+        db.users = db.users.filter((user) => user.id !== payload.id);
+
+        const supabase = getServerSupabase();
+        if (supabase) {
+          try {
+            await supabase.from('crm_users').delete().eq('id', payload.id);
+          } catch (e) {
+            console.error('Error deleting rejected user from supabase:', e);
+          }
+        }
+
+        logActivity('Menolak Pendaftaran Karyawan', 'User', target.id, `Owner menolak pengajuan akun pendaftaran ${target.name} (${target.email}). Akun dihapus dari sistem.`);
+        break;
+      }
+
+      case 'DELETE_USER': {
+        const isOwnerRequester =
+          currentUser?.role === 'Owner' ||
+          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+        const isAdmin = currentUser?.role === 'CRM Administrator';
+
+        if (!isOwnerRequester && !isAdmin) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Hanya akun Owner atau Administrator yang berhak menghapus akun pengguna.'
+          }, { status: 403 });
+        }
+
+        const target = db.users.find((user) => user.id === payload.id);
+        if (!target) {
+          return NextResponse.json({ success: false, error: 'User tidak ditemukan atau sudah dihapus' }, { status: 404 });
+        }
+
+        if (target.role === 'Owner' || target.email.toLowerCase().includes('farhanhizri8')) {
+          return NextResponse.json({
+            success: false,
+            error: 'Akses Ditolak: Akun Owner Utama (farhanhizri8@gmail.com) dilindungi dan tidak dapat dihapus.'
+          }, { status: 403 });
+        }
+
+        if (currentUser?.id === payload.id || currentUser?.email?.toLowerCase() === target.email.toLowerCase()) {
+          return NextResponse.json({
+            success: false,
+            error: 'Anda tidak dapat menghapus akun Anda sendiri saat sedang aktif.'
+          }, { status: 400 });
+        }
+
+        db.users = db.users.filter((user) => user.id !== payload.id);
+
+        const supabase = getServerSupabase();
+        if (supabase) {
+          try {
+            await supabase.from('crm_users').delete().eq('id', payload.id);
+          } catch (e) {
+            console.error('Error deleting user from supabase:', e);
+          }
+        }
+
+        logActivity('Menghapus Akun Pengguna', 'User', target.id, `Akun ${target.name} (${target.email} - ${target.role}) telah dihapus dari sistem CRM`);
+        break;
+      }
+
       case 'CHANGE_USER_ROLE': {
         const isOwnerRequester =
           currentUser?.role === 'Owner' ||
@@ -1208,17 +1294,26 @@ export async function POST(request: Request) {
         const cleanEmail = (payload.email || '').trim().toLowerCase();
         const exists = db.users.find((u) => u.email.toLowerCase() === cleanEmail);
         if (exists) {
-          return NextResponse.json({ success: false, error: 'Email sudah terdaftar di sistem' }, { status: 400 });
+          if (!exists.isApproved) {
+            return NextResponse.json({
+              success: false,
+              error: 'Email ini telah terdaftar dan sedang menunggu persetujuan Owner. Silakan hubungi Owner HR MOTOR (farhanhizri8@gmail.com).'
+            }, { status: 400 });
+          }
+          return NextResponse.json({ success: false, error: 'Email sudah terdaftar aktif di sistem HR MOTOR. Silakan langsung login.' }, { status: 400 });
         }
+
+        const isOwnerEmail = cleanEmail === 'farhanhizri8@gmail.com' || cleanEmail === 'farhanhizri8gmail.com';
+        const newUserId = `USR-${String(Date.now()).slice(-4)}`;
         const newUser = {
-          id: `USR-${String(db.users.length + 1).padStart(3, '0')}`,
-          name: payload.name.trim(),
+          id: newUserId,
+          name: (payload.name || '').trim(),
           email: cleanEmail,
           password: payload.password || 'Garut2005',
           role: payload.role || 'Sales Representative',
           phone: payload.phone || '',
           avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80`,
-          isApproved: true, // Otomatis aktif agar karyawan/owner cukup daftar sekali di HP langsung masuk
+          isApproved: isOwnerEmail, // Pengguna baru WAJIB menunggu persetujuan (approval) Owner sebelum bisa login!
           isActive: true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -1230,7 +1325,7 @@ export async function POST(request: Request) {
           id: `NOTIF-${Date.now()}`,
           userId: 'USR-001',
           title: 'Pengajuan Akun Karyawan Baru',
-          message: `${newUser.name} (${newUser.email}) mengajukan akses login (${newUser.role}). Menunggu persetujuan Owner.`,
+          message: `${newUser.name} (${newUser.email}) mengajukan pendaftaran akun (${newUser.role}). Menunggu persetujuan Owner.`,
           type: 'approval',
           isRead: false,
           link: '/users',

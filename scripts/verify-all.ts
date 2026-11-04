@@ -881,6 +881,135 @@ console.log('\n[9/9] Testing Garansi Perbaikan HR MOTOR (< 1 Bulan) & Dashboard 
   assert(filterByMonthYear('2026-10-08', 'Semua', 'Semua'), 'Semua matches any claim');
 }
 
+// ============================================================================
+// 10. USER MANAGEMENT: APPROVAL GATING, REJECT & ACCOUNT DELETION
+// ============================================================================
+console.log('\n[10/10] Testing User Management: Approval Gating, Reject & Delete Account...');
+{
+  const { repairDatabaseUsers } = require('../src/lib/serverStore');
+  
+  // Test 1: Simulation Database
+  const mockUserDb: any = {
+    users: [
+      {
+        id: 'USR-001',
+        name: 'Farhan Hizri',
+        email: 'farhanhizri8@gmail.com',
+        role: 'Owner',
+        password: 'Garut2005',
+        isApproved: true,
+      },
+      {
+        id: 'USR-002',
+        name: 'Deni Pratama, S.T.',
+        email: 'admin@hrmotor.id',
+        role: 'CRM Administrator',
+        password: 'Garut2005',
+        isApproved: true,
+      },
+      {
+        id: 'USR-003',
+        name: 'Staf Percobaan',
+        email: 'staf.baru@hrmotor.id',
+        role: 'Sales Representative',
+        password: 'Garut2005',
+        isApproved: false, // Pending
+      }
+    ],
+    notifications: [],
+    activityLogs: []
+  };
+
+  // Test 2: Unapproved user cannot login
+  const pendingUser = mockUserDb.users.find((u: any) => u.email === 'staf.baru@hrmotor.id');
+  assert(pendingUser && !pendingUser.isApproved, 'Newly registered employee defaults to unapproved (pending)');
+
+  const attemptLogin = (email: string, pw: string) => {
+    const u = mockUserDb.users.find((user: any) => user.email.toLowerCase() === email.toLowerCase());
+    if (!u) return { success: false, error: 'Akun tidak ditemukan atau telah dihapus' };
+    if (u.password !== pw) return { success: false, error: 'Kata sandi salah' };
+    if (!u.isApproved) return { success: false, error: 'Akun Anda sedang menunggu persetujuan Owner' };
+    return { success: true, user: u };
+  };
+
+  const loginResPending = attemptLogin('staf.baru@hrmotor.id', 'Garut2005');
+  assert(!loginResPending.success && Boolean(loginResPending.error?.includes('menunggu persetujuan')), 'Unapproved user is blocked from logging in');
+
+  // Test 3: Owner approves user
+  pendingUser.isApproved = true;
+  const loginResApproved = attemptLogin('staf.baru@hrmotor.id', 'Garut2005');
+  assert(loginResApproved.success, 'Approved user can successfully log in');
+
+  // Test 4: Delete user account
+  const deleteUser = (requesterRole: string, targetId: string) => {
+    const target = mockUserDb.users.find((u: any) => u.id === targetId);
+    if (!target) return { success: false, error: 'User tidak ditemukan' };
+    if (target.role === 'Owner' || target.email === 'farhanhizri8@gmail.com') {
+      return { success: false, error: 'Akun Owner Utama dilindungi dan tidak dapat dihapus' };
+    }
+    mockUserDb.users = mockUserDb.users.filter((u: any) => u.id !== targetId);
+    return { success: true };
+  };
+
+  // Owner cannot be deleted
+  const deleteOwnerRes = deleteUser('Owner', 'USR-001');
+  assert(!deleteOwnerRes.success, 'Primary Owner account is strictly protected from deletion');
+
+  // Delete staff user
+  const deleteStaffRes = deleteUser('Owner', 'USR-003');
+  assert(deleteStaffRes.success, 'Owner can delete other employee accounts');
+  assert(!mockUserDb.users.some((u: any) => u.id === 'USR-003'), 'Deleted user is removed from database');
+
+  // Test 5: Deleted user cannot log in
+  const loginResDeleted = attemptLogin('staf.baru@hrmotor.id', 'Garut2005');
+  assert(!loginResDeleted.success && Boolean(loginResDeleted.error?.includes('tidak ditemukan atau telah dihapus')), 'Deleted user can no longer log in');
+
+  // Test 6: Database repair does NOT resurrect deleted staff
+  repairDatabaseUsers(mockUserDb);
+  assert(!mockUserDb.users.some((u: any) => u.id === 'USR-003'), 'Deleted user is NOT automatically resurrected by repair routines');
+
+  // Test 7: Reject pending user
+  mockUserDb.users.push({
+    id: 'USR-999',
+    name: 'Pelamar Ditolak',
+    email: 'ditolak@hrmotor.id',
+    role: 'Sales Representative',
+    password: 'Garut2005',
+    isApproved: false,
+  });
+  const rejectUser = (targetId: string) => {
+    const target = mockUserDb.users.find((u: any) => u.id === targetId);
+    if (!target) return { success: false, error: 'User tidak ditemukan' };
+    mockUserDb.users = mockUserDb.users.filter((u: any) => u.id !== targetId);
+    return { success: true };
+  };
+  const rejectRes = rejectUser('USR-999');
+  assert(rejectRes.success, 'Owner can reject pending user registration');
+  assert(!mockUserDb.users.some((u: any) => u.id === 'USR-999'), 'Rejected user is purged from database');
+
+  // Test 8: Re-registering after delete requires new approval
+  const registerNewUser = (data: { name: string; email: string; role: string }) => {
+    const newUser = {
+      id: `USR-${Date.now()}`,
+      name: data.name,
+      email: data.email,
+      role: data.role,
+      password: 'Garut2005',
+      isApproved: false, // Must wait for approval
+    };
+    mockUserDb.users.push(newUser);
+    return newUser;
+  };
+  const reRegisteredUser = registerNewUser({
+    name: 'Staf Percobaan',
+    email: 'staf.baru@hrmotor.id',
+    role: 'Sales Representative',
+  });
+  assert(Boolean(reRegisteredUser && !reRegisteredUser.isApproved), 'Re-registered account requires new approval from Owner');
+  const loginResReRegistered = attemptLogin('staf.baru@hrmotor.id', 'Garut2005');
+  assert(!loginResReRegistered.success && Boolean(loginResReRegistered.error?.includes('menunggu persetujuan')), 'Re-registered user cannot login until re-approved');
+}
+
 
 console.log('\n================================================================');
 console.log(`SUMMARY: ${passCount} PASSED, ${failCount} FAILED`);

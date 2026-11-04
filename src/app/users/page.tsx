@@ -15,6 +15,7 @@ import {
   X,
   User,
   Key,
+  Trash2,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 import { UserRole } from '@/types/crm';
@@ -24,6 +25,8 @@ export default function UserManagementPage() {
     users,
     currentUser,
     approveUser,
+    rejectUser,
+    deleteUser,
     changeUserRole,
     registerUser,
     formatDate,
@@ -39,9 +42,16 @@ export default function UserManagementPage() {
   const [formError, setFormError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
 
+  // Confirmation modals state
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [rejectConfirmUser, setRejectConfirmUser] = useState<{ id: string; name: string; email: string } | null>(null);
+
   const isOwner =
     currentUser.role === 'Owner' ||
     currentUser.email.toLowerCase().includes('farhanhizri8');
+
+  const pendingUsers = users.filter((u) => !u.isApproved);
+  const activeUsers = users.filter((u) => u.isApproved);
 
   const handleApprove = async (id: string, name: string) => {
     if (!isOwner) {
@@ -54,6 +64,36 @@ export default function UserManagementPage() {
       setTimeout(() => setActionMessage(''), 4000);
     } else {
       alert(res.error || 'Gagal menyetujui akun.');
+    }
+  };
+
+  const handleReject = async (id: string, name: string) => {
+    if (!isOwner) {
+      alert('Akses Ditolak: Hanya Owner (farhanhizri8@gmail.com) yang berhak menolak permohonan pendaftaran.');
+      return;
+    }
+    const res = await rejectUser(id);
+    if (res.success) {
+      setRejectConfirmUser(null);
+      setActionMessage(`Pengajuan akun ${name} telah ditolak dan dihapus dari sistem.`);
+      setTimeout(() => setActionMessage(''), 4000);
+    } else {
+      alert(res.error || 'Gagal menolak akun.');
+    }
+  };
+
+  const handleDeleteUser = async (id: string, name: string) => {
+    if (!isOwner && currentUser.role !== 'CRM Administrator') {
+      alert('Akses Ditolak: Hanya Owner atau Administrator yang berhak menghapus akun.');
+      return;
+    }
+    const res = await deleteUser(id);
+    if (res.success) {
+      setDeleteConfirmUser(null);
+      setActionMessage(`Akun ${name} berhasil dihapus dari sistem CRM HR MOTOR.`);
+      setTimeout(() => setActionMessage(''), 4000);
+    } else {
+      alert(res.error || 'Gagal menghapus akun.');
     }
   };
 
@@ -84,7 +124,7 @@ export default function UserManagementPage() {
         phone: '',
         role: 'Sales Representative',
       });
-      alert('Pendaftaran akun karyawan berhasil diajukan! Akun ini menunggu persetujuan (approval) dari Owner.');
+      alert('Pendaftaran akun karyawan berhasil diajukan! Akun ini menunggu persetujuan (approval) dari Owner sebelum dapat login.');
     } else {
       setFormError(res.error || 'Gagal mendaftarkan akun.');
     }
@@ -107,7 +147,7 @@ export default function UserManagementPage() {
               Manajemen Pengguna & Otorisasi RBAC
             </h1>
             <p className="text-xs text-charcoal-500 mt-0.5">
-              Kelola akun staf HR MOTOR Garut, otorisasi persetujuan Owner, dan kontrol izin modul berdasarkan peran jabatan.
+              Kelola akun staf HR MOTOR Garut, otorisasi persetujuan Owner, hapus akun yang tidak aktif, dan kontrol izin modul.
             </p>
           </div>
 
@@ -123,9 +163,31 @@ export default function UserManagementPage() {
 
       {/* Action alert message */}
       {actionMessage && (
-        <div className="p-3.5 bg-gold-50/80 border border-gold-300 rounded-xl text-xs text-gold-900 font-semibold flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-gold-600" />
-          {actionMessage}
+        <div className="p-3.5 bg-gold-50/80 border border-gold-300 rounded-xl text-xs text-gold-900 font-semibold flex items-center gap-2 animate-in fade-in">
+          <CheckCircle className="w-4 h-4 text-gold-600 shrink-0" />
+          <span>{actionMessage}</span>
+        </div>
+      )}
+
+      {/* Pending Approval Banner if any */}
+      {pendingUsers.length > 0 && (
+        <div className="p-4 bg-amber-50 border-2 border-amber-400/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-300">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-amber-900 uppercase tracking-wider">
+                Ada {pendingUsers.length} Pengajuan Pendaftaran Akun Baru
+              </h4>
+              <p className="text-xs text-amber-800 mt-0.5">
+                Pengguna baru belum dapat login ke aplikasi hingga Owner (Farhan Hizri) menyetujui akun mereka.
+              </p>
+            </div>
+          </div>
+          <span className="text-[11px] font-bold text-amber-900 bg-amber-200/80 px-3 py-1 rounded-full border border-amber-400">
+            {pendingUsers.length} Menunggu Tindakan
+          </span>
         </div>
       )}
 
@@ -145,9 +207,9 @@ export default function UserManagementPage() {
             <p className="text-xs text-charcoal-300 mt-0.5">
               Peran Anda saat ini: <strong className="text-gold-400">{currentUser.role}</strong>.
               {isOwner ? (
-                ' Anda memiliki wewenang penuh untuk menyetujui akun dan mengatur peran seluruh staf showroom.'
+                ' Anda memiliki wewenang penuh untuk menyetujui, menolak, dan menghapus akun staf showroom.'
               ) : (
-                ' Hak akses dibatasi sesuai kebijakan server-side authorization HR MOTOR.'
+                ' Hak akses dibatasi sesuai kebijakan otorisasi server HR MOTOR.'
               )}
             </p>
           </div>
@@ -178,49 +240,49 @@ export default function UserManagementPage() {
                 <th className="py-3 px-3">Leads & Pipeline</th>
                 <th className="py-3 px-3">Follow-up</th>
                 <th className="py-3 px-3">Komunikasi WA</th>
-                <th className="py-3 px-3">Stok & Garansi</th>
-                <th className="py-3 px-3">Laporan Analitik</th>
-                <th className="py-3 px-3">Kelola Pengguna</th>
+                <th className="py-3 px-3">Garansi & Bengkel</th>
+                <th className="py-3 px-3">Stok Unit</th>
+                <th className="py-3 px-3">Manajemen User</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAE8E3] text-xs">
               <tr className="hover:bg-[#FAF9F5]">
-                <td className="py-3 px-3 font-black text-charcoal-900">Owner (Pemilik)</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Semua</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Semua</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Semua</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Semua</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Semua</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Semua & Ekspor</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Master Control</td>
+                <td className="py-3 px-3 font-bold text-charcoal-900">Owner</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Persetujuan & Hapus</td>
               </tr>
               <tr className="hover:bg-[#FAF9F5]">
                 <td className="py-3 px-3 font-bold text-charcoal-900">CRM Administrator</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Kelola</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Kelola</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Kelola</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Kelola</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Kelola</td>
-                <td className="py-3 px-3 text-gold-600 font-bold">Lihat & Ekspor</td>
-                <td className="py-3 px-3 text-charcoal-400">Terbatas</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Akses Penuh</td>
+                <td className="py-3 px-3 text-charcoal-700">Kelola Akun Staf</td>
               </tr>
               <tr className="hover:bg-[#FAF9F5]">
                 <td className="py-3 px-3 font-bold text-charcoal-900">Sales Representative</td>
-                <td className="py-3 px-3 text-charcoal-700 font-semibold">Tugas Sendiri</td>
-                <td className="py-3 px-3 text-charcoal-700 font-semibold">Tugas Sendiri</td>
-                <td className="py-3 px-3 text-charcoal-700 font-semibold">Jadwalkan & Selesaikan</td>
-                <td className="py-3 px-3 text-charcoal-700 font-semibold">Catat Kontak</td>
-                <td className="py-3 px-3 text-charcoal-400">Hanya Lihat Unit</td>
-                <td className="py-3 px-3 text-charcoal-400">Leaderboard</td>
+                <td className="py-3 px-3 text-charcoal-700">Lihat & Tambah</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Kelola Pipeline</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Input Follow-up</td>
+                <td className="py-3 px-3 text-gold-600 font-bold">Kirim Template</td>
+                <td className="py-3 px-3 text-charcoal-400">Hanya Lihat</td>
+                <td className="py-3 px-3 text-charcoal-700">Cek Ketersediaan</td>
                 <td className="py-3 px-3 text-charcoal-400">Tidak Ada</td>
               </tr>
               <tr className="hover:bg-[#FAF9F5]">
                 <td className="py-3 px-3 font-bold text-charcoal-900">WhatsApp Administrator</td>
-                <td className="py-3 px-3 text-charcoal-700">Lihat & Kontak</td>
                 <td className="py-3 px-3 text-charcoal-700">Lihat Kontak</td>
                 <td className="py-3 px-3 text-gold-600 font-bold">Kelola</td>
                 <td className="py-3 px-3 text-gold-600 font-bold">Template & Broadcast</td>
                 <td className="py-3 px-3 text-gold-600 font-bold">Survey CSAT</td>
+                <td className="py-3 px-3 text-charcoal-400">Tidak Ada</td>
                 <td className="py-3 px-3 text-charcoal-400">Tidak Ada</td>
                 <td className="py-3 px-3 text-charcoal-400">Tidak Ada</td>
               </tr>
@@ -241,17 +303,28 @@ export default function UserManagementPage() {
 
       {/* USER LIST TABLE */}
       <div className="crm-card overflow-hidden">
-        <div className="p-5 border-b border-[#EAE8E3] flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-[#EAE8E3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-black text-charcoal-900">Daftar Akun Pengguna CRM</h2>
-            <p className="text-xs text-charcoal-500 mt-0.5">Persetujuan Owner dan penetapan peran pengguna showroom</p>
+            <p className="text-xs text-charcoal-500 mt-0.5">Persetujuan Owner, penghapusan akun, dan penetapan peran jabatan</p>
           </div>
-          <span className="text-xs font-bold text-gold-600 bg-gold-50 px-2.5 py-1 rounded-lg border border-gold-200">
-            Total {users.length} Akun Terdaftar
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+              {activeUsers.length} Aktif
+            </span>
+            {pendingUsers.length > 0 && (
+              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-300 animate-pulse">
+                {pendingUsers.length} Pending
+              </span>
+            )}
+            <span className="text-xs font-bold text-gold-600 bg-gold-50 px-2.5 py-1 rounded-lg border border-gold-200">
+              Total {users.length} Akun
+            </span>
+          </div>
         </div>
 
-        <div className="overflow-x-auto w-full">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto w-full">
           <table className="crm-table w-full min-w-[750px] text-left">
             <thead>
               <tr>
@@ -267,6 +340,8 @@ export default function UserManagementPage() {
             <tbody className="divide-y divide-[#EAE8E3] text-xs">
               {users.map((u) => {
                 const isPending = !u.isApproved;
+                const isSelf = u.id === currentUser.id || u.email.toLowerCase() === currentUser.email.toLowerCase();
+                const isOwnerAccount = u.role === 'Owner' || u.email.toLowerCase().includes('farhanhizri8');
 
                 return (
                   <tr key={u.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
@@ -291,7 +366,7 @@ export default function UserManagementPage() {
 
                     {/* Role */}
                     <td className="py-3.5 px-4">
-                      {isOwner && u.role !== 'Owner' ? (
+                      {isOwner && !isOwnerAccount ? (
                         <select
                           value={u.role}
                           onChange={(e) => handleChangeRole(u.id, e.target.value as UserRole, u.name)}
@@ -339,14 +414,24 @@ export default function UserManagementPage() {
                     <td className="py-3.5 px-4 text-center">
                       {isPending ? (
                         isOwner ? (
-                          <button
-                            onClick={() => handleApprove(u.id, u.name)}
-                            className="btn-gold py-1 px-3 text-xs inline-flex items-center gap-1 shadow-sm"
-                            title="Setujui akun login karyawan"
-                          >
-                            <CheckCircle className="w-3.5 h-3.5" />
-                            <span>Setujui Akun</span>
-                          </button>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleApprove(u.id, u.name)}
+                              className="btn-gold py-1 px-3 text-xs inline-flex items-center gap-1 shadow-sm"
+                              title="Setujui akun login karyawan"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Setujui</span>
+                            </button>
+                            <button
+                              onClick={() => setRejectConfirmUser({ id: u.id, name: u.name, email: u.email })}
+                              className="py-1 px-2.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl inline-flex items-center gap-1 transition-colors"
+                              title="Tolak permohonan pendaftaran akun"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>Tolak</span>
+                            </button>
+                          </div>
                         ) : (
                           <span
                             className="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"
@@ -356,11 +441,25 @@ export default function UserManagementPage() {
                             Hanya Owner
                           </span>
                         )
-                      ) : (
-                        <span className="text-[11px] text-emerald-700 font-semibold inline-flex items-center gap-1">
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                          Terverifikasi
+                      ) : isOwnerAccount ? (
+                        <span className="badge-gold text-[10px] font-black inline-flex items-center gap-1">
+                          <Shield className="w-3 h-3" />
+                          Owner Utama
                         </span>
+                      ) : isSelf ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-charcoal-100 text-charcoal-700 border border-charcoal-200 inline-flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          Akun Anda
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmUser({ id: u.id, name: u.name, email: u.email })}
+                          className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
+                          title={`Hapus akun ${u.name}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Hapus Akun</span>
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -369,7 +468,227 @@ export default function UserManagementPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile View Cards */}
+        <div className="block md:hidden divide-y divide-[#EAE8E3]">
+          {users.map((u) => {
+            const isPending = !u.isApproved;
+            const isSelf = u.id === currentUser.id || u.email.toLowerCase() === currentUser.email.toLowerCase();
+            const isOwnerAccount = u.role === 'Owner' || u.email.toLowerCase().includes('farhanhizri8');
+
+            return (
+              <div key={u.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-sm uppercase shrink-0 shadow-xs">
+                      {u.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-bold text-charcoal-900 text-sm leading-tight">{u.name}</p>
+                      <p className="text-xs text-charcoal-600 font-semibold">{u.email}</p>
+                      <span className="text-[10px] text-charcoal-400 font-mono">{u.id} • {formatDate(u.createdAt)}</span>
+                    </div>
+                  </div>
+                  {isPending ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                      <Clock className="w-3 h-3" />
+                      Pending
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      <CheckCircle className="w-3 h-3" />
+                      Aktif
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs bg-[#F8F7F4] p-2.5 rounded-xl border border-[#EAE8E3]">
+                  <span className="text-charcoal-500">No. WA / HP:</span>
+                  <span className="font-mono text-charcoal-800 font-medium">{u.phone || '-'}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs bg-[#F8F7F4] p-2.5 rounded-xl border border-[#EAE8E3]">
+                  <span className="text-charcoal-500">Peran Jabatan:</span>
+                  {isOwner && !isOwnerAccount ? (
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleChangeRole(u.id, e.target.value as UserRole, u.name)}
+                      className="text-xs py-1 px-2 bg-white border border-[#EAE8E3] rounded-lg outline-none font-semibold text-charcoal-900 focus:border-gold-500"
+                    >
+                      <option value="CRM Administrator">CRM Administrator</option>
+                      <option value="Sales Representative">Sales Representative</option>
+                      <option value="WhatsApp Administrator">WhatsApp Administrator</option>
+                      <option value="Marketing">Marketing</option>
+                    </select>
+                  ) : (
+                    <span className="font-bold text-charcoal-900">{u.role}</span>
+                  )}
+                </div>
+
+                {/* Mobile Actions */}
+                <div className="pt-1 flex items-center justify-end gap-2">
+                  {isPending ? (
+                    isOwner ? (
+                      <>
+                        <button
+                          onClick={() => handleApprove(u.id, u.name)}
+                          className="btn-gold py-1.5 px-3 text-xs inline-flex items-center gap-1 flex-1 justify-center"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Setujui</span>
+                        </button>
+                        <button
+                          onClick={() => setRejectConfirmUser({ id: u.id, name: u.name, email: u.email })}
+                          className="py-1.5 px-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl inline-flex items-center gap-1 flex-1 justify-center"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Tolak</span>
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Menunggu Persetujuan Owner
+                      </span>
+                    )
+                  ) : isOwnerAccount ? (
+                    <span className="badge-gold text-[10px] font-black inline-flex items-center gap-1">
+                      <Shield className="w-3 h-3" /> Owner Showroom (Utama)
+                    </span>
+                  ) : isSelf ? (
+                    <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
+                      Akun Anda Saat Ini
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setDeleteConfirmUser({ id: u.id, name: u.name, email: u.email })}
+                      className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Hapus Akun</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {/* MODAL: KONFIRMASI HAPUS AKUN */}
+      {deleteConfirmUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="crm-card w-full max-w-md overflow-hidden flex flex-col shadow-luxury border-rose-500/40">
+            <div className="flex items-center justify-between px-5 py-4 bg-rose-950/30 border-b border-rose-500/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center border border-rose-500/30">
+                  <Trash2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-charcoal-900">Konfirmasi Hapus Akun</h3>
+                  <p className="text-[11px] text-charcoal-500">Tindakan ini menghapus akses secara permanen</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDeleteConfirmUser(null)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3 text-xs text-charcoal-700">
+              <p>
+                Apakah Anda yakin ingin menghapus akun <strong className="text-charcoal-900">{deleteConfirmUser.name}</strong> ({deleteConfirmUser.email})?
+              </p>
+              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 space-y-1.5">
+                <span className="font-bold flex items-center gap-1.5 text-xs text-rose-800">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  Konsekuensi Penting:
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  Setelah akun dihapus, pengguna ini <strong>otomatis tidak dapat login lagi</strong> ke sistem HR MOTOR. Jika pengguna ingin menggunakan aplikasi kembali, mereka harus melakukan pendaftaran akun baru dan menunggu persetujuan (approval) dari Owner.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 bg-[#FAF9F5] border-t border-[#EAE8E3]">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmUser(null)}
+                className="btn-outline-warm text-xs py-2 px-3.5"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteUser(deleteConfirmUser.id, deleteConfirmUser.name)}
+                className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-xs flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Ya, Hapus Akun Ini</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: KONFIRMASI TOLAK PENDAFTARAN */}
+      {rejectConfirmUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="crm-card w-full max-w-md overflow-hidden flex flex-col shadow-luxury border-amber-500/40">
+            <div className="flex items-center justify-between px-5 py-4 bg-amber-950/20 border-b border-amber-500/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-700 flex items-center justify-center border border-amber-500/30">
+                  <XCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-charcoal-900">Tolak Permohonan Akun</h3>
+                  <p className="text-[11px] text-charcoal-500">Batalkan pendaftaran akses login</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setRejectConfirmUser(null)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3 text-xs text-charcoal-700">
+              <p>
+                Tolak pengajuan akun pendaftaran dari <strong className="text-charcoal-900">{rejectConfirmUser.name}</strong> ({rejectConfirmUser.email})?
+              </p>
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1">
+                <span className="font-bold flex items-center gap-1.5 text-xs text-amber-800">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  Informasi:
+                </span>
+                <p className="text-[11px] leading-relaxed">
+                  Data pendaftaran akan dibatalkan dan dihapus. Pengguna tidak akan bisa login ke sistem dan harus mendaftar ulang jika membutuhkan akses showroom.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 bg-[#FAF9F5] border-t border-[#EAE8E3]">
+              <button
+                type="button"
+                onClick={() => setRejectConfirmUser(null)}
+                className="btn-outline-warm text-xs py-2 px-3.5"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => handleReject(rejectConfirmUser.id, rejectConfirmUser.name)}
+                className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-xs flex items-center gap-1.5"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                <span>Tolak & Hapus Pengajuan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: REGISTER EMPLOYEE */}
       {isRegisterModalOpen && (
@@ -453,7 +772,7 @@ export default function UserManagementPage() {
               <div className="p-3.5 bg-[#FAF9F5] rounded-xl border border-gold-500/30 text-charcoal-700 space-y-1">
                 <span className="font-bold text-gold-800 block text-[11px] uppercase tracking-wider">Ketentuan Persetujuan:</span>
                 <p className="text-[11px] leading-relaxed">
-                  Akun ini tidak dapat mengakses database hingga H. Rahmat Hidayat (Owner) memberikan persetujuan resmi di halaman ini.
+                  Akun ini tidak dapat mengakses database hingga Farhan Hizri (Owner) memberikan persetujuan resmi di halaman ini.
                 </p>
               </div>
 
