@@ -37,6 +37,7 @@ import {
   Building2,
   BadgePercent,
   History,
+  Banknote,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory, CreditApplication, CreditStatus } from '@/types/crm';
@@ -508,9 +509,40 @@ export default function CustomersPage() {
     formatWhatsAppLink,
   } = useCrm();
 
-  // Active Tab: 'customers' | 'transactions'
-  const [activeTab, setActiveTab] = useState<'customers' | 'transactions'>('customers');
+  // Active Tab: 'customers' (Tabel Pelanggan) | 'pending' (Menunggu ACC) | 'rejected' (Kredit Ditolak) | 'all_transactions'
+  const [activeTab, setActiveTab] = useState<'customers' | 'pending' | 'rejected' | 'all_transactions'>('customers');
   const [filterTxType, setFilterTxType] = useState<'ALL' | 'CASH' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+
+  // Hanya pembeli resmi (Sudah Beli) yang tampil di Tabel Data Pelanggan (Permintaan User)
+  const officialCustomers = useMemo(() => {
+    return (customers || []).filter((c) => {
+      if (c.creditStatus === 'PENDING' || c.creditStatus === 'REJECTED') return false;
+      return c.status === 'Sudah Beli' || c.paymentType === 'Cash' || c.creditStatus === 'APPROVED' || !c.creditStatus;
+    });
+  }, [customers]);
+
+  const cashSalesCount = useMemo(() => {
+    return (purchases || []).filter((p) => {
+      const m = (p.paymentMethod || '').toLowerCase();
+      return m.includes('cash') || p.paymentType === 'Cash';
+    }).length;
+  }, [purchases]);
+
+  const pendingCreditCount = useMemo(() => {
+    return (creditApplications || []).filter((a) => a.status === 'PENDING').length;
+  }, [creditApplications]);
+
+  const approvedCreditCount = useMemo(() => {
+    return (creditApplications || []).filter((a) => a.status === 'APPROVED').length;
+  }, [creditApplications]);
+
+  const rejectedCreditCount = useMemo(() => {
+    return (creditApplications || []).filter((a) => a.status === 'REJECTED').length;
+  }, [creditApplications]);
+
+  const totalTransactionsCount = useMemo(() => {
+    return (purchases || []).length + (creditApplications || []).length;
+  }, [purchases, creditApplications]);
 
   // Modals state for Cash & Credit transactions
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
@@ -564,7 +596,7 @@ export default function CustomersPage() {
   const [creditStockSearch, setCreditStockSearch] = useState('');
   const [isCreditStockDropdownOpen, setIsCreditStockDropdownOpen] = useState(false);
 
-  // Detect URL parameter ?tab=transactions & action=cash/credit
+  // Detect URL parameter ?tab=... & action=cash/credit
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -572,8 +604,14 @@ export default function CustomersPage() {
       const action = params.get('action');
       const prospectId = params.get('prospectId');
 
-      if (tabParam === 'transactions' || action) {
-        setActiveTab('transactions');
+      if (tabParam === 'transactions' || tabParam === 'pending' || action === 'credit') {
+        setActiveTab('pending');
+      } else if (tabParam === 'rejected') {
+        setActiveTab('rejected');
+      } else if (tabParam === 'all_transactions') {
+        setActiveTab('all_transactions');
+      } else if (action === 'cash' || tabParam === 'customers') {
+        setActiveTab('customers');
       }
 
       if (action === 'cash') {
@@ -821,12 +859,13 @@ export default function CustomersPage() {
 
     if (res.success) {
       setIsCashModalOpen(false);
+      setActiveTab('customers'); // Otomatis tampil di Tabel Data Pelanggan
       // Auto-preview Kwitansi
       const plateNo = chosenStock?.licensePlate || chosenStock?.plateNumber || '-';
       const vehicleDesc = chosenStock ? `${chosenStock.brand} ${chosenStock.model} (${chosenStock.year})` : '1 UNIT KENDARAAN';
       const todayStr = new Date(cashForm.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
       setSelectedKwitansi({
-        nomorKwitansi: `No. ${customers.length + 1}`,
+        nomorKwitansi: `No. ${officialCustomers.length + 1}`,
         terimaDari: cashForm.customerName,
         sejumlahUang: nominal,
         terbilang: `${formatRupiahWords(nominal)} Rupiah`,
@@ -860,7 +899,7 @@ export default function CustomersPage() {
 
     if (res.success) {
       setIsCreditModalOpen(false);
-      setActiveTab('transactions');
+      setActiveTab('pending'); // Permintaan User: Masuk ke tabel Menunggu ACC (TIDAK masuk tabel pelanggan)
     } else {
       setFormError(res.error || 'Gagal menyimpan pengajuan kredit');
     }
@@ -881,6 +920,7 @@ export default function CustomersPage() {
 
     if (res.success) {
       setIsAccModalOpen(false);
+      setActiveTab('customers'); // Permintaan User: Kredit ACC OTOMATIS masuk ke tabel data pelanggan
       // Auto-preview Kwitansi DP resmi Showroom HR MOTOR
       const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
       const leasingName = accForm.approvedLeasing || selectedCreditApp.approvedLeasing || selectedCreditApp.targetLeasing;
@@ -915,15 +955,13 @@ export default function CustomersPage() {
     if (res.success) {
       setIsRejectModalOpen(false);
       setSelectedCreditApp(null);
+      setActiveTab('rejected'); // Permintaan User: Masuk ke tabel kredit ditolak (TIDAK masuk data pelanggan)
     } else {
       setFormError(res.error || 'Gagal memproses penolakan kredit');
     }
   };
 
   // Filtered Transactions
-  const pendingCreditCount = useMemo(() => {
-    return (creditApplications || []).filter((a) => a.status === 'PENDING').length;
-  }, [creditApplications]);
 
   const filteredTransactions = useMemo(() => {
     const creditApps = creditApplications || [];
@@ -992,9 +1030,9 @@ export default function CustomersPage() {
     receiptReceiver: 'HR MOTOR',
   });
 
-  // Filtered & Sorted Customers
+  // Filtered & Sorted Customers (Hanya pembeli sah / resmi)
   const processedCustomers = useMemo(() => {
-    let result = [...customers];
+    let result = [...officialCustomers];
 
     // Search query
     if (searchQuery.trim()) {
@@ -1168,90 +1206,155 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Sub-Navigation Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-b border-[#EAE8E3] pb-3">
+      {/* 1. UNIFIED MAIN HEADER: Satu Pintu Manajemen Pelanggan & Transaksi Penjualan */}
+      <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="badge-gold">Database Konsumen & Penjualan</span>
+              <span className="text-xs text-charcoal-300">•</span>
+              <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
+              Database Pelanggan & Transaksi Penjualan
+            </h1>
+            <p className="text-xs text-charcoal-500 mt-0.5">
+              Sistem satu pintu kelola pembeli resmi (Cash & Kredit ACC), pengajuan kredit leasing (Menunggu ACC & Ditolak), dan cetak kwitansi kasir showroom.
+            </p>
+          </div>
+
+          {/* Quick Action Buttons (Selalu Dapat Diakses dari Semua Tab) */}
+          <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full lg:w-auto">
+            <button
+              type="button"
+              onClick={() => {
+                setFormError('');
+                setIsCashModalOpen(true);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
+            >
+              <Banknote className="w-4 h-4" />
+              <span>+ Transaksi Cash Baru</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setFormError('');
+                setIsCreditModalOpen(true);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
+            >
+              <CreditCard className="w-4 h-4 text-gold-400" />
+              <span>+ Pengajuan Kredit Baru</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={openAddModal}
+              className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-warm-50 text-charcoal-700 hover:text-charcoal-900 border border-[#EAE8E3] font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4 text-gold-600" />
+              <span>+ Tambah Pelanggan</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 5 Quick KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-3 mt-5 pt-4 border-t border-[#EAE8E3]">
+          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Pelanggan Resmi</p>
+            <p className="text-lg sm:text-xl font-black text-charcoal-900 mt-0.5">{officialCustomers.length} Konsumen</p>
+          </div>
+          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+              <Banknote className="w-3.5 h-3.5 text-emerald-600" /> Penjualan Cash
+            </p>
+            <p className="text-lg sm:text-xl font-black text-emerald-700 mt-0.5">{cashSalesCount} Unit</p>
+          </div>
+          <div className={`p-3 rounded-xl border transition-all ${
+            pendingCreditCount > 0 ? 'bg-amber-50 border-amber-300' : 'bg-[#FAF9F5] border-[#EAE8E3]/80'
+          }`}>
+            <p className="text-[10px] sm:text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-amber-600" /> Menunggu ACC
+            </p>
+            <p className="text-lg sm:text-xl font-black text-amber-950 mt-0.5">
+              {pendingCreditCount} <span className="text-xs font-semibold text-amber-800">Pengajuan</span>
+            </p>
+          </div>
+          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Kredit Disetujui (ACC)</p>
+            <p className="text-lg sm:text-xl font-black text-gold-600 mt-0.5">{approvedCreditCount} Unit</p>
+          </div>
+          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80 col-span-2 md:col-span-1">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Kredit Ditolak Bank</p>
+            <p className="text-lg sm:text-xl font-black text-rose-600 mt-0.5">{rejectedCreditCount} Riwayat</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. SUB-NAVIGATION TABS (SATU KESATUAN TERPADU) */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#EAE8E3] pb-3">
         <button
           type="button"
           onClick={() => setActiveTab('customers')}
-          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all w-full sm:w-auto ${
+          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
             activeTab === 'customers'
               ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
               : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
           }`}
         >
           <Users className="w-4 h-4 text-gold-500" />
-          <span>Data Pelanggan & Kwitansi ({customers.length})</span>
+          <span>Tabel Data Pelanggan ({officialCustomers.length})</span>
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab('transactions')}
-          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all w-full sm:w-auto ${
-            activeTab === 'transactions'
+          onClick={() => setActiveTab('pending')}
+          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
+            activeTab === 'pending'
+              ? 'bg-amber-500 text-charcoal-950 shadow-sm border border-amber-600 font-black'
+              : 'bg-white text-amber-900 hover:text-amber-950 border border-amber-200'
+          }`}
+        >
+          <Clock className="w-4 h-4 text-amber-600" />
+          <span>Tabel Menunggu ACC ({pendingCreditCount})</span>
+          {pendingCreditCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-amber-600 text-white text-[10px] font-black animate-pulse shadow-xs">
+              {pendingCreditCount} Butuh ACC
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('rejected')}
+          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
+            activeTab === 'rejected'
+              ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
+              : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+          }`}
+        >
+          <XCircle className="w-4 h-4 text-rose-500" />
+          <span>Tabel Kredit Ditolak ({rejectedCreditCount})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('all_transactions')}
+          className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
+            activeTab === 'all_transactions'
               ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
               : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
           }`}
         >
           <FileText className="w-4 h-4 text-gold-500" />
-          <span>Transaksi Penjualan (Cash & Kredit)</span>
-          {pendingCreditCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-charcoal-950 text-[10px] font-black animate-pulse shadow-xs">
-              {pendingCreditCount} Butuh ACC
-            </span>
-          )}
+          <span>Rekap Semua Transaksi ({totalTransactionsCount})</span>
         </button>
       </div>
 
       {activeTab === 'customers' && (
         <>
-          {/* Page Header */}
-          <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="badge-gold">
-                Database Pelanggan
-              </span>
-              <span className="text-xs text-charcoal-300">•</span>
-              <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
-              Database Konsumen & Pembeli
-            </h1>
-            <p className="text-xs text-charcoal-500 mt-0.5">
-              Kelola profil lengkap pembeli, riwayat komunikasi, preferensi armada, serta histori kepemilikan dan garansi showroom.
-            </p>
-          </div>
-
-          <button
-            onClick={openAddModal}
-            className="btn-gold flex items-center justify-center gap-2 w-full sm:w-auto shadow-gold"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah Pelanggan Baru</span>
-          </button>
-        </div>
-
-        {/* Quick KPI Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mt-5 pt-4 border-t border-[#EAE8E3]">
-          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Pelanggan</p>
-            <p className="text-lg sm:text-xl font-black text-charcoal-900 mt-0.5">{customers.length}</p>
-          </div>
-          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Transaksi Pembelian</p>
-            <p className="text-lg sm:text-xl font-black text-gold-600 mt-0.5">{purchases.length} Unit</p>
-          </div>
-          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Klaim Garansi</p>
-            <p className="text-lg sm:text-xl font-black text-charcoal-900 mt-0.5">{repairClaims.length}</p>
-          </div>
-          <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-            <p className="text-[10px] sm:text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Hasil Pencarian</p>
-            <p className="text-lg sm:text-xl font-black text-charcoal-800 mt-0.5">{processedCustomers.length}</p>
-          </div>
-        </div>
-      </div>
 
       {/* Search & Filters Bar */}
       <div className="crm-card p-3.5 sm:p-4 space-y-3">
@@ -1563,83 +1666,584 @@ export default function CustomersPage() {
         </>
       )}
 
-      {/* TAB 2: TRANSAKSI PENJUALAN (CASH & KREDIT) */}
-      {activeTab === 'transactions' && (
-        <div className="space-y-6">
-          {/* Transactions Header */}
-          <div className="crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="badge-gold">Transaksi & Pembiayaan</span>
-                  <span className="text-xs text-charcoal-300">•</span>
-                  <span className="text-xs text-charcoal-400 font-medium tracking-wide">Showroom HR MOTOR Garut</span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 mt-1 tracking-tight">
-                  Transaksi Penjualan (Cash & Kredit)
-                </h1>
-                <p className="text-xs text-charcoal-500 mt-0.5">
-                  Kelola transaksi penjualan mobil tunai (Cash) dan persetujuan pengajuan kredit (ACC / Ditolak) dengan integrasi otomatis ke data stok showroom.
-                </p>
+      {/* TAB 2: TABEL MENUNGGU ACC */}
+      {activeTab === 'pending' && (
+        <div className="space-y-4">
+          {/* Header Banner */}
+          <div className="crm-card p-4 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-l-4 border-l-amber-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                  Antrean Persetujuan Leasing
+                </span>
+                <span className="text-xs text-charcoal-300">•</span>
+                <span className="text-xs text-charcoal-500 font-medium">Showroom HR MOTOR Garut</span>
               </div>
-
-              <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFormError('');
-                    setIsCashModalOpen(true);
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
-                >
-                  <DollarSign className="w-4 h-4" />
-                  <span>+ Transaksi Cash Baru</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFormError('');
-                    setIsCreditModalOpen(true);
-                  }}
-                  className="px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
-                >
-                  <CreditCard className="w-4 h-4 text-gold-400" />
-                  <span>+ Pengajuan Kredit Baru</span>
-                </button>
-              </div>
+              <h2 className="text-base sm:text-lg font-black text-charcoal-900 mt-0.5 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-600" />
+                <span>Daftar Pengajuan Kredit Menunggu ACC ({pendingCreditCount})</span>
+              </h2>
+              <p className="text-xs text-charcoal-500 mt-0.5">
+                Pengajuan di bawah ini berstatus <strong>BOKING</strong> dan <strong>belum masuk</strong> ke Data Pelanggan. Saat di-<strong>ACC</strong>, data otomatis masuk ke Tabel Pelanggan & mobil menjadi <strong>SOLD OUT</strong>.
+              </p>
             </div>
 
-            {/* Quick KPI Bar for Transactions */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 pt-5 border-t border-[#EAE8E3]">
-              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Penjualan Deal</p>
-                <p className="text-xl font-black text-charcoal-900 mt-0.5">{purchases.length} Unit</p>
+            <button
+              type="button"
+              onClick={() => {
+                setFormError('');
+                setIsCreditModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0"
+            >
+              <CreditCard className="w-4 h-4 text-gold-400" />
+              <span>+ Pengajuan Kredit Baru</span>
+            </button>
+          </div>
+
+          {/* Search bar inside pending tab */}
+          <div className="crm-card p-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari pengajuan pending: nama pemohon, leasing, unit mobil..."
+                className="w-full text-xs pl-9 pr-4 py-2 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 placeholder-charcoal-400 transition-all font-medium"
+              />
+            </div>
+          </div>
+
+          {creditApplications.filter((app) => app.status === 'PENDING').length === 0 ? (
+            <div className="crm-card p-12 text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
-              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Total Nilai Penjualan</p>
-                <p className="text-lg font-black text-gold-600 mt-0.5 truncate">
-                  {formatRupiah(purchases.reduce((s, p) => s + (p.purchasePrice || 0), 0))}
-                </p>
+              <h3 className="font-bold text-base text-charcoal-900">Tidak Ada Pengajuan Kredit Menunggu ACC</h3>
+              <p className="text-xs text-charcoal-500 max-w-md mx-auto">
+                Semua pengajuan kredit telah diproses. Ketika Anda menambahkan pengajuan kredit baru, data akan otomatis muncul di tabel ini sebelum disetujui atau ditolak.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormError('');
+                  setIsCreditModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs shadow-sm transition-all cursor-pointer mt-2"
+              >
+                <CreditCard className="w-4 h-4 text-gold-400" />
+                <span>+ Buat Pengajuan Kredit Baru</span>
+              </button>
+            </div>
+          ) : (
+            <div className="crm-card overflow-hidden">
+              {/* MOBILE CARDS */}
+              <div className="space-y-3 p-3 md:hidden">
+                {creditApplications
+                  .filter((app) => app.status === 'PENDING')
+                  .filter((app) => {
+                    if (!searchQuery.trim()) return true;
+                    const q = searchQuery.toLowerCase();
+                    return (
+                      app.customerName.toLowerCase().includes(q) ||
+                      app.vehicleName.toLowerCase().includes(q) ||
+                      app.targetLeasing.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((app) => (
+                    <div key={app.id} className="p-3.5 bg-white rounded-xl border border-amber-200/80 shadow-2xs space-y-2.5">
+                      <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2">
+                        <div>
+                          <span className="bg-charcoal-100 text-charcoal-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                            {app.id}
+                          </span>
+                          <h4 className="font-bold text-sm text-charcoal-900 mt-1">{app.customerName}</h4>
+                          <span className="text-[10px] text-charcoal-400 font-sans">
+                            {formatDate(app.applicationDate)} • {app.customerSource}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
+                          MENUNGGU ACC
+                        </span>
+                      </div>
+
+                      <div className="bg-[#FAF9F5] p-2.5 rounded-lg border border-[#EAE8E3] grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-[10px] text-charcoal-400 block">Unit Mobil (BOKING):</span>
+                          <p className="font-bold text-charcoal-900 truncate">{app.vehicleName}</p>
+                          {app.plateNumber && <span className="text-[10px] text-charcoal-500 font-mono">{app.plateNumber}</span>}
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-charcoal-400 block">Leasing Tujuan:</span>
+                          <p className="font-bold text-indigo-700 truncate">{app.targetLeasing}</p>
+                          <span className="text-[10px] text-charcoal-500">Tujuan: {app.targetLeasing}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs">
+                        <div>
+                          <span className="text-[10px] text-charcoal-400 block">Harga Deal:</span>
+                          <span className="font-bold text-charcoal-900">{formatRupiah(app.dealPrice)}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-charcoal-400 block">Rencana DP:</span>
+                          <span className="font-bold text-amber-700">{formatRupiah(app.initialDp)}</span>
+                        </div>
+                      </div>
+
+                      {/* Action buttons: ACC / Tolak */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-[#EAE8E3]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCreditApp(app);
+                            setAccForm({
+                              finalDp: String(app.initialDp),
+                              approvedLeasing: app.targetLeasing,
+                              approvalNotes: '',
+                            });
+                            setFormError('');
+                            setIsAccModalOpen(true);
+                          }}
+                          className="flex-1 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span>Setujui (ACC)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCreditApp(app);
+                            setRejectReason('');
+                            setFormError('');
+                            setIsRejectModalOpen(true);
+                          }}
+                          className="flex-1 py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Tolak</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCreditApp(app);
+                            setIsHistoryModalOpen(true);
+                          }}
+                          className="p-2 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-warm-100 border border-[#EAE8E3] shrink-0"
+                          title="Riwayat Audit"
+                        >
+                          <History className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
               </div>
-              <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-300">
-                <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-amber-600" /> Menunggu ACC
-                </p>
-                <p className="text-xl font-black text-amber-950 mt-0.5">{pendingCreditCount} Pengajuan</p>
+
+              {/* DESKTOP TABLE */}
+              <div className="overflow-x-auto hidden md:block">
+                <table className="crm-table w-full text-left text-xs min-w-[780px]">
+                  <thead>
+                    <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
+                      <th className="py-3 px-4 font-bold text-charcoal-700">No. Pengajuan & Tgl</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Pemohon Kredit</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Unit Mobil (Boking)</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Bank / Leasing</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Harga Deal & DP</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Status</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Tindakan Persetujuan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EAE8E3]">
+                    {creditApplications
+                      .filter((app) => app.status === 'PENDING')
+                      .filter((app) => {
+                        if (!searchQuery.trim()) return true;
+                        const q = searchQuery.toLowerCase();
+                        return (
+                          app.customerName.toLowerCase().includes(q) ||
+                          app.vehicleName.toLowerCase().includes(q) ||
+                          app.targetLeasing.toLowerCase().includes(q)
+                        );
+                      })
+                      .map((app) => (
+                        <tr key={app.id} className="hover:bg-amber-50/40 transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-bold text-charcoal-900">
+                            <span className="bg-charcoal-100 text-charcoal-800 px-2 py-0.5 rounded text-[11px]">
+                              {app.id}
+                            </span>
+                            <span className="text-[10px] text-charcoal-400 block mt-1 font-sans">
+                              {formatDate(app.applicationDate)}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <p className="font-bold text-charcoal-900 text-sm">{app.customerName}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <a
+                                href={formatWhatsAppLink(app.customerPhone, `Halo Bapak/Ibu ${app.customerName}, mengenai pengajuan kredit unit ${app.vehicleName} di HR MOTOR Garut...`)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[11px] text-emerald-700 font-semibold hover:underline inline-flex items-center gap-1"
+                              >
+                                <MessageCircle className="w-3 h-3 text-emerald-600" />
+                                {app.customerPhone}
+                              </a>
+                              <span className="text-[10px] text-charcoal-400">• {app.customerSource}</span>
+                            </div>
+                            <p className="text-[10px] text-charcoal-500 mt-0.5">{app.customerAddress}</p>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <p className="font-bold text-xs text-charcoal-900">{app.vehicleName}</p>
+                            {app.plateNumber && (
+                              <span className="text-[10px] font-mono font-bold bg-charcoal-900 text-gold-400 px-1.5 py-0.5 rounded mt-1 inline-block">
+                                {app.plateNumber}
+                              </span>
+                            )}
+                            <span className="inline-block ml-2 text-[10px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded">
+                              BOKING
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-900 border border-indigo-200 font-bold text-xs inline-block">
+                              {app.targetLeasing}
+                            </span>
+                            <span className="text-[10px] text-charcoal-400 block mt-0.5">
+                              Tujuan: {app.targetLeasing}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className="font-bold text-charcoal-900 block">{formatRupiah(app.dealPrice)}</span>
+                            <span className="text-[11px] font-bold text-amber-700 block mt-0.5">
+                              Rencana DP: {formatRupiah(app.initialDp)}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-300 shadow-xs">
+                              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                              MENUNGGU ACC
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCreditApp(app);
+                                  setAccForm({
+                                    finalDp: String(app.initialDp),
+                                    approvedLeasing: app.targetLeasing,
+                                    approvalNotes: '',
+                                  });
+                                  setFormError('');
+                                  setIsAccModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                title="Setujui Kredit (ACC) - Ubah stok jadi SOLD OUT & masukkan ke Data Pelanggan"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>ACC</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCreditApp(app);
+                                  setRejectReason('');
+                                  setFormError('');
+                                  setIsRejectModalOpen(true);
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-black text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                                title="Tolak Pengajuan Kredit - Kembalikan stok jadi READY & tidak masuk data pelanggan"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                <span>Tolak</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCreditApp(app);
+                                  setIsHistoryModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-warm-100 transition-colors cursor-pointer"
+                                title="Lihat Riwayat Perjalanan Pengajuan"
+                              >
+                                <History className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80">
-                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Kredit Disetujui (ACC)</p>
-                <p className="text-xl font-black text-emerald-600 mt-0.5">
-                  {(creditApplications || []).filter((a) => a.status === 'APPROVED').length} Unit
-                </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: TABEL KREDIT DITOLAK */}
+      {activeTab === 'rejected' && (
+        <div className="space-y-4">
+          {/* Header Banner */}
+          <div className="crm-card p-4 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-transparent border-l-4 border-l-rose-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
+                  Riwayat Penolakan Bank / Leasing
+                </span>
+                <span className="text-xs text-charcoal-300">•</span>
+                <span className="text-xs text-charcoal-500 font-medium">Showroom HR MOTOR Garut</span>
               </div>
-              <div className="bg-[#FAF9F5] p-3 rounded-xl border border-[#EAE8E3]/80 col-span-2 md:col-span-1">
-                <p className="text-[11px] font-semibold text-charcoal-400 uppercase tracking-wider">Kredit Ditolak Bank</p>
-                <p className="text-xl font-black text-rose-600 mt-0.5">
-                  {(creditApplications || []).filter((a) => a.status === 'REJECTED').length} Riwayat
-                </p>
+              <h2 className="text-base sm:text-lg font-black text-charcoal-900 mt-0.5 flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-rose-600" />
+                <span>Tabel Riwayat Kredit Ditolak ({rejectedCreditCount})</span>
+              </h2>
+              <p className="text-xs text-charcoal-500 mt-0.5">
+                Pengajuan yang ditolak bank <strong>TIDAK dimasukkan</strong> ke Tabel Pelanggan. Unit mobil otomatis <strong>kembali berstatus READY</strong> agar bisa ditawarkan ke konsumen lain.
+              </p>
+            </div>
+          </div>
+
+          {/* Search bar inside rejected tab */}
+          <div className="crm-card p-3">
+            <div className="relative">
+              <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari data ditolak: nama konsumen, leasing, unit..."
+                className="w-full text-xs pl-9 pr-4 py-2 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 placeholder-charcoal-400 transition-all font-medium"
+              />
+            </div>
+          </div>
+
+          {creditApplications.filter((app) => app.status === 'REJECTED').length === 0 ? (
+            <div className="crm-card p-12 text-center space-y-3">
+              <div className="w-16 h-16 rounded-full bg-[#FAF9F5] text-charcoal-400 flex items-center justify-center mx-auto">
+                <Shield className="w-8 h-8 text-gold-500" />
               </div>
+              <h3 className="font-bold text-base text-charcoal-900">Belum Ada Riwayat Kredit Ditolak</h3>
+              <p className="text-xs text-charcoal-500 max-w-md mx-auto">
+                Jika ada pengajuan kredit yang ditolak oleh leasing, arsip datanya akan dicatat rapi di tabel ini tanpa mengotori data pelanggan resmi.
+              </p>
+            </div>
+          ) : (
+            <div className="crm-card overflow-hidden">
+              {/* MOBILE CARDS */}
+              <div className="space-y-3 p-3 md:hidden">
+                {creditApplications
+                  .filter((app) => app.status === 'REJECTED')
+                  .filter((app) => {
+                    if (!searchQuery.trim()) return true;
+                    const q = searchQuery.toLowerCase();
+                    return (
+                      app.customerName.toLowerCase().includes(q) ||
+                      app.vehicleName.toLowerCase().includes(q) ||
+                      app.targetLeasing.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((app) => (
+                    <div key={app.id} className="p-3.5 bg-white rounded-xl border border-rose-200/80 shadow-2xs space-y-2.5">
+                      <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2">
+                        <div>
+                          <span className="bg-charcoal-100 text-charcoal-800 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                            {app.id}
+                          </span>
+                          <h4 className="font-bold text-sm text-charcoal-900 mt-1">{app.customerName}</h4>
+                          <span className="text-[10px] text-charcoal-400 font-sans">
+                            {formatDate(app.applicationDate)} • {app.customerPhone}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
+                          DITOLAK
+                        </span>
+                      </div>
+
+                      <div className="bg-[#FAF9F5] p-2.5 rounded-lg border border-[#EAE8E3] space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-charcoal-400">Unit Kendaraan:</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                            Kembali READY
+                          </span>
+                        </div>
+                        <p className="font-bold text-charcoal-900">{app.vehicleName}</p>
+                        <div className="flex items-center justify-between text-[11px] text-charcoal-500 pt-1 border-t border-[#EAE8E3]">
+                          <span>Leasing: <strong>{app.targetLeasing}</strong></span>
+                          <span>Deal: <strong>{formatRupiah(app.dealPrice)}</strong></span>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 bg-rose-50/70 border border-rose-200 rounded-lg text-xs">
+                        <span className="text-[10px] font-bold text-rose-800 block uppercase">Alasan Penolakan:</span>
+                        <p className="text-rose-900 font-medium mt-0.5">{app.rejectionReason || 'Ditolak oleh pihak bank/leasing (BI Checking / Kapasitas)'}</p>
+                      </div>
+
+                      <div className="pt-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCreditApp(app);
+                            setIsHistoryModalOpen(true);
+                          }}
+                          className="py-1.5 px-3 rounded-lg text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-100 border border-[#EAE8E3] text-xs font-bold inline-flex items-center gap-1"
+                        >
+                          <History className="w-3.5 h-3.5" />
+                          <span>Riwayat Catatan</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {/* DESKTOP TABLE */}
+              <div className="overflow-x-auto hidden md:block">
+                <table className="crm-table w-full text-left text-xs min-w-[780px]">
+                  <thead>
+                    <tr className="bg-[#FAF9F5] border-b border-[#EAE8E3]">
+                      <th className="py-3 px-4 font-bold text-charcoal-700">No. Pengajuan</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Calon Konsumen</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Unit Mobil (Status Stok)</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Bank / Leasing</th>
+                      <th className="py-3 px-4 font-bold text-charcoal-700">Alasan Penolakan</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Status Mobil</th>
+                      <th className="py-3 px-4 font-bold text-center text-charcoal-700">Audit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EAE8E3]">
+                    {creditApplications
+                      .filter((app) => app.status === 'REJECTED')
+                      .filter((app) => {
+                        if (!searchQuery.trim()) return true;
+                        const q = searchQuery.toLowerCase();
+                        return (
+                          app.customerName.toLowerCase().includes(q) ||
+                          app.vehicleName.toLowerCase().includes(q) ||
+                          app.targetLeasing.toLowerCase().includes(q)
+                        );
+                      })
+                      .map((app) => (
+                        <tr key={app.id} className="hover:bg-rose-50/30 transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-bold text-charcoal-900">
+                            <span className="bg-charcoal-100 text-charcoal-800 px-2 py-0.5 rounded text-[11px]">
+                              {app.id}
+                            </span>
+                            <span className="text-[10px] text-charcoal-400 block mt-1 font-sans">
+                              {formatDate(app.applicationDate)}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <p className="font-bold text-charcoal-900 text-sm">{app.customerName}</p>
+                            <span className="text-[11px] text-charcoal-500 font-mono">{app.customerPhone}</span>
+                            <p className="text-[10px] text-charcoal-400 mt-0.5">{app.customerAddress}</p>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <p className="font-bold text-xs text-charcoal-900">{app.vehicleName}</p>
+                            {app.plateNumber && (
+                              <span className="text-[10px] font-mono font-bold bg-charcoal-100 text-charcoal-700 px-1.5 py-0.5 rounded mt-1 inline-block">
+                                {app.plateNumber}
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-1 rounded-lg bg-charcoal-100 text-charcoal-800 font-bold text-xs inline-block">
+                              {app.targetLeasing}
+                            </span>
+                            <span className="text-[10px] text-charcoal-400 block mt-0.5">
+                              Nilai: {formatRupiah(app.dealPrice)}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 max-w-xs">
+                            <span className="text-xs text-rose-700 font-medium line-clamp-2">
+                              {app.rejectionReason || 'Ditolak oleh pihak bank/leasing'}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Kembali READY
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedCreditApp(app);
+                                setIsHistoryModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-warm-100 transition-colors cursor-pointer"
+                              title="Lihat Riwayat Perjalanan Pengajuan"
+                            >
+                              <History className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: REKAP SEMUA TRANSAKSI (CASH & KREDIT) */}
+      {activeTab === 'all_transactions' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="crm-card p-4 bg-gradient-to-r from-charcoal-900 via-charcoal-800 to-charcoal-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="badge-gold">Audit Trail Lengkap</span>
+                <span className="text-xs text-charcoal-300">•</span>
+                <span className="text-xs text-charcoal-400 font-medium">Showroom HR MOTOR Garut</span>
+              </div>
+              <h2 className="text-base sm:text-lg font-black text-white mt-0.5 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gold-400" />
+                <span>Rekap Seluruh Aktivitas Transaksi Showroom</span>
+              </h2>
+              <p className="text-xs text-charcoal-300 mt-0.5">
+                Log terpadu mencakup penjualan Cash lunas, pengajuan kredit yang sedang berjalan (Pending), ACC, maupun Ditolak.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormError('');
+                  setIsCashModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer flex-1 sm:flex-initial justify-center"
+              >
+                <DollarSign className="w-4 h-4" />
+                <span>+ Cash</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setFormError('');
+                  setIsCreditModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-charcoal-800 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer flex-1 sm:flex-initial justify-center"
+              >
+                <CreditCard className="w-4 h-4 text-gold-400" />
+                <span>+ Kredit</span>
+              </button>
             </div>
           </div>
 
@@ -1661,11 +2265,11 @@ export default function CustomersPage() {
               {/* Status Filter Buttons */}
               <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
                 {[
-                  { key: 'ALL', label: 'Semua Data' },
+                  { key: 'ALL', label: `Semua Data (${totalTransactionsCount})` },
                   { key: 'PENDING', label: `Menunggu ACC (${pendingCreditCount})` },
-                  { key: 'APPROVED', label: 'Kredit Approved' },
-                  { key: 'REJECTED', label: 'Kredit Ditolak' },
-                  { key: 'CASH', label: 'Penjualan Cash' },
+                  { key: 'APPROVED', label: `Kredit Approved (${approvedCreditCount})` },
+                  { key: 'REJECTED', label: `Kredit Ditolak (${rejectedCreditCount})` },
+                  { key: 'CASH', label: `Penjualan Cash (${cashSalesCount})` },
                 ].map((f) => (
                   <button
                     key={f.key}

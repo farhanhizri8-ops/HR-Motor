@@ -1496,41 +1496,11 @@ export async function POST(request: Request) {
         const nominalDeal = Number(dealPrice) || stock.price;
         const nominalDp = Number(initialDp) || (stock.creditDp || Math.round(nominalDeal * 0.2));
 
-        // 1. Create or Update Customer
-        if (!db.customers) db.customers = [];
-        let cust = db.customers.find(
+        // 1. Identify Customer Reference (Permintaan User: Pengajuan kredit baru TIDAK langsung masuk tabel pelanggan, tapi masuk tabel Menunggu ACC)
+        let cust = db.customers?.find(
           (c) => (c.whatsapp && cleanPhone(c.whatsapp) === cleanPhone(customerPhone)) || (payload.customerId && c.id === payload.customerId)
         );
-        const custId = cust?.id || `CUST-2026-${String(db.customers.length + 1).padStart(3, '0')}`;
-
-        const updatedCustomer: Customer = {
-          id: custId,
-          fullName: customerName.trim(),
-          whatsapp: customerPhone.trim(),
-          email: cust?.email || '',
-          address: customerAddress?.trim() || cust?.address || 'Garut',
-          district: cust?.district || 'Tarogong Kidul',
-          source: customerSource || cust?.source || 'Walk-in',
-          interestedVehicle: `${stock.brand} ${stock.model} (${stock.year})`,
-          vehicleType: (stock.brand.toLowerCase().includes('sigra') || stock.brand.toLowerCase().includes('avanza') ? 'MPV' : 'SUV') as any,
-          budget: nominalDeal,
-          notes: notes || `Pengajuan Kredit ${targetLeasing}`,
-          registeredDate: cust?.registeredDate || dateApp,
-          status: 'Prospek',
-          paymentType: 'Kredit',
-          creditStatus: 'PENDING',
-          downPayment: nominalDp,
-          leasingPartner: targetLeasing,
-          plateNumber: stock.licensePlate || stock.plateNumber || '',
-          updatedAt: new Date().toISOString(),
-        };
-
-        if (cust) {
-          const idx = db.customers.findIndex((c) => c.id === cust!.id);
-          db.customers[idx] = updatedCustomer;
-        } else {
-          db.customers.unshift(updatedCustomer);
-        }
+        const custId = cust?.id || `CUST-PENDING-${Date.now()}`;
 
         // 2. Create Credit Application (Status: PENDING)
         if (!db.creditApplications) db.creditApplications = [];
@@ -1708,10 +1678,12 @@ export async function POST(request: Request) {
           leasingPartner: approvedLeasing,
         });
 
-        // 3. Update Customer Record
+        // 3. Update or Insert Customer Record (Permintaan User: Kredit ACC OTOMATIS masuk ke tabel data pelanggan)
+        if (!db.customers) db.customers = [];
         let cust = db.customers.find((c) => (app.customerId && c.id === app.customerId) || (c.whatsapp && cleanPhone(c.whatsapp) === cleanPhone(app.customerPhone)));
-        const newReceiptNum = `No. ${db.purchases.length + 1}`;
+        const newReceiptNum = `No. ${db.customers.length + 1}`;
         const placeDate = `GARUT, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()}`;
+        const finalCustId = cust?.id || ((app.customerId && !app.customerId.startsWith('CUST-PENDING-')) ? app.customerId : `CUST-2026-${String(db.customers.length + 1).padStart(3, '0')}`);
 
         if (cust) {
           cust.status = 'Sudah Beli';
@@ -1726,11 +1698,11 @@ export async function POST(request: Request) {
           cust.updatedAt = nowIso;
         } else {
           cust = {
-            id: app.customerId || `CUST-2026-${String(db.customers.length + 1).padStart(3, '0')}`,
-            fullName: app.customerName,
-            whatsapp: app.customerPhone,
+            id: finalCustId,
+            fullName: app.customerName.trim(),
+            whatsapp: app.customerPhone.trim(),
             email: '',
-            address: app.customerAddress || 'Garut',
+            address: app.customerAddress?.trim() || 'Garut',
             district: 'Tarogong Kidul',
             source: app.customerSource || 'Walk-in',
             interestedVehicle: app.vehicleName,
@@ -1916,14 +1888,16 @@ export async function POST(request: Request) {
           rejectionReason: reasonText,
         });
 
-        // 3. Update Customer Status (Customer does NOT enter Customer Follow Up pembeli)
-        const cust = db.customers.find(
-          (c) => (app.customerId && c.id === app.customerId) || (c.whatsapp && cleanPhone(c.whatsapp) === cleanPhone(app.customerPhone))
-        );
-        if (cust) {
-          cust.creditStatus = 'REJECTED';
-          cust.status = 'Prospek';
-          cust.updatedAt = nowIso;
+        // 3. Ensure rejected credit application does NOT enter or exist in db.customers (Permintaan User: Tidak masuk ke data pelanggan jika kredit ditolak)
+        if (db.customers) {
+          db.customers = db.customers.filter((c) => {
+            const isThisCust = (app.customerId && c.id === app.customerId) || (c.whatsapp && cleanPhone(c.whatsapp) === cleanPhone(app.customerPhone));
+            // Hapus dari data pelanggan jika belum menjadi pembeli sah ('Sudah Beli')
+            if (isThisCust && c.status !== 'Sudah Beli') {
+              return false;
+            }
+            return true;
+          });
         }
 
         // 4. Log Activity
