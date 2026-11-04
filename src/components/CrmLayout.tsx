@@ -31,7 +31,7 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
       <div className="min-h-screen bg-[#F8F7F4] flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3 animate-pulse">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/emblem-transparent.png" alt="HR MOTOR" className="h-16 w-auto object-contain drop-shadow-sm" />
+          <img src="/logo-transparent.png?v=5" alt="HR MOTOR" className="h-16 w-auto object-contain drop-shadow-sm" />
           <p className="text-xs text-charcoal-700 font-bold tracking-wider uppercase">
             Memuat HR MOTOR...
           </p>
@@ -50,7 +50,7 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
       <div className="min-h-screen bg-[#F8F7F4] flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/emblem-transparent.png" alt="HR MOTOR" className="h-16 w-auto object-contain animate-pulse drop-shadow-sm" />
+          <img src="/logo-transparent.png?v=5" alt="HR MOTOR" className="h-16 w-auto object-contain animate-pulse drop-shadow-sm" />
           <p className="text-xs text-gold-600 font-bold tracking-wider uppercase">
             Membuka HR MOTOR...
           </p>

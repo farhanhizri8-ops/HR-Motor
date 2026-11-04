@@ -145,17 +145,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               collapsed ? 'lg:justify-center w-full lg:w-auto' : 'gap-2.5'
             }`}
           >
-            {/* Real Official HR MOTOR Logo Badge - Modern Luxury Container */}
+            {/* Real Official HR MOTOR Logo - Clean Transparent without Box Background */}
             <div
-              className={`flex items-center justify-center bg-gradient-to-b from-[#262626] to-[#141414] rounded-xl border border-gold-500/50 shadow-luxury transition-all group-hover:border-gold-400 group-hover:shadow-gold-500/20 px-3 py-1.5 h-12 w-auto max-w-[180px] ${
-                collapsed ? 'lg:p-1.5 lg:w-12 lg:h-12 lg:max-w-none' : ''
+              className={`flex items-center justify-center transition-all ${
+                collapsed ? 'lg:w-12 lg:h-12 p-1' : 'h-14 w-auto max-w-[190px] py-1'
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={collapsed ? '/logo.png?v=3' : '/logo-hr-motor.png'}
+                src="/logo-transparent.png?v=5"
                 alt="Logo Resmi HR MOTOR"
-                className="h-full w-auto object-contain drop-shadow"
+                className="h-full w-auto max-h-12 object-contain drop-shadow-md hover:scale-105 transition-transform"
               />
             </div>
           </Link>

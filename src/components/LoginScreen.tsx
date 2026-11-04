@@ -147,7 +147,7 @@ export const LoginScreen: React.FC = () => {
           <div className="flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/emblem-transparent.png"
+              src="/logo-transparent.png?v=5"
               alt="HR MOTOR Logo"
               className="h-20 sm:h-24 w-auto object-contain drop-shadow-md hover:scale-105 transition-transform"
             />

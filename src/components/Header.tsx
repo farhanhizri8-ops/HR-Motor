@@ -69,14 +69,14 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu className="w-4.5 h-4.5" />
         </button>
 
-        {/* Mobile Logo View */}
+        {/* Mobile Logo View - Clean Transparent without Box Background */}
         <Link href="/" className="flex lg:hidden items-center">
-          <div className="bg-white px-2 py-1 rounded-xl border border-gold-500/40 shadow-xs flex items-center justify-center">
+          <div className="flex items-center justify-center py-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo-hr-motor.png"
+              src="/logo-transparent.png?v=5"
               alt="Logo Resmi HR MOTOR"
-              className="h-6 sm:h-7 w-auto object-contain"
+              className="h-8 sm:h-9 w-auto object-contain drop-shadow-sm"
             />
           </div>
         </Link>
