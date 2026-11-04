@@ -1,28 +1,25 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Users,
-  Target,
   GitPullRequest,
   CalendarClock,
-  AlertTriangle,
-  Trophy,
-  TrendingUp,
-  ArrowUpRight,
-  MessageCircle,
+  Car,
+  ShieldCheck,
   Clock,
   CheckCircle2,
   Calendar,
-  Filter,
-  Car,
-  ChevronRight,
-  Wrench,
-  ShieldCheck,
+  MessageCircle,
+  ArrowUpRight,
   Sparkles,
-  LayoutDashboard,
-  BarChart3,
+  Phone,
+  Layers,
+  ChevronRight,
+  History,
+  Wrench,
+  Check,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -30,17 +27,14 @@ import {
   Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
 } from 'recharts';
 import { useCrm } from '@/context/CrmContext';
-import { ReportsAnalyticsView } from '@/components/ReportsAnalyticsView';
 import { CorePipelineStage, normalizePipelineStage } from '@/types/crm';
+import { checkWarrantyStatus, calculateFleetHealth } from '@/lib/warranty';
 
 type DateFilterType =
   | 'hari_ini'
@@ -67,14 +61,13 @@ const MONTH_OPTIONS = [
 ];
 
 const YEAR_OPTIONS = [
-  { year: 2026, label: 'Tahun 2026 (Tahun Ini)' },
+  { year: 2026, label: 'Tahun 2026' },
   { year: 2025, label: 'Tahun 2025' },
   { year: 2024, label: 'Tahun 2024' },
 ];
 
 export default function DashboardPage() {
   const {
-    metrics,
     customers,
     leads,
     followUps,
@@ -88,23 +81,12 @@ export default function DashboardPage() {
     formatWhatsAppLink,
   } = useCrm();
 
-  const [dashboardTab, setDashboardTab] = useState<'operasional' | 'reports'>('operasional');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const tab = new URLSearchParams(window.location.search).get('tab');
-      if (tab === 'reports') {
-        setDashboardTab('reports');
-      }
-    }
-  }, []);
-
   const [dateFilter, setDateFilter] = useState<DateFilterType>('bulan_ini');
   const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(10); // Nov
   const [selectedMonthYear, setSelectedMonthYear] = useState<number>(2026);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [customStartDate, setCustomStartDate] = useState('2026-10-01');
-  const [customEndDate, setCustomEndDate] = useState('2026-11-03');
+  const [customEndDate, setCustomEndDate] = useState('2026-11-04');
 
   // Exact period boundary computation
   const periodInfo = useMemo(() => {
@@ -114,37 +96,37 @@ export default function DashboardPage() {
     let rangeDesc = '1 Jan 2026 - 31 Des 2026';
 
     if (dateFilter === 'hari_ini') {
-      const todayStr = '2026-11-02';
+      const todayStr = '2026-11-04';
       start = new Date(`${todayStr}T00:00:00`);
       end = new Date(`${todayStr}T23:59:59`);
       label = 'Hari Ini';
-      rangeDesc = '2 Nov 2026';
+      rangeDesc = '4 Nov 2026';
     } else if (dateFilter === 'minggu_ini') {
-      start = new Date('2026-10-27T00:00:00');
-      end = new Date('2026-11-03T23:59:59');
+      start = new Date('2026-10-28T00:00:00');
+      end = new Date('2026-11-04T23:59:59');
       label = 'Minggu Ini';
-      rangeDesc = '27 Okt - 3 Nov 2026';
+      rangeDesc = '28 Okt - 4 Nov 2026';
     } else if (dateFilter === 'bulan_ini') {
       start = new Date(2026, 10, 1, 0, 0, 0);
       end = new Date(2026, 11, 0, 23, 59, 59);
-      label = 'Bulan Ini (November 2026)';
-      rangeDesc = '1 Nov 2026 - 30 Nov 2026';
+      label = 'Bulan Ini';
+      rangeDesc = 'November 2026';
     } else if (dateFilter === 'per_bulan') {
       start = new Date(selectedMonthYear, selectedMonthIndex, 1, 0, 0, 0);
       end = new Date(selectedMonthYear, selectedMonthIndex + 1, 0, 23, 59, 59);
-      const mNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-      label = `Bulan ${mNames[selectedMonthIndex]} ${selectedMonthYear}`;
+      const mNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      label = `${mNames[selectedMonthIndex]} ${selectedMonthYear}`;
       rangeDesc = `1 - ${end.getDate()} ${mNames[selectedMonthIndex]} ${selectedMonthYear}`;
     } else if (dateFilter === 'tahun_ini') {
       start = new Date(2026, 0, 1, 0, 0, 0);
       end = new Date(2026, 11, 31, 23, 59, 59);
-      label = 'Tahun Ini (2026)';
-      rangeDesc = '1 Jan 2026 - 31 Des 2026';
+      label = 'Tahun 2026';
+      rangeDesc = '1 Jan - 31 Des 2026';
     } else if (dateFilter === 'per_tahun') {
       start = new Date(selectedYear, 0, 1, 0, 0, 0);
       end = new Date(selectedYear, 11, 31, 23, 59, 59);
       label = `Tahun ${selectedYear}`;
-      rangeDesc = `1 Jan ${selectedYear} - 31 Des ${selectedYear}`;
+      rangeDesc = `1 Jan - 31 Des ${selectedYear}`;
     } else if (dateFilter === 'semua') {
       start = new Date(2020, 0, 1, 0, 0, 0);
       end = new Date(2030, 11, 31, 23, 59, 59);
@@ -153,14 +135,14 @@ export default function DashboardPage() {
     } else if (dateFilter === 'kustom') {
       start = new Date(`${customStartDate}T00:00:00`);
       end = new Date(`${customEndDate}T23:59:59`);
-      label = 'Rentang Kustom';
+      label = 'Kustom';
       rangeDesc = `${customStartDate} s/d ${customEndDate}`;
     }
 
     return { start, end, label, rangeDesc };
   }, [dateFilter, selectedMonthIndex, selectedMonthYear, selectedYear, customStartDate, customEndDate]);
 
-  // Actual filtered data across all entities
+  // Filtered Leads
   const filteredLeads = useMemo(() => {
     if (dateFilter === 'semua') return leads;
     return leads.filter((l) => {
@@ -171,16 +153,7 @@ export default function DashboardPage() {
     });
   }, [leads, periodInfo, dateFilter]);
 
-  const filteredPurchases = useMemo(() => {
-    if (dateFilter === 'semua') return purchases;
-    return purchases.filter((p) => {
-      const dStr = p.purchaseDate || p.createdAt;
-      if (!dStr) return false;
-      const d = new Date(dStr);
-      return d >= periodInfo.start && d <= periodInfo.end;
-    });
-  }, [purchases, periodInfo, dateFilter]);
-
+  // Filtered Customers
   const filteredCustomers = useMemo(() => {
     if (dateFilter === 'semua') return customers;
     return customers.filter((c) => {
@@ -191,6 +164,7 @@ export default function DashboardPage() {
     });
   }, [customers, periodInfo, dateFilter]);
 
+  // Filtered Follow-ups
   const filteredFollowUps = useMemo(() => {
     if (dateFilter === 'semua') return followUps;
     return followUps.filter((f) => {
@@ -201,96 +175,106 @@ export default function DashboardPage() {
     });
   }, [followUps, periodInfo, dateFilter]);
 
-  // Dynamic KPI Metrics
-  const periodDealsCount = useMemo(() => {
-    if (filteredPurchases.length > 0) return filteredPurchases.length;
-    return filteredLeads.filter((l) => l.status === 'Deal').length;
-  }, [filteredPurchases, filteredLeads]);
+  // 1. FITUR: STOK UNIT
+  const stocksTotal = (stocks || []).length;
+  const stocksReady = (stocks || []).filter((s) => s.status === 'Tersedia').length;
+  const stocksBooking = (stocks || []).filter((s) => s.status === 'Booking').length;
+  const stocksSold = (stocks || []).filter((s) => s.status === 'Terjual').length;
+  const readyStocksList = useMemo(() => {
+    return (stocks || []).filter((s) => s.status === 'Tersedia').slice(0, 4);
+  }, [stocks]);
 
-  const periodOmzet = useMemo(() => {
-    const pSum = filteredPurchases.reduce((acc, p) => acc + (p.purchasePrice || 0), 0);
-    if (pSum > 0) return pSum;
-    const dealLeads = filteredLeads.filter((l) => l.status === 'Deal');
-    return dealLeads.reduce((acc, l) => acc + (l.dealValue || l.estimatedBudget || 0), 0);
-  }, [filteredPurchases, filteredLeads]);
+  // 2. FITUR: DATABASE PELANGGAN
+  const totalCustomers = filteredCustomers.length;
+  const recentCustomers = useMemo(() => {
+    return (filteredCustomers.length > 0 ? filteredCustomers : customers).slice(0, 4);
+  }, [filteredCustomers, customers]);
 
-  const periodConversionRate = useMemo(() => {
-    const deals = filteredLeads.filter((l) => l.status === 'Deal').length;
-    const lost = filteredLeads.filter((l) => l.status === 'Lost').length;
-    const resolved = deals + lost;
-    if (resolved > 0) {
-      return ((deals / resolved) * 100).toFixed(1);
-    }
-    if (filteredLeads.length > 0 && deals > 0) {
-      return ((deals / filteredLeads.length) * 100).toFixed(1);
-    }
-    return '0.0';
-  }, [filteredLeads]);
-
-  // Lead Source Chart Data (Dynamic based on selected period)
-  const leadSourceData = useMemo(() => {
-    const counts: Record<string, number> = {
-      Facebook: 0,
-      Instagram: 0,
-      TikTok: 0,
-      WhatsApp: 0,
-      'Walk-in': 0,
-      Referral: 0,
-      Other: 0,
-    };
-    filteredLeads.forEach((l) => {
-      if (counts[l.leadSource] !== undefined) {
-        counts[l.leadSource]++;
-      } else {
-        counts['Other']++;
-      }
-    });
-
-    return Object.entries(counts).map(([name, total]) => ({
-      name,
-      total,
-    }));
-  }, [filteredLeads]);
-
-  // Pipeline Stage Distribution Chart Data (Dynamic based on selected period)
+  // 3. FITUR: LEADS & PIPELINE (3 Tahapan Resmi)
+  const totalLeads = filteredLeads.length;
   const pipelineDistribution = useMemo(() => {
-    const stages: CorePipelineStage[] = [
-      'Hanya Menanyakan',
-      'Negosiasi',
-      'Cek Unit',
-    ];
-
+    const stages: CorePipelineStage[] = ['Hanya Menanyakan', 'Negosiasi', 'Cek Unit'];
     const counts: Record<CorePipelineStage, number> = {
       'Hanya Menanyakan': 0,
-      'Negosiasi': 0,
+      Negosiasi: 0,
       'Cek Unit': 0,
     };
-
     filteredLeads.forEach((l) => {
       const core = normalizePipelineStage(l.status);
       counts[core] = (counts[core] || 0) + 1;
     });
-
     return stages.map((st) => ({
       stage: st,
       jumlah: counts[st] || 0,
     }));
   }, [filteredLeads]);
+  const recentLeads = useMemo(() => {
+    return (filteredLeads.length > 0 ? filteredLeads : leads).slice(0, 4);
+  }, [filteredLeads, leads]);
 
-  // Dynamic Growth Trend Data (Monthly for per-year view, Weekly for per-month view)
+  // 4. FITUR: FOLLOW-UP MANAGEMENT
+  const activeFollowUps = useMemo(() => {
+    return filteredFollowUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan');
+  }, [filteredFollowUps]);
+  const upcomingFollowUps = useMemo(() => {
+    if (activeFollowUps.length > 0) return activeFollowUps.slice(0, 4);
+    return followUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan').slice(0, 4);
+  }, [activeFollowUps, followUps]);
+
+  // 5. FITUR: GARANSI PERBAIKAN (< 1 Bulan)
+  const warrantyClaims = useMemo(() => {
+    return (repairClaims || []).filter((c) => c.claimType === 'Garansi' || !c.claimType);
+  }, [repairClaims]);
+  const filteredWarrantyClaims = useMemo(() => {
+    if (dateFilter === 'semua') return warrantyClaims;
+    return warrantyClaims.filter((c) => {
+      const dStr = c.claimDate || c.createdAt;
+      if (!dStr) return false;
+      const d = new Date(dStr);
+      return d >= periodInfo.start && d <= periodInfo.end;
+    });
+  }, [warrantyClaims, periodInfo, dateFilter]);
+  const totalWarrantyClaimsCount = filteredWarrantyClaims.length;
+  const totalWarrantyCost = useMemo(() => {
+    return filteredWarrantyClaims.reduce((acc, c) => acc + (c.totalCost || 0), 0);
+  }, [filteredWarrantyClaims]);
+
+  // Fleet Health calculation for Warranty
+  const totalSalesCount = useMemo(() => {
+    return stocksSold || (purchases || []).length || 20;
+  }, [stocksSold, purchases]);
+  const uniqueWarrantyCustomers = useMemo(() => {
+    return new Set(warrantyClaims.map((c) => (c.customerPhone || c.customerName).trim().toLowerCase())).size;
+  }, [warrantyClaims]);
+  const claimRatioPercentage = useMemo(() => {
+    if (totalSalesCount <= 0) return '0.0';
+    return ((uniqueWarrantyCustomers / totalSalesCount) * 100).toFixed(1);
+  }, [uniqueWarrantyCustomers, totalSalesCount]);
+  const fleetHealth = useMemo(() => {
+    return calculateFleetHealth(claimRatioPercentage);
+  }, [claimRatioPercentage]);
+
+  const recentWarrantyClaims = useMemo(() => {
+    return (filteredWarrantyClaims.length > 0 ? filteredWarrantyClaims : warrantyClaims).slice(0, 4);
+  }, [filteredWarrantyClaims, warrantyClaims]);
+
+  // 6. ACTIVITY LOGS FEED
+  const recentLogs = useMemo(() => {
+    return (activityLogs || []).slice(0, 4);
+  }, [activityLogs]);
+
+  // Growth Trend Chart Data
   const growthTrendData = useMemo(() => {
-    // If viewing per month, breakdown by weeks
     if (dateFilter === 'bulan_ini' || dateFilter === 'per_bulan') {
       const targetYear = dateFilter === 'bulan_ini' ? 2026 : selectedMonthYear;
       const targetMonth = dateFilter === 'bulan_ini' ? 10 : selectedMonthIndex;
       const weeks = [
-        { name: 'Mg 1 (1-7)', startDay: 1, endDay: 7 },
-        { name: 'Mg 2 (8-14)', startDay: 8, endDay: 14 },
-        { name: 'Mg 3 (15-21)', startDay: 15, endDay: 21 },
-        { name: 'Mg 4 (22-28)', startDay: 22, endDay: 28 },
-        { name: 'Mg 5 (29-31)', startDay: 29, endDay: 31 },
+        { name: 'Mg 1', startDay: 1, endDay: 7 },
+        { name: 'Mg 2', startDay: 8, endDay: 14 },
+        { name: 'Mg 3', startDay: 15, endDay: 21 },
+        { name: 'Mg 4', startDay: 22, endDay: 28 },
+        { name: 'Mg 5', startDay: 29, endDay: 31 },
       ];
-
       return weeks.map((w) => {
         const pCount = leads.filter((l) => {
           const dStr = l.dateReceived || l.createdAt;
@@ -317,14 +301,13 @@ export default function DashboardPage() {
         }).length;
 
         return {
-          bulan: w.name,
+          label: w.name,
           prospek: pCount,
           pelanggan: cCount,
         };
       });
     }
 
-    // Default: 12 months view of the selected year
     const targetYear = dateFilter === 'per_tahun' ? selectedYear : 2026;
     const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -344,115 +327,26 @@ export default function DashboardPage() {
       }).length;
 
       return {
-        bulan: lbl,
+        label: lbl,
         prospek: pCount,
         pelanggan: cCount,
       };
     });
   }, [dateFilter, selectedMonthIndex, selectedMonthYear, selectedYear, leads, customers]);
 
-  // Refined Luxury Showroom Color Palette (Gold & Charcoal tones, NO rainbow)
-  const SOURCE_COLORS = [
-    '#D99A32', // Gold Primary
-    '#F0AD45', // Warm Gold
-    '#B87E23', // Deep Gold
-    '#202020', // Charcoal Black
-    '#363636', // Charcoal Medium
-    '#666666', // Charcoal Grey
-    '#926017', // Antique Gold
-  ];
-
-  const availableStocksCount = useMemo(() => {
-    return (stocks || []).filter((s) => s.status === 'Tersedia').length;
-  }, [stocks]);
-
-  const upcomingFollowUps = useMemo(() => {
-    if (filteredFollowUps.length > 0) {
-      return filteredFollowUps.slice(0, 4);
-    }
-    return followUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan').slice(0, 4);
-  }, [filteredFollowUps, followUps]);
-
-  const recentDeals = useMemo(() => {
-    if (filteredPurchases.length > 0) return filteredPurchases.slice(0, 4);
-    return purchases.slice(0, 4);
-  }, [filteredPurchases, purchases]);
-
-  const recentLeads = useMemo(() => {
-    if (filteredLeads.length > 0) return filteredLeads.slice(0, 4);
-    return leads.slice(0, 4);
-  }, [filteredLeads, leads]);
-
-  const recentLogs = activityLogs.slice(0, 5);
-  const warrantyClaimCount = repairClaims.filter((r) => r.claimType === 'Garansi').length;
-
   return (
-    <div className="space-y-6">
-      {/* Dashboard Executive Mode Switcher: Operasional vs Reports & Analytics */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-warm-200 shadow-xs">
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 p-1 bg-warm-100 rounded-xl w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setDashboardTab('operasional');
-              if (typeof window !== 'undefined') {
-                window.history.replaceState(null, '', '/');
-              }
-            }}
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
-              dashboardTab === 'operasional'
-                ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
-                : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-white/70'
-            }`}
-          >
-            <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Operasional</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setDashboardTab('reports');
-              if (typeof window !== 'undefined') {
-                window.history.replaceState(null, '', '/?tab=reports');
-              }
-            }}
-            className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center ${
-              dashboardTab === 'reports'
-                ? 'bg-charcoal-900 text-gold-400 shadow-luxury'
-                : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-white/70'
-            }`}
-          >
-            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold-500 shrink-0" />
-            <span className="truncate">Reports & Analytics</span>
-            <span className="hidden md:inline-block px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gold-500/20 text-gold-700">
-              Lengkap
-            </span>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 text-[11px] text-charcoal-500 font-medium px-1 sm:px-2">
-          {dashboardTab === 'reports' ? (
-            <span className="truncate">Analisis eksekutif penjualan, tren bulanan, saluran promosi, dan ekspor</span>
-          ) : (
-            <span className="truncate">Ringkasan aktivitas transaksi, stok unit, dan follow-up showroom</span>
-          )}
-        </div>
-      </div>
-
-      {dashboardTab === 'reports' ? (
-        <ReportsAnalyticsView />
-      ) : (
-        <>
-          {/* Top Luxury Banner & Showroom Identity */}
-          <div className="crm-card p-6 bg-white border border-warm-200 relative overflow-hidden">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden min-w-0 box-border">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER & FILTER PERIODE (100% RESPONSIVE TANPA SCROLL SAMPING)      */}
+      {/* ========================================================================= */}
+      <div className="crm-card p-3.5 sm:p-5 bg-white border border-warm-200 relative overflow-hidden">
         {/* Subtle decorative gold light accent */}
-        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-gold-50/70 via-gold-50/20 to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-gold-50/50 via-gold-50/10 to-transparent pointer-events-none" />
 
-        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="badge-gold">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="badge-gold inline-flex items-center gap-1.5 text-[10px] sm:text-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold-500 animate-pulse" />
                 Showroom Operasional
               </span>
@@ -460,21 +354,21 @@ export default function DashboardPage() {
               <span className="text-xs text-charcoal-500 font-medium">Garut, Jawa Barat</span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 tracking-tight">
+            <h1 className="text-lg sm:text-2xl font-black text-charcoal-900 tracking-tight">
               Selamat Bertugas, {currentUser.name}
             </h1>
             <p className="text-xs text-charcoal-500 max-w-2xl leading-relaxed">
-              Monitoring performa penjualan mobil bekas, status stok unit showroom, dan manajemen relasi konsumen HR MOTOR Garut secara real-time.
+              Ringkasan operasional terpadu: stok unit, database konsumen, calon pembeli, jadwal follow-up, dan garansi perbaikan HR MOTOR.
             </p>
           </div>
 
-          {/* Date Filter Controls with Per Tahun & Per Bulan Support */}
-          <div className="flex flex-col gap-2 shrink-0 max-w-full">
-            <div className="flex items-center gap-1.5 p-1 bg-warm-100 rounded-xl border border-warm-200 overflow-x-auto max-w-full">
+          {/* Filter Periode: Menggunakan wrapping responsif agar pas di layar HP tanpa geser ke samping */}
+          <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-warm-100 rounded-xl border border-warm-200">
               <button
                 type="button"
                 onClick={() => setDateFilter('bulan_ini')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'bulan_ini'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -485,7 +379,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('per_bulan')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'per_bulan'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -496,7 +390,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('tahun_ini')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'tahun_ini'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -507,7 +401,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('per_tahun')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'per_tahun'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -517,30 +411,8 @@ export default function DashboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setDateFilter('minggu_ini')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
-                  dateFilter === 'minggu_ini'
-                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
-                    : 'text-charcoal-600 hover:text-charcoal-900'
-                }`}
-              >
-                Minggu Ini
-              </button>
-              <button
-                type="button"
-                onClick={() => setDateFilter('hari_ini')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
-                  dateFilter === 'hari_ini'
-                    ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
-                    : 'text-charcoal-600 hover:text-charcoal-900'
-                }`}
-              >
-                Hari Ini
-              </button>
-              <button
-                type="button"
                 onClick={() => setDateFilter('semua')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'semua'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -551,7 +423,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('kustom')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 ${
+                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'kustom'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -561,10 +433,10 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Sub-selector for Per Bulan */}
+            {/* Sub-selector Per Bulan */}
             {dateFilter === 'per_bulan' && (
-              <div className="flex items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs">
-                <span className="font-bold text-charcoal-700">Pilih Bulan:</span>
+              <div className="flex items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs w-full">
+                <span className="font-bold text-charcoal-700 shrink-0">Bulan:</span>
                 <select
                   value={`${selectedMonthIndex}-${selectedMonthYear}`}
                   onChange={(e) => {
@@ -572,7 +444,7 @@ export default function DashboardPage() {
                     setSelectedMonthIndex(m);
                     setSelectedMonthYear(y);
                   }}
-                  className="bg-white px-3 py-1 rounded-lg border border-warm-200 text-charcoal-900 font-bold focus:outline-none focus:border-gold-500 shadow-xs cursor-pointer"
+                  className="bg-white px-2.5 py-1 rounded-lg border border-warm-200 text-charcoal-900 font-bold focus:outline-none focus:border-gold-500 shadow-2xs w-full cursor-pointer"
                 >
                   {MONTH_OPTIONS.map((opt) => (
                     <option key={`${opt.month}-${opt.year}`} value={`${opt.month}-${opt.year}`}>
@@ -583,14 +455,14 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Sub-selector for Per Tahun */}
+            {/* Sub-selector Per Tahun */}
             {dateFilter === 'per_tahun' && (
-              <div className="flex items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs">
-                <span className="font-bold text-charcoal-700">Pilih Tahun:</span>
+              <div className="flex items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs w-full">
+                <span className="font-bold text-charcoal-700 shrink-0">Tahun:</span>
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="bg-white px-3 py-1 rounded-lg border border-warm-200 text-charcoal-900 font-bold focus:outline-none focus:border-gold-500 shadow-xs cursor-pointer"
+                  className="bg-white px-2.5 py-1 rounded-lg border border-warm-200 text-charcoal-900 font-bold focus:outline-none focus:border-gold-500 shadow-2xs w-full cursor-pointer"
                 >
                   {YEAR_OPTIONS.map((opt) => (
                     <option key={opt.year} value={opt.year}>
@@ -601,195 +473,275 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Sub-selector for Kustom Range */}
+            {/* Sub-selector Kustom */}
             {dateFilter === 'kustom' && (
-              <div className="flex flex-wrap items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs">
-                <span className="font-bold text-charcoal-700">Dari:</span>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="bg-white px-2 py-1 rounded-lg border border-warm-200 text-charcoal-900 text-xs font-mono"
-                />
-                <span className="font-bold text-charcoal-700">Sampai:</span>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  className="bg-white px-2 py-1 rounded-lg border border-warm-200 text-charcoal-900 text-xs font-mono"
-                />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-[#FAF9F5] p-2 rounded-xl border border-warm-200 text-xs w-full">
+                <div className="flex items-center gap-1.5 flex-1">
+                  <span className="font-bold text-charcoal-700 shrink-0">Dari:</span>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="bg-white px-2 py-1 rounded-lg border border-warm-200 text-charcoal-900 text-xs font-mono w-full"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 flex-1">
+                  <span className="font-bold text-charcoal-700 shrink-0">Sampai:</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="bg-white px-2 py-1 rounded-lg border border-warm-200 text-charcoal-900 text-xs font-mono w-full"
+                  />
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Active Period Info Strip */}
-        <div className="mt-4 pt-3 border-t border-warm-200 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
+        {/* Info Strip Periode Aktif */}
+        <div className="mt-3.5 pt-3 border-t border-warm-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse shrink-0" />
-            <span className="text-charcoal-500 text-xs shrink-0">Filter Aktif:</span>
-            <span className="font-bold text-charcoal-900 bg-gold-50 text-gold-800 px-2.5 py-0.5 rounded-full border border-gold-200 text-xs truncate max-w-[280px]">
+            <span className="text-charcoal-500 text-[11px] shrink-0">Periode Data:</span>
+            <span className="font-bold text-charcoal-900 bg-gold-50 text-gold-800 px-2.5 py-0.5 rounded-full border border-gold-200 text-[11px]">
               {periodInfo.label} ({periodInfo.rangeDesc})
             </span>
           </div>
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-4 text-charcoal-600 font-medium text-[11px] bg-warm-50 sm:bg-transparent p-2 sm:p-0 rounded-xl">
-            <span>Prospek: <strong className="text-charcoal-900 font-bold">{filteredLeads.length}</strong></span>
-            <span className="hidden sm:inline">•</span>
-            <span>Deal: <strong className="text-emerald-700 font-bold">{periodDealsCount}</strong></span>
-            <span className="hidden sm:inline">•</span>
-            <span className="truncate">Omzet: <strong className="text-gold-700 font-bold">{formatRupiah(periodOmzet)}</strong></span>
-            <span className="hidden sm:inline">•</span>
-            <span>Konversi: <strong className="text-charcoal-900 font-bold">{periodConversionRate}%</strong></span>
+
+          <div className="flex items-center gap-3 text-charcoal-600 font-medium text-[11px] flex-wrap">
+            <span>Stok Ready: <strong className="text-charcoal-900 font-bold">{stocksReady}</strong></span>
+            <span>•</span>
+            <span>Konsumen: <strong className="text-charcoal-900 font-bold">{totalCustomers}</strong></span>
+            <span>•</span>
+            <span>Prospek: <strong className="text-charcoal-900 font-bold">{totalLeads}</strong></span>
+            <span>•</span>
+            <span>Garansi: <strong className="text-gold-700 font-bold">{totalWarrantyClaimsCount}</strong></span>
           </div>
         </div>
       </div>
 
-      {/* 6 Key Metric Cards (Luxury Automotive Aesthetics - Connected to Filter) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
-        {/* Metric 1: Total Pelanggan */}
-        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
+      {/* ========================================================================= */}
+      {/* 2. 5 METRIK UTAMA PERSIS SESUAI 5 FITUR HR MOTOR                          */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+        {/* Fitur 1: Stok Unit */}
+        <Link
+          href="/stok-unit"
+          className="crm-card p-3 sm:p-4 flex flex-col justify-between hover:border-gold-500 hover:shadow-luxury transition-all group"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Total Pelanggan</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0">
-              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5 sm:mt-3">
-            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{filteredCustomers.length}</div>
-            <div className="text-[10px] sm:text-[11px] text-gold-700 font-semibold mt-0.5 truncate">
-              {dateFilter === 'semua' ? 'Konsumen Showroom' : 'Konsumen Periode'}
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 2: Total Prospek */}
-        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Total Prospek</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center shrink-0">
-              <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5 sm:mt-3">
-            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{filteredLeads.length}</div>
-            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
-              <span className="font-bold text-charcoal-800">
-                {filteredLeads.filter((l) => l.status !== 'Deal' && l.status !== 'Lost').length}
-              </span>{' '}
-              aktif pipeline
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 3: Stok Unit Tersedia */}
-        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Stok Unit Ready</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0">
+            <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-600 uppercase tracking-wider truncate">
+              Stok Unit Ready
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
               <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2.5 sm:mt-3">
-            <div className="text-xl sm:text-2xl font-black text-gold-600">{availableStocksCount}</div>
-            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
-              Mobil Siap Jual
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900 group-hover:text-gold-600 transition-colors">
+              {stocksReady} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Unit</span>
+            </div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
+              <span>Total: {stocksTotal} mobil</span>
+              <span className="text-gold-600 font-bold flex items-center">Buka →</span>
             </div>
           </div>
-        </div>
+        </Link>
 
-        {/* Metric 4: Total Deal */}
-        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
+        {/* Fitur 2: Database Pelanggan */}
+        <Link
+          href="/customers"
+          className="crm-card p-3 sm:p-4 flex flex-col justify-between hover:border-gold-500 hover:shadow-luxury transition-all group"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Total Deal</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
-              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5 sm:mt-3">
-            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{periodDealsCount}</div>
-            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate" title={formatRupiah(periodOmzet)}>
-              {formatRupiah(periodOmzet)}
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 5: Tingkat Konversi */}
-        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-charcoal-500 truncate">Konversi Win Rate</span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5 sm:mt-3">
-            <div className="text-xl sm:text-2xl font-black text-charcoal-900">{periodConversionRate}%</div>
-            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate">
-              {filteredLeads.filter((l) => l.status === 'Deal' || l.status === 'Lost').length} Prospek Final
-            </div>
-          </div>
-        </div>
-
-        {/* Metric 6: Follow-up Terjadwal */}
-        <div className="crm-card p-3 sm:p-4 flex flex-col justify-between bg-gold-50/50 border-gold-200">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-gold-800 truncate">
-              {dateFilter === 'hari_ini' ? 'Follow-up Hari Ini' : 'Follow-up Jadwal'}
+            <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-600 uppercase tracking-wider truncate">
+              Pelanggan
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-100 text-gold-700 border border-gold-300 flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+          </div>
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900 group-hover:text-gold-600 transition-colors">
+              {totalCustomers} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Orang</span>
+            </div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
+              <span>Database Konsumen</span>
+              <span className="text-gold-600 font-bold flex items-center">Buka →</span>
+            </div>
+          </div>
+        </Link>
+
+        {/* Fitur 3: Leads & Pipeline */}
+        <Link
+          href="/leads"
+          className="crm-card p-3 sm:p-4 flex flex-col justify-between hover:border-gold-500 hover:shadow-luxury transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-600 uppercase tracking-wider truncate">
+              Total Prospek
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-warm-100 text-charcoal-800 border border-warm-200 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
+              <GitPullRequest className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+          </div>
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900 group-hover:text-gold-600 transition-colors">
+              {totalLeads} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Calon</span>
+            </div>
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
+              <span>3 Tahap Pipeline</span>
+              <span className="text-gold-600 font-bold flex items-center">Buka →</span>
+            </div>
+          </div>
+        </Link>
+
+        {/* Fitur 4: Follow-up Management */}
+        <Link
+          href="/follow-up"
+          className="crm-card p-3 sm:p-4 flex flex-col justify-between hover:border-gold-500 hover:shadow-luxury transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-600 uppercase tracking-wider truncate">
+              Jadwal Follow-up
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-600 border border-gold-200 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
               <CalendarClock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2.5 sm:mt-3">
-            <div className="text-xl sm:text-2xl font-black text-gold-900">
-              {filteredFollowUps.filter((f) => f.status !== 'Selesai' && f.status !== 'Dibatalkan').length}
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900 group-hover:text-gold-600 transition-colors">
+              {activeFollowUps.length} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Jadwal</span>
             </div>
-            <div className="text-[10px] sm:text-[11px] text-gold-700 font-medium mt-0.5 truncate">
-              Kontak Konsumen
+            <div className="text-[10px] sm:text-[11px] text-charcoal-500 font-medium mt-0.5 truncate flex items-center justify-between">
+              <span>Kontak Konsumen</span>
+              <span className="text-gold-600 font-bold flex items-center">Buka →</span>
             </div>
           </div>
-        </div>
+        </Link>
+
+        {/* Fitur 5: Garansi Perbaikan (< 1 Bulan) - span 2 di mobile agar tampil luas & rapi */}
+        <Link
+          href="/riwayat-perbaikan"
+          className="crm-card p-3 sm:p-4 flex flex-col justify-between col-span-2 sm:col-span-1 border-l-4 border-l-gold-500 hover:border-gold-600 hover:shadow-luxury transition-all group bg-gradient-to-br from-white to-[#FAF8F3]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] font-bold text-gold-800 uppercase tracking-wider truncate flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-gold-600" />
+              Garansi Perbaikan
+            </span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-100 text-gold-700 border border-gold-300 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+          </div>
+          <div className="mt-2 sm:mt-3">
+            <div className="text-xl sm:text-2xl font-black text-charcoal-900 group-hover:text-gold-600 transition-colors">
+              {totalWarrantyClaimsCount} <span className="text-xs sm:text-sm font-bold text-charcoal-500">Klaim</span>
+            </div>
+            <div className="text-[10px] sm:text-[11px] text-emerald-700 font-bold mt-0.5 truncate flex items-center justify-between">
+              <span>Gratis &lt; 1 Bulan</span>
+              <span className="text-gold-600 font-bold flex items-center">Buka →</span>
+            </div>
+          </div>
+        </Link>
       </div>
 
-      {/* Main Charts Section (Consistent Luxury Palette) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
-        {/* Left: Customer & Lead Growth Area Chart */}
-        <div className="crm-card p-4 sm:p-5 lg:col-span-2 min-w-0">
-          <div className="flex items-center justify-between mb-4">
+      {/* ========================================================================= */}
+      {/* 3. BAGIAN VISUAL: PIPELINE 3 TAHAPAN & TREN KONSUMEN (BEBAS OVERFLOW)      */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
+        {/* Distribusi 3 Tahapan Sales Pipeline */}
+        <div className="crm-card p-3.5 sm:p-5 min-w-0 overflow-hidden">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-warm-200">
             <div>
-              <h2 className="text-sm font-bold text-charcoal-900">
-                Tren Pertumbuhan Konsumen & Prospek
+              <h2 className="text-xs sm:text-sm font-bold text-charcoal-900 flex items-center gap-1.5">
+                <GitPullRequest className="w-4 h-4 text-gold-600" />
+                <span>Distribusi 3 Tahapan Sales Pipeline</span>
               </h2>
-              <p className="text-xs text-charcoal-500">
-                Akumulasi data hubungan pelanggan showroom HR MOTOR Garut
+              <p className="text-[11px] text-charcoal-500 mt-0.5">
+                Prospek aktif showroom: Hanya Menanyakan, Negosiasi, dan Cek Unit
               </p>
             </div>
-            <span className="text-xs font-bold text-charcoal-700 bg-warm-100 border border-warm-200 px-2.5 py-1 rounded-md">
-              Bulanan
-            </span>
+            <Link
+              href="/leads"
+              className="text-[11px] font-bold text-gold-700 hover:text-gold-800 flex items-center gap-0.5 shrink-0"
+            >
+              <span>Buka Pipeline</span>
+              <ArrowUpRight className="w-3 h-3" />
+            </Link>
           </div>
 
-          <div className="h-56 sm:h-64 w-full min-w-0">
+          <div className="h-48 sm:h-56 w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={growthTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorProspek" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D99A32" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#D99A32" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="colorPelanggan" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#202020" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#202020" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
+              <BarChart data={pipelineDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EAE8E3" />
-                <XAxis dataKey="bulan" tick={{ fontSize: 11, fill: '#666666' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#666666' }} />
+                <XAxis dataKey="stage" tick={{ fontSize: 10, fill: '#666666' }} />
+                <YAxis tick={{ fontSize: 10, fill: '#666666' }} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#FFFFFF',
                     borderColor: '#EAE8E3',
                     borderRadius: '8px',
-                    fontSize: '12px',
+                    fontSize: '11px',
+                    boxShadow: '0 4px 12px rgba(32,32,32,0.08)',
+                  }}
+                />
+                <Bar dataKey="jumlah" fill="#D99A32" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Quick breakdown pills */}
+          <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-warm-200 text-center">
+            {pipelineDistribution.map((item) => (
+              <div key={item.stage} className="p-1.5 bg-warm-50 rounded-lg border border-warm-200">
+                <span className="text-[10px] text-charcoal-500 block truncate">{item.stage}</span>
+                <span className="text-xs sm:text-sm font-black text-charcoal-900">{item.jumlah}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tren Konsumen & Prospek */}
+        <div className="crm-card p-3.5 sm:p-5 min-w-0 overflow-hidden">
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-warm-200">
+            <div>
+              <h2 className="text-xs sm:text-sm font-bold text-charcoal-900 flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-gold-600" />
+                <span>Tren Pertumbuhan Konsumen &amp; Prospek</span>
+              </h2>
+              <p className="text-[11px] text-charcoal-500 mt-0.5">
+                Perkembangan data relasi showroom HR MOTOR
+              </p>
+            </div>
+            <span className="text-[10px] font-bold text-charcoal-700 bg-warm-100 border border-warm-200 px-2 py-0.5 rounded shrink-0">
+              {periodInfo.label}
+            </span>
+          </div>
+
+          <div className="h-48 sm:h-56 w-full min-w-0 overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="prospekGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D99A32" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#D99A32" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="pelangganGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#202020" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#202020" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#EAE8E3" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#666666' }} />
+                <YAxis tick={{ fontSize: 10, fill: '#666666' }} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#EAE8E3',
+                    borderRadius: '8px',
+                    fontSize: '11px',
                     boxShadow: '0 4px 12px rgba(32,32,32,0.08)',
                   }}
                 />
@@ -798,9 +750,9 @@ export default function DashboardPage() {
                   dataKey="prospek"
                   name="Prospek"
                   stroke="#D99A32"
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                   fillOpacity={1}
-                  fill="url(#colorProspek)"
+                  fill="url(#prospekGrad)"
                 />
                 <Area
                   type="monotone"
@@ -809,309 +761,380 @@ export default function DashboardPage() {
                   stroke="#202020"
                   strokeWidth={2}
                   fillOpacity={1}
-                  fill="url(#colorPelanggan)"
+                  fill="url(#pelangganGrad)"
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
 
-        {/* Right: Lead Source Distribution (Clean Monochromatic Gold/Charcoal Pie) */}
-        <div className="crm-card p-4 sm:p-5 min-w-0">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold text-charcoal-900">Saluran Masuk Calon Pembeli</h2>
-              <p className="text-xs text-charcoal-500">Distribusi asal prospek showroom</p>
+          <div className="flex items-center justify-center gap-4 mt-2 pt-2 border-t border-warm-200 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-gold-500" />
+              <span className="text-[11px] text-charcoal-600 font-medium">Prospek Masuk</span>
             </div>
-          </div>
-
-          <div className="h-56 sm:h-64 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={leadSourceData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  dataKey="total"
-                >
-                  {leadSourceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={SOURCE_COLORS[index % SOURCE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    borderColor: '#EAE8E3',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    boxShadow: '0 4px 12px rgba(32,32,32,0.08)',
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-warm-200">
-            {leadSourceData.slice(0, 4).map((item, idx) => (
-              <div key={item.name} className="flex items-center gap-2 text-[11px]">
-                <span
-                  className="w-2.5 h-2.5 rounded-xs shrink-0"
-                  style={{ backgroundColor: SOURCE_COLORS[idx % SOURCE_COLORS.length] }}
-                />
-                <span className="text-charcoal-600 truncate">{item.name}</span>
-                <span className="font-bold text-charcoal-900 ml-auto">{item.total}</span>
-              </div>
-            ))}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-charcoal-900" />
+              <span className="text-[11px] text-charcoal-600 font-medium">Pelanggan Terdaftar</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Secondary Chart & Pipeline Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
-        {/* Pipeline Stage Distribution */}
-        <div className="crm-card p-4 sm:p-5 lg:col-span-2 min-w-0">
-          <div className="flex items-center justify-between mb-4">
+      {/* ========================================================================= */}
+      {/* 4. BANNER KESEHATAN ARMADA & GARANSI PERBAIKAN HR MOTOR                   */}
+      {/* ========================================================================= */}
+      <div className="crm-card p-3.5 sm:p-5 bg-gradient-to-r from-[#172018] via-[#1B221C] to-[#141414] text-white border border-emerald-500/40 relative overflow-hidden shadow-luxury">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
             <div>
-              <h2 className="text-sm font-bold text-charcoal-900">
-                Distribusi Tahapan Sales Pipeline
-              </h2>
-              <p className="text-xs text-charcoal-500">
-                Sebaran prospek aktif pada tiap proses tawar menawar showroom
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-gold-400" />
+                  Kesehatan Armada Showroom
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {fleetHealth.grade}
+                </span>
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-white mt-0.5 tracking-tight">
+                {fleetHealth.healthPercentage}% Armada Mobil Bebas Kendala Garansi
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Garansi perbaikan gratis (&lt; 1 bulan sejak pembelian) ke bengkel rekanan rujukan HR MOTOR Garut. 100% biaya perbaikan ditanggung oleh pihak showroom.
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-white/10">
+            <div className="text-left md:text-right pr-2">
+              <div className="text-[10px] text-slate-400 uppercase font-bold">Biaya Ditanggung Showroom</div>
+              <div className="text-sm sm:text-base font-black text-gold-400">{formatRupiah(totalWarrantyCost)}</div>
+            </div>
             <Link
-              href="/pipeline"
-              className="text-xs font-bold text-gold-700 hover:text-gold-800 flex items-center gap-1"
+              href="/riwayat-perbaikan"
+              className="btn-gold px-3.5 py-2 text-xs font-bold inline-flex items-center gap-1 shrink-0 shadow-md"
             >
-              <span>Buka Kanban</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Detail Garansi</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-
-          <div className="h-56 sm:h-60 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={pipelineDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#EAE8E3" />
-                <XAxis dataKey="stage" tick={{ fontSize: 11, fill: '#666666' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#666666' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    borderColor: '#EAE8E3',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    boxShadow: '0 4px 12px rgba(32,32,32,0.08)',
-                  }}
-                />
-                <Bar dataKey="jumlah" fill="#D99A32" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
         </div>
+      </div>
 
-        {/* Quick Stock Status Card */}
-        <div className="crm-card p-4 sm:p-5 flex flex-col justify-between">
+      {/* ========================================================================= */}
+      {/* 5. 5 DAFTAR AKTIVITAS FITUR RESMI (VERTIKAL TERTATA DI HP, GRID DI LAPTOP)*/}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Kolom 1: Prospek Terbaru (Fitur Leads) */}
+        <div className="crm-card p-3.5 sm:p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-warm-200">
+            <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
               <div className="flex items-center gap-2">
-                <Car className="w-4 h-4 text-gold-600" />
-                <h3 className="text-xs font-bold text-charcoal-900">Ringkasan Stok Showroom</h3>
+                <GitPullRequest className="w-4 h-4 text-gold-600" />
+                <h3 className="text-xs font-bold text-charcoal-900">Prospek Terbaru</h3>
               </div>
-              <Link href="/stok-unit" className="text-[11px] font-bold text-gold-700 hover:underline">
-                Lihat Semua
+              <Link href="/leads" className="text-[11px] font-bold text-gold-700 hover:underline">
+                Semua ({leads.length}) →
               </Link>
             </div>
 
-            <div className="space-y-2.5 mt-3">
-              <div className="flex items-center justify-between p-2.5 bg-warm-50 rounded-xl border border-warm-200">
-                <span className="text-xs font-semibold text-charcoal-700">Unit Tersedia (Ready)</span>
-                <span className="badge-gold font-bold">{availableStocksCount} Mobil</span>
-              </div>
+            <div className="divide-y divide-warm-200 mt-1">
+              {recentLeads.length === 0 ? (
+                <p className="text-xs text-charcoal-400 py-3 text-center">Belum ada prospek</p>
+              ) : (
+                recentLeads.map((lead) => (
+                  <div key={lead.id} className="py-2.5 first:pt-1">
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-charcoal-900 truncate">{lead.customerName}</p>
+                        <p className="text-[11px] text-charcoal-500 truncate">{lead.interestedVehicle || 'Minat Unit'}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-warm-100 border border-warm-200 text-charcoal-700">
+                            {normalizePipelineStage(lead.status)}
+                          </span>
+                        </div>
+                      </div>
 
-              <div className="flex items-center justify-between p-2.5 bg-warm-50 rounded-xl border border-warm-200">
-                <span className="text-xs font-semibold text-charcoal-700">Unit Terjual (Sold)</span>
-                <span className="badge-charcoal font-bold">
-                  {(stocks || []).filter((s) => s.status === 'Terjual').length} Mobil
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 bg-warm-50 rounded-xl border border-warm-200">
-                <span className="text-xs font-semibold text-charcoal-700">Dalam Perawatan / Salon</span>
-                <span className="text-xs font-bold text-charcoal-600">
-                  {(stocks || []).filter((s) => s.status === 'Tidak Aktif').length} Unit
-                </span>
-              </div>
+                      <a
+                        href={formatWhatsAppLink(
+                          lead.contactNumber || lead.customerPhone || '',
+                          `Halo Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut.`
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shrink-0"
+                        title="Chat WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-warm-200">
+          <div className="mt-3 pt-2.5 border-t border-warm-200">
             <Link
-              href="/stok-unit"
-              className="btn-outline-warm w-full flex items-center justify-center gap-1.5 text-xs font-bold"
+              href="/leads"
+              className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
             >
-              <Car className="w-3.5 h-3.5" />
-              Kelola Manajemen Stok Unit
+              <span>Kelola Prospek &amp; Pipeline</span>
+              <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
-      </div>
 
-      {/* 4 Bottom Information Columns (Enterprise Tables & Feeds) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Column 1: Prospek Terbaru */}
-        <div className="crm-card p-4 flex flex-col">
-          <div className="flex items-center justify-between pb-3 border-b border-warm-200">
-            <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 text-gold-600" />
-              <h3 className="text-xs font-bold text-charcoal-900">Prospek Terbaru</h3>
+        {/* Kolom 2: Jadwal Follow-up (Fitur Follow-up) */}
+        <div className="crm-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="w-4 h-4 text-gold-600" />
+                <h3 className="text-xs font-bold text-charcoal-900">Jadwal Follow-up</h3>
+              </div>
+              <Link href="/follow-up" className="text-[11px] font-bold text-gold-700 hover:underline">
+                Kelola ({activeFollowUps.length}) →
+              </Link>
             </div>
-            <Link href="/leads" className="text-[11px] font-bold text-gold-700 hover:underline">
-              Semua
-            </Link>
-          </div>
 
-          <div className="flex-1 divide-y divide-warm-200 mt-2">
-            {recentLeads.map((lead) => (
-              <div key={lead.id} className="py-2.5 first:pt-1">
-                <div className="flex items-start justify-between gap-1">
-                  <div>
-                    <p className="text-xs font-bold text-charcoal-900">{lead.customerName}</p>
-                    <p className="text-[11px] text-charcoal-500 truncate max-w-[170px]">
-                      {lead.interestedVehicle}
+            <div className="divide-y divide-warm-200 mt-1">
+              {upcomingFollowUps.length === 0 ? (
+                <p className="text-xs text-charcoal-400 py-3 text-center">Tidak ada jadwal tertunda</p>
+              ) : (
+                upcomingFollowUps.map((flw) => (
+                  <div key={flw.id} className="py-2.5 first:pt-1">
+                    <p className="text-xs font-bold text-charcoal-900 truncate">{flw.customerName}</p>
+                    <p className="text-[11px] text-charcoal-500 truncate mt-0.5">
+                      {flw.category || flw.vehicleInfo || 'Follow-up showroom'}
                     </p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-warm-100 border border-warm-200 text-charcoal-600">
-                        {lead.leadSource}
-                      </span>
-                      <span className="text-[10px] text-charcoal-400">
-                        {lead.status}
-                      </span>
+                    <div className="flex items-center gap-2 text-[10px] text-charcoal-500 mt-1">
+                      <Clock className="w-3 h-3 text-gold-600 shrink-0" />
+                      <span>{formatDate(flw.scheduledDate)} ({flw.scheduledTime || '09:00'} WIB)</span>
                     </div>
                   </div>
+                ))
+              )}
+            </div>
+          </div>
 
-                  <a
-                    href={formatWhatsAppLink(
-                      lead.contactNumber || lead.customerPhone || '',
-                      `Halo Bapak/Ibu ${lead.customerName}, salam dari HR MOTOR Garut terkait minat Anda pada unit ${lead.interestedVehicle}.`
-                    )}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
-                    title="Hubungi WhatsApp"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            ))}
+          <div className="mt-3 pt-2.5 border-t border-warm-200">
+            <Link
+              href="/follow-up"
+              className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
+            >
+              <span>Buka Follow-up Management</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
-        {/* Column 2: Jadwal Follow-up */}
-        <div className="crm-card p-4 flex flex-col">
-          <div className="flex items-center justify-between pb-3 border-b border-warm-200">
-            <div className="flex items-center gap-2">
-              <CalendarClock className="w-4 h-4 text-gold-600" />
-              <h3 className="text-xs font-bold text-charcoal-900">Jadwal Follow-up</h3>
+        {/* Kolom 3: Garansi Perbaikan Terbaru (Fitur Garansi) */}
+        <div className="crm-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-gold-600" />
+                <h3 className="text-xs font-bold text-charcoal-900">Klaim Garansi Terbaru</h3>
+              </div>
+              <Link href="/riwayat-perbaikan" className="text-[11px] font-bold text-gold-700 hover:underline">
+                Semua ({warrantyClaims.length}) →
+              </Link>
             </div>
-            <Link href="/follow-up" className="text-[11px] font-bold text-gold-700 hover:underline">
-              Kelola
-            </Link>
-          </div>
 
-          <div className="flex-1 divide-y divide-warm-200 mt-2">
-            {upcomingFollowUps.map((flw) => (
-              <div key={flw.id} className="py-2.5 first:pt-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-charcoal-900">{flw.customerName}</p>
-                    <p className="text-[11px] text-charcoal-500 line-clamp-1 mt-0.5">
-                      {flw.category || flw.vehicleInfo}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] text-charcoal-400 mt-1">
-                      <Clock className="w-3 h-3 text-gold-600" />
-                      <span>{flw.scheduledDate} ({flw.scheduledTime || '09:00'} WIB)</span>
+            <div className="divide-y divide-warm-200 mt-1">
+              {recentWarrantyClaims.length === 0 ? (
+                <p className="text-xs text-charcoal-400 py-3 text-center">Belum ada klaim garansi</p>
+              ) : (
+                recentWarrantyClaims.map((claim) => (
+                  <div key={claim.id} className="py-2.5 first:pt-1">
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-charcoal-900 truncate">
+                          {claim.vehicleBrand} {claim.vehicleModel}
+                        </p>
+                        <p className="text-[11px] text-charcoal-500 truncate">
+                          {claim.customerName} • {claim.damageCategory}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-bold text-emerald-700">
+                            {formatRupiah(claim.totalCost)} (Gratis)
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">
+                            {claim.status || 'Selesai'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-warm-200">
+            <Link
+              href="/riwayat-perbaikan"
+              className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
+            >
+              <span>Kelola Garansi Perbaikan</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
-        {/* Column 3: Deal Sukses Terbaru */}
-        <div className="crm-card p-4 flex flex-col">
-          <div className="flex items-center justify-between pb-3 border-b border-warm-200">
-            <div className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-gold-600" />
-              <h3 className="text-xs font-bold text-charcoal-900">Deal Sukses Showroom</h3>
-            </div>
-            <Link href="/riwayat-perbaikan" className="text-[11px] font-bold text-gold-700 hover:underline">
-              Riwayat Garansi
-            </Link>
-          </div>
-
-          <div className="flex-1 divide-y divide-warm-200 mt-2">
-            {recentDeals.map((deal) => (
-              <div key={deal.id} className="py-2.5 first:pt-1">
-                <p className="text-xs font-bold text-charcoal-900">
-                  {deal.vehicleBrand} {deal.vehicleModel}
-                </p>
-                <p className="text-[11px] text-charcoal-500">
-                  Konsumen: <span className="font-semibold text-charcoal-800">{deal.customerName}</span>
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] font-bold text-gold-700">
-                    {formatRupiah(deal.purchasePrice)}
-                  </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-warm-100 border border-warm-200 font-semibold text-charcoal-700">
-                    {deal.plateNumber}
-                  </span>
-                </div>
+        {/* Kolom 4: Stok Unit Siap Jual (Fitur Stok Unit) */}
+        <div className="crm-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
+              <div className="flex items-center gap-2">
+                <Car className="w-4 h-4 text-gold-600" />
+                <h3 className="text-xs font-bold text-charcoal-900">Unit Siap Jual (Ready)</h3>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Column 4: Audit Activity Logs */}
-        <div className="crm-card p-4 flex flex-col">
-          <div className="flex items-center justify-between pb-3 border-b border-warm-200">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-charcoal-600" />
-              <h3 className="text-xs font-bold text-charcoal-900">Aktivitas Terkini</h3>
+              <Link href="/stok-unit" className="text-[11px] font-bold text-gold-700 hover:underline">
+                Stok ({stocksReady}) →
+              </Link>
             </div>
-            <Link href="/activity-logs" className="text-[11px] font-bold text-gold-700 hover:underline">
-              Audit Log
-            </Link>
-          </div>
 
-          <div className="flex-1 divide-y divide-warm-200 mt-2">
-            {recentLogs.map((log) => (
-              <div key={log.id} className="py-2 first:pt-1">
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gold-500 mt-1.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold text-charcoal-900 leading-tight">
-                      {log.action}
-                    </p>
-                    <p className="text-[10px] text-charcoal-500 truncate mt-0.5">
-                      {log.details}
-                    </p>
-                    <span className="text-[9px] text-charcoal-400 mt-0.5 block">
-                      Oleh: {log.userName}
+            <div className="divide-y divide-warm-200 mt-1">
+              {readyStocksList.map((stk) => (
+                <div key={stk.id} className="py-2.5 first:pt-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-charcoal-900 truncate">
+                        {stk.brand} {stk.model} ({stk.year})
+                      </p>
+                      <p className="text-[10px] text-charcoal-500">
+                        {stk.transmission} • {stk.color}
+                      </p>
+                    </div>
+                    <span className="text-xs font-black text-gold-600">
+                      {formatRupiah(stk.price)}
                     </span>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-warm-200">
+            <Link
+              href="/stok-unit"
+              className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
+            >
+              <span>Kelola Seluruh Stok Unit</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Kolom 5: Pelanggan Showroom Terbaru (Fitur Database Pelanggan) */}
+        <div className="crm-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-gold-600" />
+                <h3 className="text-xs font-bold text-charcoal-900">Pelanggan Showroom</h3>
               </div>
-            ))}
+              <Link href="/customers" className="text-[11px] font-bold text-gold-700 hover:underline">
+                Semua ({customers.length}) →
+              </Link>
+            </div>
+
+            <div className="divide-y divide-warm-200 mt-1">
+              {recentCustomers.map((cust) => (
+                <div key={cust.id} className="py-2.5 first:pt-1">
+                  <div className="flex items-start justify-between gap-1">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-charcoal-900 truncate">{cust.fullName}</p>
+                      <p className="text-[11px] text-charcoal-500 truncate">
+                        {cust.interestedVehicle || 'Pelanggan Showroom'}
+                      </p>
+                      <span className="text-[10px] text-charcoal-400 block mt-0.5">
+                        {cust.district || 'Tarogong Kidul, Garut'}
+                      </span>
+                    </div>
+
+                    {cust.whatsapp && (
+                      <a
+                        href={formatWhatsAppLink(
+                          cust.whatsapp,
+                          `Halo Bapak/Ibu ${cust.fullName}, salam dari HR MOTOR Garut.`
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shrink-0"
+                        title="Chat WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-warm-200">
+            <Link
+              href="/customers"
+              className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
+            >
+              <span>Buka Database Pelanggan</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Kolom 6: Aktivitas Karyawan Terkini (Activity Logs) */}
+        <div className="crm-card p-3.5 sm:p-4 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-2.5 border-b border-warm-200">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-charcoal-600" />
+                <h3 className="text-xs font-bold text-charcoal-900">Aktivitas Terkini</h3>
+              </div>
+              <Link href="/activity-logs" className="text-[11px] font-bold text-gold-700 hover:underline">
+                Audit Log →
+              </Link>
+            </div>
+
+            <div className="divide-y divide-warm-200 mt-1">
+              {recentLogs.map((log) => (
+                <div key={log.id} className="py-2 first:pt-1">
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gold-500 mt-1.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-bold text-charcoal-900 leading-tight">
+                        {log.action}
+                      </p>
+                      <p className="text-[10px] text-charcoal-500 truncate mt-0.5">
+                        {log.details}
+                      </p>
+                      <span className="text-[9px] text-charcoal-400 mt-0.5 block">
+                        Oleh: {log.userName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-warm-200">
+            <Link
+              href="/activity-logs"
+              className="text-xs font-bold text-charcoal-700 hover:text-gold-700 flex items-center justify-between"
+            >
+              <span>Lihat Seluruh Log Aktivitas</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>
-        </>
-      )}
     </div>
   );
 }
