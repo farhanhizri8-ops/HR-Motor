@@ -70,6 +70,7 @@ export default function StokUnitPage() {
     deleteStock,
     formatRupiah,
     formatDate,
+    formatWhatsAppLink,
   } = useCrm();
 
   // Search, Filter, Sort States
@@ -82,6 +83,7 @@ export default function StokUnitPage() {
   const [filterPriceMin, setFilterPriceMin] = useState<string>('');
   const [filterPriceMax, setFilterPriceMax] = useState<string>('');
   const [sortBy, setSortBy] = useState<'no_asc' | 'price_asc' | 'price_desc' | 'year_desc' | 'odo_asc'>('no_asc');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -606,59 +608,60 @@ export default function StokUnitPage() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl lg:text-2xl font-black tracking-tight text-charcoal-900">
-                  Manajemen Stok Unit Showroom
+                  Stok Unit Kendaraan
                 </h1>
                 <span className="badge-gold">
-                  Showroom HR MOTOR Garut
+                  HR MOTOR Garut
                 </span>
               </div>
               <p className="text-xs text-charcoal-500 mt-0.5">
-                Katalog digital resmi inventaris mobil ready: data lengkap 32 unit, paket kredit DP & tenor (35x, 47x, 59x), serta legalitas unit bergaransi 100%.
+                Katalog digital resmi inventaris mobil showroom: {dashboardStats.total} total armada, {dashboardStats.tersedia} ready test drive.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
+        {/* Action Buttons: Responsive for Mobile & Desktop */}
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <button
+            onClick={handleOpenAdd}
+            className="flex-1 sm:flex-initial btn-gold inline-flex items-center justify-center gap-1.5 text-xs py-2.5 px-4 shadow-sm cursor-pointer"
+          >
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>+ Tambah Unit Baru</span>
+          </button>
+
           <button
             onClick={() => setShowCreditCalculatorModal(true)}
-            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2"
+            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2.5 px-3 cursor-pointer"
             title="Kalkulator Simulasi Kredit Showroom"
           >
             <Calculator className="w-4 h-4 text-gold-600 shrink-0" />
-            <span className="truncate">Kalkulator Kredit</span>
+            <span className="hidden sm:inline">Kalkulator</span>
           </button>
 
           <button
             onClick={handleExportExcel}
-            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2 text-emerald-800"
+            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2.5 px-3 text-emerald-800 cursor-pointer"
             title="Ekspor Format Spreadsheet Excel"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="truncate">Unduh Excel</span>
+            <span className="hidden sm:inline">Excel</span>
           </button>
 
           <button
             onClick={handleExportPDF}
-            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2 text-rose-800"
+            className="btn-outline-warm inline-flex items-center justify-center gap-1.5 text-xs py-2.5 px-3 text-rose-800 cursor-pointer"
             title="Unduh Katalog PDF"
           >
             <Download className="w-4 h-4 text-rose-600 shrink-0" />
-            <span className="truncate">Unduh PDF</span>
-          </button>
-
-          <button
-            onClick={handleOpenAdd}
-            className="btn-gold inline-flex items-center justify-center gap-1.5 text-xs py-2 shadow-sm col-span-2 sm:col-span-1"
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            <span>Tambah Unit</span>
+            <span className="hidden sm:inline">PDF</span>
           </button>
         </div>
       </div>
 
-      {/* DASHBOARD RINGKASAN STOK UNIT (4 KPI Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* DASHBOARD RINGKASAN STOK UNIT (Desktop 4 Cards) */}
+      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Unit */}
         <div className="crm-card p-3 sm:p-4">
           <div className="flex items-center justify-between text-charcoal-500 mb-1.5 sm:mb-2">
@@ -708,39 +711,110 @@ export default function StokUnitPage() {
         </div>
       </div>
 
+      {/* QUICK STATUS PILL BAR FOR MOBILE (1-Tap Filter, Rapi & Tidak Makan Layar) */}
+      <div className="sm:hidden crm-card p-1.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-2xl grid grid-cols-4 gap-1 text-center shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setFilterStatus('Semua')}
+          className={`py-2 px-1 rounded-xl transition-all cursor-pointer ${
+            filterStatus === 'Semua'
+              ? 'bg-charcoal-900 text-gold-400 font-bold shadow-xs'
+              : 'text-charcoal-600 hover:text-charcoal-900'
+          }`}
+        >
+          <span className="text-[10px] block opacity-80 uppercase tracking-wider">Semua</span>
+          <span className="text-sm font-black">{dashboardStats.total}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilterStatus('Tersedia')}
+          className={`py-2 px-1 rounded-xl transition-all cursor-pointer ${
+            filterStatus === 'Tersedia'
+              ? 'bg-emerald-600 text-white font-bold shadow-xs'
+              : 'text-emerald-800 hover:text-emerald-950'
+          }`}
+        >
+          <span className="text-[10px] block opacity-90 uppercase tracking-wider">Ready</span>
+          <span className="text-sm font-black text-emerald-600">{dashboardStats.tersedia}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilterStatus('Booking')}
+          className={`py-2 px-1 rounded-xl transition-all cursor-pointer ${
+            filterStatus === 'Booking'
+              ? 'bg-amber-500 text-charcoal-950 font-bold shadow-xs'
+              : 'text-amber-800 hover:text-amber-950'
+          }`}
+        >
+          <span className="text-[10px] block opacity-90 uppercase tracking-wider">Boking</span>
+          <span className="text-sm font-black text-amber-700">{dashboardStats.booking}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setFilterStatus('Terjual')}
+          className={`py-2 px-1 rounded-xl transition-all cursor-pointer ${
+            filterStatus === 'Terjual'
+              ? 'bg-charcoal-800 text-white font-bold shadow-xs'
+              : 'text-charcoal-500 hover:text-charcoal-800'
+          }`}
+        >
+          <span className="text-[10px] block opacity-80 uppercase tracking-wider">Sold</span>
+          <span className="text-sm font-black text-charcoal-700">{dashboardStats.terjual}</span>
+        </button>
+      </div>
+
       {/* FILTER & PENCARIAN MODERN */}
       <div className="crm-card p-3.5 sm:p-4 space-y-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Search bar */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400" />
-            <input
-              type="text"
-              placeholder="Cari unit: misal 'Ayla', 'Brio', 'Pajero', 'Z 1083 NV', 'Abu-Abu', 'Kuning'..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-8 py-2 text-xs bg-warm-50 border border-warm-200 rounded-lg text-charcoal-900 focus:outline-none focus:border-gold-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+          {/* Search bar with quick filter toggle for mobile */}
+          <div className="flex items-center gap-2 flex-1">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400" />
+              <input
+                type="text"
+                placeholder="Cari unit: 'Ayla', 'Brio', 'Pajero', 'Z 1083 NV', 'Abu-Abu'..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-8 py-2 text-xs bg-warm-50 border border-warm-200 rounded-xl text-charcoal-900 focus:outline-none focus:border-gold-500 font-medium"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Filter Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className={`sm:hidden p-2 rounded-xl border text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer ${
+                showMobileFilters || filterYearMin || filterYearMax || filterPriceMax || filterCreditOnly
+                  ? 'bg-gold-500 text-charcoal-950 border-gold-600'
+                  : 'bg-warm-50 border-warm-200 text-charcoal-700'
+              }`}
+              title="Filter Lanjutan"
+            >
+              <Filter className="w-4 h-4" />
+            </button>
           </div>
 
-          {/* Quick Filter Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Quick Filter Pills (Brand + Promo Kredit) */}
+          <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto pb-1 sm:pb-0">
             {/* Brand Pills */}
-            <div className="flex items-center bg-warm-100 p-1 rounded-lg gap-1 text-xs overflow-x-auto max-w-full pb-0.5 sm:pb-0">
+            <div className="flex items-center bg-warm-100 p-1 rounded-xl gap-1 text-xs shrink-0">
               {COMMON_BRANDS.map((brand) => (
                 <button
                   key={brand}
                   type="button"
                   onClick={() => setFilterBrand(brand)}
-                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all shrink-0 ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
                     filterBrand === brand
                       ? 'bg-charcoal-900 text-gold-400 shadow-xs'
                       : 'text-charcoal-600 hover:text-charcoal-900'
@@ -754,7 +828,7 @@ export default function StokUnitPage() {
             {/* Filter Paket Kredit Only */}
             <button
               onClick={() => setFilterCreditOnly(!filterCreditOnly)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterCreditOnly
                   ? 'bg-gold-500 text-charcoal-950 border-gold-600 shadow-xs'
                   : 'bg-warm-50 text-charcoal-700 border-warm-200 hover:border-gold-400'
@@ -766,18 +840,18 @@ export default function StokUnitPage() {
           </div>
         </div>
 
-        {/* Secondary filters row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-warm-200/80 text-xs">
+        {/* Secondary filters row (collapsible on mobile, inline on desktop) */}
+        <div className={`${showMobileFilters ? 'flex' : 'hidden sm:flex'} flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-warm-200/80 text-xs`}>
           <div className="flex flex-wrap items-center gap-2 text-charcoal-500">
             <span className="flex items-center gap-1 font-semibold text-charcoal-700">
-              <Filter className="w-3.5 h-3.5 text-gold-600" /> Filter:
+              <Filter className="w-3.5 h-3.5 text-gold-600" /> Filter Lanjutan:
             </span>
 
-            {/* Filter Status */}
+            {/* Filter Status (Desktop) */}
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-2.5 py-1 bg-warm-50 border border-warm-200 rounded-lg text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
+              className="px-2.5 py-1.5 bg-warm-50 border border-warm-200 rounded-xl text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
             >
               <option value="Semua">Semua Status ({stocks.length})</option>
               <option value="Tersedia">Ready Showroom ({dashboardStats.tersedia})</option>
@@ -786,7 +860,7 @@ export default function StokUnitPage() {
             </select>
 
             {/* Tahun */}
-            <div className="flex items-center gap-1 bg-warm-50 px-2 py-1 rounded-lg border border-warm-200">
+            <div className="flex items-center gap-1 bg-warm-50 px-2 py-1 rounded-xl border border-warm-200">
               <span className="text-[11px] text-charcoal-500">Tahun:</span>
               <input
                 type="number"
@@ -806,7 +880,7 @@ export default function StokUnitPage() {
             </div>
 
             {/* Harga */}
-            <div className="flex items-center gap-1 bg-warm-50 px-2 py-1 rounded-lg border border-warm-200">
+            <div className="flex items-center gap-1 bg-warm-50 px-2 py-1 rounded-xl border border-warm-200">
               <span className="text-[11px] text-charcoal-500">Harga Max (Jt):</span>
               <input
                 type="number"
@@ -835,7 +909,7 @@ export default function StokUnitPage() {
                   setFilterPriceMin('');
                   setFilterPriceMax('');
                 }}
-                className="text-gold-700 hover:text-gold-800 font-bold underline px-1 text-xs"
+                className="text-gold-700 hover:text-gold-800 font-bold underline px-1 text-xs cursor-pointer"
               >
                 Reset Filter
               </button>
@@ -850,7 +924,7 @@ export default function StokUnitPage() {
             <select
               value={sortBy}
               onChange={(e: any) => setSortBy(e.target.value)}
-              className="px-2.5 py-1 bg-warm-50 border border-warm-200 rounded-lg text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
+              className="px-2.5 py-1.5 bg-warm-50 border border-warm-200 rounded-xl text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
             >
               <option value="no_asc">No. Urut Showroom (1-32)</option>
               <option value="price_asc">Harga Termurah</option>
@@ -1117,13 +1191,31 @@ export default function StokUnitPage() {
             </table>
           </div>
 
-          {/* MOBILE CARD-TABLE VIEW (HP) - Rapi, pas layar, tanpa perlu geser-geser */}
-          <div className="md:hidden divide-y divide-warm-200">
+          {/* MOBILE CARD STREAM (HP) - Rapi, visual, estetik showroom, pas di layar HP */}
+          <div className="md:hidden p-3 space-y-3 bg-warm-50/50">
             {filteredStocks.length === 0 ? (
-              <div className="p-8 text-center text-charcoal-400">
-                <Car className="w-10 h-10 mx-auto text-charcoal-300 mb-2 stroke-[1.5]" />
-                <p className="text-sm font-bold text-charcoal-800">Tidak ada unit kendaraan</p>
-                <p className="text-xs text-charcoal-500 mt-0.5">Sesuaikan filter atau kata kunci pencarian.</p>
+              <div className="py-12 px-4 text-center bg-white rounded-2xl border border-warm-200/80 shadow-xs">
+                <Car className="w-12 h-12 mx-auto text-warm-400 mb-2 stroke-[1.5]" />
+                <p className="text-sm font-bold text-charcoal-900">Unit Tidak Ditemukan</p>
+                <p className="text-xs text-charcoal-500 mt-1 max-w-xs mx-auto">
+                  Tidak ada mobil yang sesuai dengan filter atau kata kunci pencarian.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterBrand('Semua');
+                    setFilterStatus('Semua');
+                    setFilterCreditOnly(false);
+                    setFilterYearMin('');
+                    setFilterYearMax('');
+                    setFilterPriceMin('');
+                    setFilterPriceMax('');
+                  }}
+                  className="mt-3 px-3 py-1.5 rounded-xl bg-warm-100 hover:bg-warm-200 text-charcoal-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Reset Semua Filter
+                </button>
               </div>
             ) : (
               filteredStocks.map((stock, idx) => {
@@ -1135,146 +1227,210 @@ export default function StokUnitPage() {
                   label: stock.color,
                 };
 
+                const carPhoto = (stock.photos && stock.photos.length > 0 && stock.photos[0]) || 
+                                 (stock.images && stock.images.length > 0 && stock.images[0]) || null;
+
+                const shareText = `*HR MOTOR GARUT - STOK UNIT RESMI*
+*Unit*: ${stock.brand} ${stock.model} (${stock.year})
+*Warna*: ${stock.color}
+*Transmisi*: ${stock.transmission} | ${stock.fuel}
+*Kilometer*: ${stock.odometerDisplay || `${stock.mileage.toLocaleString('id-ID')} km`}
+*Harga Cash*: ${formatRupiah(stock.price)}
+${stock.creditDp ? `*Simulasi Kredit*: DP ${formatRupiah(stock.creditDp)} ${stock.installment47x ? `• Cicilan ${stock.installment47x}` : ''}` : ''}
+*Plat Nomor*: ${stock.licensePlate || 'Siap Balik Nama'}
+*Status*: ${stock.status === 'Tersedia' ? '✅ Ready Showroom' : stock.status === 'Booking' ? '⏳ Sedang di-Booking' : '🏁 Terjual'}
+
+📍 *HR MOTOR GARUT* - Showroom Mobil Bekas Berkualitas`;
+
+                const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+
                 return (
                   <div
                     key={stock.id}
-                    className="p-3.5 space-y-2.5 bg-white hover:bg-amber-50/30 transition-colors"
+                    className="bg-white rounded-2xl border border-warm-200 shadow-xs overflow-hidden flex flex-col transition-all hover:border-gold-400"
                   >
-                    {/* Header: Nomor Urut, Brand, Model & Plat */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-start gap-2 min-w-0">
-                        <span className="w-6 h-6 rounded-md bg-warm-100 text-charcoal-900 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-warm-200 mt-0.5">
-                          {stock.stockNumber || idx + 1}
-                        </span>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="px-1.5 py-0.2 rounded text-[10px] font-black uppercase tracking-wider bg-gold-100 text-gold-950 border border-gold-300/70">
-                              {stock.brand}
-                            </span>
-                            <span className="font-bold text-xs text-charcoal-950">
-                              {stock.model}
-                            </span>
-                          </div>
-                          <div className="text-[11px] text-charcoal-500 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
-                            <span className="font-bold text-charcoal-800">{stock.year}</span>
-                            <span>•</span>
-                            <span>{stock.transmission}</span>
-                            <span>•</span>
-                            <span>{stock.fuel}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {stock.licensePlate ? (
-                        <span className="bg-charcoal-900 text-gold-400 font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-charcoal-700 shrink-0">
-                          {stock.licensePlate}
-                        </span>
+                    {/* PHOTO BANNER WITH OVERLAYS */}
+                    <div 
+                      onClick={() => handleOpenDetail(stock)}
+                      className="relative h-44 w-full bg-charcoal-900 cursor-pointer overflow-hidden group"
+                    >
+                      {carPhoto ? (
+                        <img
+                          src={carPhoto}
+                          alt={`${stock.brand} ${stock.model}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
                       ) : (
-                        <span className="text-charcoal-400 text-[10px] italic shrink-0">
-                          Siap Balik Nama
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Status Badge & Info Booking/Pembeli */}
-                    <div>
-                      {stock.status === 'Tersedia' && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                          Ready Showroom
-                        </span>
-                      )}
-                      {stock.status === 'Booking' && (
-                        <div className="space-y-1">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
-                            <Clock className="w-3.5 h-3.5 text-amber-700" />
-                            BOKING (Booking)
-                          </span>
-                          {(stock.bookingCustomerName || stock.bookingLeasing) && (
-                            <div className="text-[10px] bg-amber-50/80 p-2 rounded-lg border border-amber-200 text-amber-950 space-y-0.5">
-                              {stock.bookingCustomerName && (
-                                <div>👤 Pemesan: <strong>{stock.bookingCustomerName}</strong></div>
-                              )}
-                              {stock.bookingLeasing && (
-                                <div>🏦 Leasing: <strong>{stock.bookingLeasing}</strong></div>
-                              )}
-                            </div>
-                          )}
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-charcoal-900 via-charcoal-800 to-charcoal-950 text-warm-300">
+                          <Car className="w-12 h-12 text-gold-500/80 mb-1 stroke-[1.5]" />
+                          <span className="text-[10px] tracking-widest font-black uppercase text-gold-400/90">HR MOTOR GARUT</span>
                         </div>
                       )}
-                      {stock.status === 'Terjual' && (
-                        <div className="space-y-1">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 shadow-xs">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
-                            TERJUAL (SOLD OUT)
+
+                      {/* Subtle Top & Bottom Gradient for Badges Readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/50 pointer-events-none" />
+
+                      {/* Top Overlay: No. Urut & Status Pill */}
+                      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none">
+                        <span className="px-2 py-0.5 rounded-lg bg-black/70 backdrop-blur-md text-gold-400 font-mono font-black text-xs border border-white/10 shadow-sm">
+                          #{stock.stockNumber || idx + 1}
+                        </span>
+
+                        {stock.status === 'Tersedia' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-600/95 backdrop-blur-md text-white shadow-sm border border-emerald-400/30">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-200" />
+                            READY
                           </span>
-                          {stock.soldToCustomerName && (
-                            <div className="text-[10px] bg-rose-50/80 p-2 rounded-lg border border-rose-200 text-rose-950">
-                              👤 Pembeli: <strong>{stock.soldToCustomerName}</strong>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                        )}
+                        {stock.status === 'Booking' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-500/95 backdrop-blur-md text-charcoal-950 shadow-sm border border-amber-300/40">
+                            <Clock className="w-3 h-3 text-charcoal-950" />
+                            BOKING
+                          </span>
+                        )}
+                        {stock.status === 'Terjual' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-600/95 backdrop-blur-md text-white shadow-sm border border-rose-400/30">
+                            <CheckCircle2 className="w-3 h-3 text-rose-200" />
+                            SOLD OUT
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Bottom Overlay: Brand Tag & Plat Nomor */}
+                      <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-white/95 text-charcoal-950 shadow-sm">
+                          {stock.brand}
+                        </span>
+
+                        {stock.licensePlate ? (
+                          <span className="bg-charcoal-950/90 text-gold-400 font-mono text-[11px] font-bold px-2 py-0.5 rounded-md border border-charcoal-700/80 backdrop-blur-md shadow-sm">
+                            {stock.licensePlate}
+                          </span>
+                        ) : (
+                          <span className="bg-black/60 text-warm-200 text-[10px] font-semibold px-2 py-0.5 rounded-md backdrop-blur-md border border-white/10">
+                            Siap Balik Nama
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Warna & Odometer */}
-                    <div className="flex items-center justify-between text-[11px] bg-warm-50 p-2 rounded-lg border border-warm-200">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold ${colorStyle.bg} ${colorStyle.text}`}>
-                        <span className={`w-2 h-2 rounded-full ${colorStyle.dot}`} />
-                        {colorStyle.label}
-                      </span>
-                      <span className="font-mono font-bold text-charcoal-700">
-                        Odo: {stock.odometerDisplay ? `${stock.odometerDisplay} km` : `${stock.mileage.toLocaleString('id-ID')} km`}
-                      </span>
-                    </div>
+                    {/* CARD BODY CONTENT */}
+                    <div className="p-3.5 space-y-3">
+                      {/* Car Title */}
+                      <div onClick={() => handleOpenDetail(stock)} className="cursor-pointer">
+                        <h3 className="font-extrabold text-sm sm:text-base text-charcoal-900 leading-snug line-clamp-1 hover:text-gold-700 transition-colors">
+                          {stock.model}
+                        </h3>
+                      </div>
 
-                    {/* Harga Cash & Paket Kredit */}
-                    <div className="flex items-end justify-between pt-1 border-t border-warm-100">
-                      <div>
-                        <span className="text-[10px] text-charcoal-500 block uppercase font-bold tracking-wider">Harga Cash OTR</span>
-                        <span className="text-sm font-black text-charcoal-950 font-mono">
-                          {formatRupiah(stock.price)}
+                      {/* Spec Pills (Year, Transmisi, BBM, Warna, Odo) */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                        <span className="px-2 py-0.5 rounded-md bg-warm-100 font-bold text-charcoal-800 border border-warm-200">
+                          {stock.year}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-warm-100 text-charcoal-700 font-medium border border-warm-200">
+                          {stock.transmission}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-warm-100 text-charcoal-700 font-medium border border-warm-200">
+                          {stock.fuel}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-semibold ${colorStyle.bg} ${colorStyle.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${colorStyle.dot}`} />
+                          {colorStyle.label}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-warm-100 font-mono text-charcoal-600 border border-warm-200 ml-auto">
+                          {stock.odometerDisplay ? `${stock.odometerDisplay} km` : `${stock.mileage.toLocaleString('id-ID')} km`}
                         </span>
                       </div>
-                      {stock.creditDp ? (
-                        <div className="text-right">
-                          <span className="text-[10px] text-gold-700 font-bold block">DP {formatRupiah(stock.creditDp)}</span>
-                          <span className="text-[10px] text-charcoal-500 font-mono">
-                            {stock.installment47x || stock.installment35x || ''}
+
+                      {/* Booking / Sold Info Banner (if applicable) */}
+                      {stock.status === 'Booking' && (stock.bookingCustomerName || stock.bookingLeasing) && (
+                        <div className="text-[11px] bg-amber-50/90 p-2 rounded-xl border border-amber-200 text-amber-950 flex flex-col gap-0.5">
+                          {stock.bookingCustomerName && (
+                            <div><span className="text-amber-700 font-semibold">Pemesan:</span> <strong>{stock.bookingCustomerName}</strong></div>
+                          )}
+                          {stock.bookingLeasing && (
+                            <div><span className="text-amber-700 font-semibold">Leasing:</span> <strong>{stock.bookingLeasing}</strong></div>
+                          )}
+                        </div>
+                      )}
+                      {stock.status === 'Terjual' && stock.soldToCustomerName && (
+                        <div className="text-[11px] bg-rose-50/90 p-2 rounded-xl border border-rose-200 text-rose-950">
+                          <span className="text-rose-700 font-semibold">Pembeli:</span> <strong>{stock.soldToCustomerName}</strong>
+                        </div>
+                      )}
+
+                      {/* Pricing Container: Cash OTR & Credit DP */}
+                      <div className="bg-gradient-to-r from-amber-50/70 via-warm-50 to-warm-100/40 p-2.5 rounded-xl border border-gold-200/60 flex items-center justify-between gap-2">
+                        <div>
+                          <span className="text-[9px] font-black tracking-wider uppercase text-charcoal-500 block">
+                            HARGA CASH OTR
+                          </span>
+                          <span className="text-sm font-black text-charcoal-950 font-mono tracking-tight">
+                            {formatRupiah(stock.price)}
                           </span>
                         </div>
-                      ) : null}
-                    </div>
 
-                    {/* Tombol Aksi Pas Layar HP */}
-                    <div className="grid grid-cols-3 gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenDetail(stock)}
-                        className="flex items-center justify-center gap-1 py-1.5 px-2 bg-charcoal-900 text-gold-400 rounded-lg text-xs font-bold hover:bg-black transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Detail</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(stock)}
-                        className="flex items-center justify-center gap-1 py-1.5 px-2 bg-warm-100 text-charcoal-800 rounded-lg text-xs font-bold hover:bg-warm-200 border border-warm-200 transition-colors"
-                      >
-                        <Edit2 className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedStock(stock);
-                          setShowDeleteModal(true);
-                        }}
-                        className="flex items-center justify-center gap-1 py-1.5 px-2 bg-rose-50 text-rose-700 rounded-lg text-xs font-bold hover:bg-rose-100 border border-rose-200 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Hapus</span>
-                      </button>
+                        {stock.creditDp ? (
+                          <div className="text-right">
+                            <span className="text-[10px] font-black text-gold-800 block">
+                              DP {formatRupiah(stock.creditDp)}
+                            </span>
+                            <span className="text-[10px] text-charcoal-600 font-mono font-medium block">
+                              {stock.installment47x ? `Cicilan ${stock.installment47x}` : (stock.installment35x ? `Cicilan ${stock.installment35x}` : '')}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-bold text-charcoal-400 italic">
+                            Cash Only
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Thumb-friendly Action Buttons */}
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenDetail(stock)}
+                          className="flex-1 py-2 px-3 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Detail Unit</span>
+                        </button>
+
+                        <a
+                          href={waShareUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                          title="Bagikan Spek Unit ke WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>WA</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(stock)}
+                          className="p-2 rounded-xl bg-warm-100 hover:bg-warm-200 text-charcoal-700 border border-warm-200 transition-colors cursor-pointer"
+                          title="Edit Data Unit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5 text-blue-600" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedStock(stock);
+                            setShowDeleteModal(true);
+                          }}
+                          className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                          title="Hapus Unit"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
