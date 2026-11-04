@@ -44,6 +44,7 @@ import {
   Percent,
   Save,
   Pencil,
+  MapPin,
 } from 'lucide-react';
 
 const COMMON_BRANDS = ['Semua', 'Toyota', 'Honda', 'Daihatsu', 'Mitsubishi', 'Suzuki'];
@@ -62,6 +63,62 @@ const COLOR_CONFIG: Record<string, { bg: string; dot: string; text: string; labe
   'HITAM PUTIH': { bg: 'bg-slate-50 border-slate-200', dot: 'bg-gradient-to-r from-slate-900 via-slate-500 to-slate-200', text: 'text-slate-800', label: 'Hitam Putih' },
   COKLAT: { bg: 'bg-amber-50/70 border-amber-300', dot: 'bg-[#78350F]', text: 'text-[#78350F]', label: 'Coklat' },
 };
+
+// Helper: Deteksi daerah asal nomor polisi (Garut, Bandung, Jakarta, dll.)
+function detectPlateRegion(plate?: string): string {
+  if (!plate) return 'Garut';
+  const clean = plate.trim().toUpperCase();
+  if (clean.startsWith('D ') || clean.startsWith('D')) return 'Bandung';
+  if (clean.startsWith('B ') || clean.startsWith('B')) return 'Jakarta';
+  if (clean.startsWith('F ') || clean.startsWith('F')) return 'Bogor';
+  if (clean.startsWith('E ') || clean.startsWith('E')) return 'Cirebon';
+  if (clean.startsWith('T ') || clean.startsWith('T')) return 'Karawang';
+  if (clean.startsWith('A ') || clean.startsWith('A')) return 'Banten';
+  if (clean.startsWith('Z')) {
+    const parts = clean.split(/\s+/);
+    const suffix = parts.length >= 3 ? parts[2] : (parts.length === 2 ? parts[1].replace(/^[0-9]+/, '') : '');
+    if (/^[HIJKLMN]/i.test(suffix)) return 'Tasikmalaya';
+    if (/^[ABC]/i.test(suffix)) return 'Sumedang';
+    if (/^[TUVW]/i.test(suffix)) return 'Ciamis';
+    return 'Garut';
+  }
+  return 'Garut';
+}
+
+// Helper: Ekstraksi brand, model, transmisi dari string Merk / Tipe
+function parseMerkType(text: string) {
+  const upper = text.trim().toUpperCase();
+  const knownBrands = ['TOYOTA', 'HONDA', 'DAIHATSU', 'MITSUBISHI', 'SUZUKI', 'NISSAN', 'WULING', 'HYUNDAI', 'MAZDA', 'ISUZU', 'KIA', 'FORD', 'CHEVROLET'];
+  let foundBrand = 'Toyota';
+  for (const b of knownBrands) {
+    if (upper.startsWith(b)) {
+      foundBrand = b.charAt(0) + b.slice(1).toLowerCase();
+      break;
+    }
+  }
+  const model = text.replace(new RegExp(`^${foundBrand}\\s*`, 'i'), '').trim() || text.trim();
+  const isMatic = /A\/T|CVT|AT|MATIC|OTOMATIS/i.test(upper);
+  const isDiesel = /DIESEL|SOLAR/i.test(upper);
+  return {
+    brand: foundBrand,
+    model: model || foundBrand,
+    transmission: (isMatic ? 'Otomatis' : 'Manual') as TransmissionType,
+    fuel: (isDiesel ? 'Diesel' : 'Bensin') as FuelType,
+  };
+}
+
+// Helper: Ekstraksi KM dari format ODO ("26RB", "26.000", dll)
+function parseOdometer(odoStr: string): number {
+  if (!odoStr) return 30000;
+  const upper = odoStr.toUpperCase().trim();
+  const rbMatch = upper.match(/^([0-9.,]+)\s*RB/i);
+  if (rbMatch) {
+    const num = parseFloat(rbMatch[1].replace(',', '.'));
+    return Math.round(num * 1000);
+  }
+  const digits = parseInt(upper.replace(/[^0-9]/g, ''), 10);
+  return isNaN(digits) ? 30000 : digits;
+}
 
 export default function StokUnitPage() {
   const {
@@ -121,6 +178,7 @@ export default function StokUnitPage() {
     description: string;
     status: VehicleStockStatus;
     licensePlate: string;
+    plateRegion: string;
     creditDp: string;
     installment35x: string;
     installment47x: string;
@@ -134,16 +192,17 @@ export default function StokUnitPage() {
     brand: 'Toyota',
     model: '',
     year: 2022,
-    color: 'Hitam',
+    color: 'Putih',
     transmission: 'Manual',
     fuel: 'Bensin',
-    mileage: 35000,
-    odometerDisplay: '35RB',
+    mileage: 30000,
+    odometerDisplay: '30RB',
     price: 150000000,
     entryDate: new Date().toISOString().split('T')[0],
     description: '',
     status: 'Tersedia',
     licensePlate: '',
+    plateRegion: 'Garut',
     creditDp: '',
     installment35x: '',
     installment47x: '',
@@ -187,10 +246,11 @@ export default function StokUnitPage() {
           const matchMerkType = item.merkType?.toLowerCase().includes(q);
           const matchBrand = item.brand.toLowerCase().includes(q);
           const matchModel = item.model.toLowerCase().includes(q);
-          const matchPlate = item.licensePlate?.toLowerCase().includes(q);
+          const matchPlate = item.licensePlate?.toLowerCase().includes(q) || item.plateNumber?.toLowerCase().includes(q);
+          const matchRegion = (item.plateRegion || detectPlateRegion(item.licensePlate || item.plateNumber))?.toLowerCase().includes(q);
           const matchColor = item.color.toLowerCase().includes(q);
           const matchOdo = item.odometerDisplay?.toLowerCase().includes(q);
-          if (!matchMerkType && !matchBrand && !matchModel && !matchPlate && !matchColor && !matchOdo) {
+          if (!matchMerkType && !matchBrand && !matchModel && !matchPlate && !matchRegion && !matchColor && !matchOdo) {
             return false;
           }
         }
@@ -322,6 +382,7 @@ export default function StokUnitPage() {
     const defaultPrice = 150000000;
     const defaultDp = Math.round(defaultPrice * 0.2);
     const est = calculateEstimatedInstallments(defaultPrice, defaultDp);
+    const defaultPlate = `Z ${1100 + nextNum} DA`;
 
     setFormData({
       stockNumber: nextNum,
@@ -329,7 +390,7 @@ export default function StokUnitPage() {
       brand: 'Toyota',
       model: '',
       year: 2022,
-      color: 'Hitam',
+      color: 'Putih',
       transmission: 'Manual',
       fuel: 'Bensin',
       mileage: 30000,
@@ -338,7 +399,8 @@ export default function StokUnitPage() {
       entryDate: new Date().toISOString().split('T')[0],
       description: '',
       status: 'Tersedia',
-      licensePlate: `Z ${1100 + nextNum} DA`,
+      licensePlate: defaultPlate,
+      plateRegion: detectPlateRegion(defaultPlate),
       creditDp: String(defaultDp),
       installment35x: est.installment35x,
       installment47x: est.installment47x,
@@ -362,6 +424,7 @@ export default function StokUnitPage() {
       ? stock.creditDp
       : Math.round(carPrice * 0.2);
     const est = calculateEstimatedInstallments(carPrice, defaultDp);
+    const plate = stock.licensePlate || stock.plateNumber || '';
 
     setFormData({
       stockNumber: stock.stockNumber || 1,
@@ -378,7 +441,8 @@ export default function StokUnitPage() {
       entryDate: stock.entryDate,
       description: stock.description || '',
       status: stock.status,
-      licensePlate: stock.licensePlate || '',
+      licensePlate: plate,
+      plateRegion: stock.plateRegion || detectPlateRegion(plate),
       creditDp: stock.creditDp ? String(stock.creditDp) : String(defaultDp),
       installment35x: stock.installment35x || est.installment35x,
       installment47x: stock.installment47x || est.installment47x,
@@ -389,6 +453,32 @@ export default function StokUnitPage() {
     });
     setFormError('');
     setShowEditModal(true);
+  };
+
+  // Helper perubahan Merk / Tipe Unit
+  const handleMerkTypeChange = (val: string) => {
+    const parsed = parseMerkType(val);
+    setFormData((prev) => ({
+      ...prev,
+      merkType: val,
+      brand: parsed.brand,
+      model: parsed.model,
+      transmission: parsed.transmission,
+      fuel: parsed.fuel,
+    }));
+  };
+
+  // Helper perubahan No Polisi (auto-update wilayah plat jika belum diubah khusus)
+  const handlePlateChange = (val: string) => {
+    setFormData((prev) => {
+      const suggested = detectPlateRegion(val);
+      const shouldAutoUpdate = !prev.plateRegion || prev.plateRegion === 'Garut' || prev.plateRegion === detectPlateRegion(prev.licensePlate);
+      return {
+        ...prev,
+        licensePlate: val,
+        plateRegion: shouldAutoUpdate ? suggested : prev.plateRegion,
+      };
+    });
   };
 
   // Helper perubahan harga & DP di modal Tambah/Edit
@@ -544,8 +634,8 @@ export default function StokUnitPage() {
   // Submit Add
   const handleSubmitAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.model.trim()) {
-      setFormError('Model / tipe mobil wajib diisi');
+    if (!formData.merkType.trim() && !formData.model.trim()) {
+      setFormError('Merek / Tipe unit kendaraan wajib diisi');
       return;
     }
     if (!formData.price || formData.price <= 0) {
@@ -560,18 +650,19 @@ export default function StokUnitPage() {
         stockNumber: Number(formData.stockNumber),
         merkType: formData.merkType.trim() || `${formData.brand.toUpperCase()} ${formData.model.toUpperCase()}`,
         brand: formData.brand,
-        model: formData.model.trim(),
+        model: formData.model.trim() || formData.merkType.trim() || 'Unit Baru',
         year: Number(formData.year),
-        color: formData.color.trim(),
+        color: formData.color.trim() || 'Putih',
         transmission: formData.transmission,
         fuel: formData.fuel,
-        mileage: Number(formData.mileage),
+        mileage: Number(formData.mileage) || 30000,
         odometerDisplay: formData.odometerDisplay.trim() || `${Math.round(Number(formData.mileage) / 1000)}RB`,
         price: Number(formData.price),
         entryDate: formData.entryDate,
-        description: formData.description.trim() || `Unit ${formData.brand} ${formData.model} tahun ${formData.year}. Bergaransi 100% showroom HR MOTOR Garut.`,
+        description: formData.description.trim() || `Unit ${formData.merkType || `${formData.brand} ${formData.model}`} tahun ${formData.year}. Bergaransi 100% showroom HR MOTOR Garut.`,
         status: formData.status,
         licensePlate: formData.licensePlate.trim() || `Z ${1200 + Number(formData.stockNumber)} DA`,
+        plateRegion: formData.plateRegion.trim() || detectPlateRegion(formData.licensePlate),
         creditDp: formData.creditDp ? Number(formData.creditDp) : undefined,
         installment35x: formData.installment35x.trim() || undefined,
         installment47x: formData.installment47x.trim() || undefined,
@@ -600,8 +691,8 @@ export default function StokUnitPage() {
   const handleSubmitEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStock) return;
-    if (!formData.model.trim()) {
-      setFormError('Model / tipe mobil wajib diisi');
+    if (!formData.merkType.trim() && !formData.model.trim()) {
+      setFormError('Merek / Tipe unit kendaraan wajib diisi');
       return;
     }
     if (!formData.price || formData.price <= 0) {
@@ -617,7 +708,7 @@ export default function StokUnitPage() {
         stockNumber: Number(formData.stockNumber),
         merkType: formData.merkType.trim() || `${formData.brand.toUpperCase()} ${formData.model.toUpperCase()}`,
         brand: formData.brand,
-        model: formData.model.trim(),
+        model: formData.model.trim() || formData.merkType.trim() || selectedStock.model,
         year: Number(formData.year),
         color: formData.color.trim(),
         transmission: formData.transmission,
@@ -629,6 +720,7 @@ export default function StokUnitPage() {
         description: formData.description.trim(),
         status: formData.status,
         licensePlate: formData.licensePlate.trim(),
+        plateRegion: formData.plateRegion.trim() || detectPlateRegion(formData.licensePlate),
         creditDp: formData.creditDp ? Number(formData.creditDp) : undefined,
         installment35x: formData.installment35x.trim() || undefined,
         installment47x: formData.installment47x.trim() || undefined,
@@ -671,6 +763,7 @@ export default function StokUnitPage() {
       WARNA: s.color,
       ODO: s.odometerDisplay || `${Math.round(s.mileage / 1000)}RB`,
       'NO POLISI': s.licensePlate || '-',
+      'DAERAH PLAT': s.plateRegion || detectPlateRegion(s.licensePlate),
       'HARGA CASH (Rp)': s.price,
       'KREDIT DP (Rp)': s.creditDp || '-',
       'CICILAN 35x (3 Thn)': s.installment35x || '-',
@@ -728,7 +821,7 @@ export default function StokUnitPage() {
       s.year,
       s.color,
       s.odometerDisplay || `${Math.round(s.mileage / 1000)}RB`,
-      s.licensePlate || '-',
+      s.licensePlate ? `${s.licensePlate} (${s.plateRegion || detectPlateRegion(s.licensePlate)})` : '-',
       formatRupiah(s.price),
       s.creditDp ? formatRupiah(s.creditDp) : '-',
       s.installment35x || '-',
@@ -1113,7 +1206,7 @@ export default function StokUnitPage() {
                   <th className="py-3.5 px-2.5 text-center text-[11px] font-bold">TAHUN</th>
                   <th className="py-3.5 px-3.5 text-left text-[11px] font-bold">WARNA</th>
                   <th className="py-3.5 px-3 text-center text-[11px] font-bold">ODO</th>
-                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">NO POLISI</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">NO POLISI &amp; DAERAH</th>
                   <th className="py-3.5 px-4 text-right text-[11px] font-bold text-gold-400">HARGA CASH</th>
                   <th className="py-3.5 px-4 text-center text-[11px] font-bold text-amber-300">PAKET KREDIT (DP & TENOR)</th>
                   <th className="py-3.5 px-3 text-center text-[11px] font-bold">STATUS</th>
@@ -1211,12 +1304,18 @@ export default function StokUnitPage() {
                           </span>
                         </td>
 
-                        {/* 6. NO POLISI */}
+                        {/* 6. NO POLISI & DAERAH */}
                         <td className="py-3.5 px-3 text-center whitespace-nowrap font-mono text-xs font-bold text-charcoal-800">
                           {stock.licensePlate ? (
-                            <span className="bg-charcoal-900 text-gold-400 font-bold px-2.5 py-1 rounded-md border border-charcoal-700 text-xs tracking-wider shadow-xs">
-                              {stock.licensePlate}
-                            </span>
+                            <div className="inline-flex flex-col items-center gap-1">
+                              <span className="bg-charcoal-900 text-gold-400 font-bold px-2.5 py-1 rounded-md border border-charcoal-700 text-xs tracking-wider shadow-xs">
+                                {stock.licensePlate}
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-warm-100 text-charcoal-700 border border-warm-200">
+                                <MapPin className="w-2.5 h-2.5 text-gold-600" />
+                                {stock.plateRegion || detectPlateRegion(stock.licensePlate)}
+                              </span>
+                            </div>
                           ) : (
                             <span className="text-charcoal-400 text-[11px] italic">Siap Balik Nama</span>
                           )}
@@ -1246,9 +1345,9 @@ export default function StokUnitPage() {
                                 </span>
                               )}
                               <div className="flex items-center gap-1 text-[10px] text-charcoal-600 font-mono">
-                                {stock.installment59x && (
-                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 59x (5 Thn)">
-                                    <span className="text-charcoal-400 text-[9px]">59x:</span> {stock.installment59x}
+                                {stock.installment35x && (
+                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 35x (3 Thn)">
+                                    <span className="text-charcoal-400 text-[9px]">35x:</span> {stock.installment35x}
                                   </span>
                                 )}
                                 {stock.installment47x && (
@@ -1256,9 +1355,9 @@ export default function StokUnitPage() {
                                     <span className="text-charcoal-400 text-[9px]">47x:</span> {stock.installment47x}
                                   </span>
                                 )}
-                                {stock.installment35x && (
-                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 35x (3 Thn)">
-                                    <span className="text-charcoal-400 text-[9px]">35x:</span> {stock.installment35x}
+                                {stock.installment59x && (
+                                  <span className="bg-warm-100 px-1.5 py-0.5 rounded border border-warm-200" title="Cicilan 59x (5 Thn)">
+                                    <span className="text-charcoal-400 text-[9px]">59x:</span> {stock.installment59x}
                                   </span>
                                 )}
                               </div>
@@ -1449,11 +1548,17 @@ export default function StokUnitPage() {
                             <span>{stock.fuel}</span>
                           </div>
 
-                          {/* Plat Polisi & Warna & Odo */}
+                          {/* Plat Polisi & Daerah & Warna & Odo */}
                           <div className="flex items-center gap-1 text-[10px] mt-1 flex-wrap leading-tight">
                             {stock.licensePlate ? (
-                              <span className="bg-charcoal-900 text-gold-400 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border border-charcoal-700">
-                                {stock.licensePlate}
+                              <span className="inline-flex items-center gap-1">
+                                <span className="bg-charcoal-900 text-gold-400 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border border-charcoal-700">
+                                  {stock.licensePlate}
+                                </span>
+                                <span className="text-[9px] font-extrabold text-charcoal-700 bg-warm-100 px-1 py-0.2 rounded border border-warm-200 inline-flex items-center gap-0.5">
+                                  <MapPin className="w-2 h-2 text-gold-600" />
+                                  {stock.plateRegion || detectPlateRegion(stock.licensePlate)}
+                                </span>
                               </span>
                             ) : (
                               <span className="text-charcoal-400 text-[9px] italic">
@@ -1867,9 +1972,15 @@ export default function StokUnitPage() {
                         100% Bergaransi Resmi Showroom
                       </span>
                       {selectedStock.licensePlate ? (
-                        <span className="px-2.5 py-0.5 rounded bg-black/70 text-gold-400 font-mono text-xs font-bold border border-gold-500/30">
-                          {selectedStock.licensePlate}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded bg-black/70 text-gold-400 font-mono text-xs font-bold border border-gold-500/30">
+                            {selectedStock.licensePlate}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-gold-500/20 text-gold-300 font-bold text-xs border border-gold-500/40 inline-flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gold-400" />
+                            Plat {selectedStock.plateRegion || detectPlateRegion(selectedStock.licensePlate)}
+                          </span>
+                        </div>
                       ) : (
                         <span className="px-2 py-0.5 rounded bg-black/50 text-warm-300 font-mono text-[11px] italic">
                           Siap Balik Nama
@@ -2069,155 +2180,210 @@ export default function StokUnitPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">No. Urut Showroom</label>
-                  <input
-                    type="number"
-                    value={formData.stockNumber}
-                    onChange={(e) => setFormData({ ...formData, stockNumber: Number(e.target.value) || 1 })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white"
-                  />
+              {/* ======================================================= */}
+              {/* BAGIAN 1: IDENTITAS UNIT KENDARAAN (MEREK/TYPE, TAHUN, WARNA, ODO, NO POLISI & DAERAH) */}
+              {/* ======================================================= */}
+              <div className="p-4 bg-warm-50/70 rounded-xl border border-warm-200 space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-warm-200">
+                  <Car className="w-4 h-4 text-gold-600" />
+                  <span className="font-black text-xs uppercase tracking-wide text-charcoal-900">
+                    1. Identitas Unit Kendaraan
+                  </span>
                 </div>
+
+                {/* Merek / Type Unit */}
                 <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Merek</label>
-                  <select
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white font-semibold"
-                  >
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-charcoal-800">
+                      Merek / Type Unit <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-charcoal-400">Contoh: DAIHATSU SIGRA 1.2 R FACELIFT M/T</span>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: DAIHATSU SIGRA 1.2 R FACELIFT M/T atau HONDA BRIO 1.2 E"
+                    value={formData.merkType}
+                    onChange={(e) => handleMerkTypeChange(e.target.value)}
+                    className="w-full p-2.5 border border-warm-300 rounded-lg bg-white uppercase font-bold text-sm text-charcoal-900 focus:outline-none focus:border-gold-500 shadow-2xs"
+                  />
+                  {/* Quick Brand Selector Chips */}
+                  <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                    <span className="text-[10px] text-charcoal-400 font-medium">Pilih Merek:</span>
                     {COMMON_BRANDS.filter((b) => b !== 'Semua').map((b) => (
-                      <option key={b} value={b}>{b}</option>
+                      <button
+                        key={b}
+                        type="button"
+                        onClick={() => {
+                          const currentRest = formData.merkType.replace(new RegExp(`^${formData.brand}\\s*`, 'i'), '').trim();
+                          const newMerk = `${b.toUpperCase()} ${currentRest}`.trim();
+                          handleMerkTypeChange(newMerk);
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                          formData.brand.toLowerCase() === b.toLowerCase()
+                            ? 'bg-gold-500 text-charcoal-950 font-bold border-gold-600'
+                            : 'bg-white text-charcoal-700 border-warm-200 hover:bg-gold-50'
+                        }`}
+                      >
+                        {b}
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Tahun</label>
-                  <input
-                    type="number"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) || 2022 })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white"
-                  />
+
+                {/* Tahun, Warna, Odo */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                      Tahun <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={2000}
+                      max={2030}
+                      placeholder="2021"
+                      value={formData.year}
+                      onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) || 2022 })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white font-mono font-bold text-charcoal-900"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                      Warna <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Putih, Hitam, Abu-Abu..."
+                      value={formData.color}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white uppercase font-bold text-charcoal-900"
+                    />
+                    <div className="flex items-center gap-1 mt-1 flex-wrap">
+                      {['PUTIH', 'HITAM', 'ABU-ABU', 'SILVER', 'MERAH'].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, color: c })}
+                          className={`text-[9px] px-1.5 py-0.2 rounded border transition-colors ${
+                            formData.color.toUpperCase() === c
+                              ? 'bg-gold-500 text-charcoal-950 font-bold border-gold-600'
+                              : 'bg-white text-charcoal-600 border-warm-200 hover:bg-warm-100'
+                          }`}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                      Odo (KM) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: 26RB"
+                      value={formData.odometerDisplay}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData({
+                          ...formData,
+                          odometerDisplay: val,
+                          mileage: parseOdometer(val),
+                        });
+                      }}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white font-mono font-bold text-charcoal-900 uppercase"
+                    />
+                    <span className="text-[10px] text-charcoal-400 mt-0.5 block font-mono">
+                      ~{formData.mileage.toLocaleString('id-ID')} KM
+                    </span>
+                  </div>
+                </div>
+
+                {/* No Polisi & Daerah Asal Plat */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                      No Polisi <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Z 1083 NV atau D 1482 AB"
+                      value={formData.licensePlate}
+                      onChange={(e) => handlePlateChange(e.target.value)}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white font-mono font-black text-charcoal-950 uppercase tracking-wider text-sm focus:border-gold-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-charcoal-800 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-gold-600" />
+                        <span>Daerah Asal No Polisi</span>
+                      </label>
+                      <span className="text-[10px] text-gold-800 font-semibold">(Bisa diketik / dipilih)</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Garut, Bandung, Jakarta, dll."
+                      value={formData.plateRegion}
+                      onChange={(e) => setFormData({ ...formData, plateRegion: e.target.value })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white font-bold text-charcoal-900 focus:border-gold-500 focus:outline-none"
+                    />
+                    {/* Quick Region Selector Chips */}
+                    <div className="flex items-center gap-1 mt-1 flex-wrap">
+                      <span className="text-[9px] text-charcoal-400 font-medium">Pilih:</span>
+                      {['Garut', 'Bandung', 'Tasikmalaya', 'Sumedang', 'Ciamis', 'Jakarta'].map((reg) => (
+                        <button
+                          key={reg}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, plateRegion: reg })}
+                          className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
+                            formData.plateRegion.toLowerCase() === reg.toLowerCase()
+                              ? 'bg-charcoal-900 text-gold-400 font-bold border-charcoal-900'
+                              : 'bg-white text-charcoal-600 border-warm-200 hover:bg-gold-50'
+                          }`}
+                        >
+                          {reg}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-charcoal-700 mb-1">
-                  Merk / Tipe Lengkap (Format Spreadsheet) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Contoh: DAIHATSU AYLA 1.2 R M/T"
-                  value={formData.merkType}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setFormData({
-                      ...formData,
-                      merkType: val,
-                      model: val.replace(/^(TOYOTA|HONDA|DAIHATSU|MITSUBISHI|SUZUKI)\s+/i, ''),
-                    });
-                  }}
-                  className="w-full p-2 border border-warm-300 rounded-lg bg-white uppercase font-bold"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Warna</label>
-                  <input
-                    type="text"
-                    placeholder="Hitam, Putih, Abu-Abu..."
-                    value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white uppercase"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Odometer (Format Spreadsheet)</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: 26RB"
-                    value={formData.odometerDisplay}
-                    onChange={(e) => setFormData({ ...formData, odometerDisplay: e.target.value })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white uppercase font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Nomor Polisi</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Z 1083 NV"
-                    value={formData.licensePlate}
-                    onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white uppercase font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Transmisi</label>
-                  <select
-                    value={formData.transmission}
-                    onChange={(e) => setFormData({ ...formData, transmission: e.target.value as TransmissionType })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white"
-                  >
-                    {TRANSMISSIONS.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Bahan Bakar</label>
-                  <select
-                    value={formData.fuel}
-                    onChange={(e) => setFormData({ ...formData, fuel: e.target.value as FuelType })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white"
-                  >
-                    {FUELS.map((f) => (
-                      <option key={f} value={f}>{f}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-charcoal-700 mb-1">Status Showroom</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as VehicleStockStatus })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white font-bold"
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Harga Cash & Paket Kredit Showroom */}
-              <div className="p-3.5 bg-gradient-to-br from-amber-50/60 to-warm-50 rounded-xl border border-amber-200 space-y-3">
+              {/* ======================================================= */}
+              {/* BAGIAN 2: HARGA CASH, DP, DAN CICILAN (35x, 47x, 59x)   */}
+              {/* ======================================================= */}
+              <div className="p-4 bg-gradient-to-br from-amber-50/70 via-warm-50 to-amber-100/30 rounded-xl border border-amber-200 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 border-b border-amber-200/80">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-amber-700" />
-                    <span className="font-black text-charcoal-900 text-xs uppercase tracking-wide">
-                      Harga Cash &amp; Estimasi Paket Kredit Showroom
+                    <span className="font-black text-xs uppercase tracking-wide text-charcoal-900">
+                      2. Harga Cash, DP &amp; Cicilan (35x, 47x, 59x)
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleAutoFillCreditInForm(20)}
                     className="text-[11px] font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer"
-                    title="Hitung ulang estimasi DP 20% dan cicilan otomatis"
+                    title="Hitung ulang otomatis estimasi DP 20% dan cicilan 35x, 47x, 59x"
                   >
-                    <Sparkles className="w-3 h-3 text-amber-600" />
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                     <span>⚡ Hitung Estimasi Otomatis (DP 20%)</span>
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Harga Cash */}
                   <div>
                     <label className="block text-xs font-bold text-charcoal-800 mb-1">
-                      Harga Tunai OTR (Rp) *
+                      Harga Cash OTR (Rp) <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-charcoal-400 font-bold text-xs">Rp</span>
@@ -2235,10 +2401,11 @@ export default function StokUnitPage() {
                     </p>
                   </div>
 
+                  {/* DP (Uang Muka) */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="text-xs font-bold text-charcoal-800">
-                        Uang Muka (DP Rp)
+                        Uang Muka / DP (Rp)
                       </label>
                       <span className="text-[10px] font-bold text-gold-800 bg-gold-50 px-1.5 py-0.2 rounded border border-gold-200">
                         {formData.price > 0 && formData.creditDp ? `~${Math.round((Number(formData.creditDp) / formData.price) * 100)}% OTR` : 'Pilihan DP'}
@@ -2249,7 +2416,7 @@ export default function StokUnitPage() {
                       <input
                         type="number"
                         step="1000000"
-                        placeholder="Contoh: 25000000"
+                        placeholder="Contoh: 15000000"
                         value={formData.creditDp}
                         onChange={(e) => handleDpChangeInForm(e.target.value)}
                         className="w-full pl-9 pr-3 py-2 border border-warm-300 rounded-lg font-mono font-bold text-charcoal-950 bg-white text-sm focus:outline-none focus:border-gold-500"
@@ -2276,14 +2443,17 @@ export default function StokUnitPage() {
                   </div>
                 </div>
 
-                {/* 3 Tenor Angsuran */}
-                <div>
-                  <label className="block text-[11px] font-bold text-charcoal-700 mb-1">
-                    Estimasi Angsuran / Cicilan per Tenor (Dihitung Otomatis atau Diubah Manual):
+                {/* Cicilan 35x, 47x, 59x */}
+                <div className="pt-2">
+                  <label className="block text-[11px] font-bold text-charcoal-800 mb-1.5">
+                    Masukan Cicilan per Tenor (35x, 47x, 59x):
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div className="bg-white p-2 rounded-lg border border-warm-200">
-                      <label className="block text-[10px] font-bold text-charcoal-600 mb-0.5">Cicilan 35x (3 Thn)</label>
+                    <div className="bg-white p-2.5 rounded-lg border border-warm-200 shadow-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-extrabold text-charcoal-700">Cicilan 35x (3 Thn)</label>
+                        <span className="text-[9px] text-amber-700 bg-amber-50 px-1 rounded font-bold">35 Bulan</span>
+                      </div>
                       <input
                         type="text"
                         placeholder="Contoh: 5.350 (35x)"
@@ -2292,8 +2462,12 @@ export default function StokUnitPage() {
                         className="w-full p-1.5 border border-warm-300 rounded-md font-mono font-bold text-xs bg-warm-50/50 focus:bg-white text-charcoal-900"
                       />
                     </div>
-                    <div className="bg-white p-2 rounded-lg border border-warm-200">
-                      <label className="block text-[10px] font-bold text-charcoal-600 mb-0.5">Cicilan 47x (4 Thn)</label>
+
+                    <div className="bg-white p-2.5 rounded-lg border border-warm-200 shadow-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-extrabold text-charcoal-700">Cicilan 47x (4 Thn)</label>
+                        <span className="text-[9px] text-amber-700 bg-amber-50 px-1 rounded font-bold">47 Bulan</span>
+                      </div>
                       <input
                         type="text"
                         placeholder="Contoh: 4.335 (47x)"
@@ -2302,8 +2476,12 @@ export default function StokUnitPage() {
                         className="w-full p-1.5 border border-warm-300 rounded-md font-mono font-bold text-xs bg-warm-50/50 focus:bg-white text-charcoal-900"
                       />
                     </div>
-                    <div className="bg-white p-2 rounded-lg border border-warm-200">
-                      <label className="block text-[10px] font-bold text-charcoal-600 mb-0.5">Cicilan 59x (5 Thn)</label>
+
+                    <div className="bg-white p-2.5 rounded-lg border border-warm-200 shadow-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-extrabold text-charcoal-700">Cicilan 59x (5 Thn)</label>
+                        <span className="text-[9px] text-amber-700 bg-amber-50 px-1 rounded font-bold">59 Bulan</span>
+                      </div>
                       <input
                         type="text"
                         placeholder="Contoh: 4.065 (59x)"
@@ -2314,30 +2492,88 @@ export default function StokUnitPage() {
                     </div>
                   </div>
                   <p className="text-[10px] text-charcoal-400 mt-1">
-                    * Estimasi bunga flat leasing resmi rekanan Garut (OTO, MUF, Adira). Data otomatis tampil di tabel stok unit.
+                    * Estimasi bunga flat leasing resmi rekanan Garut (OTO, MUF, Adira). Anda dapat mengubah nominal cicilan kapan saja.
                   </p>
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-charcoal-700 mb-1">Catatan Kesiapan (misal: ❌ FOTO, ❌ DETAILING)</label>
-                <input
-                  type="text"
-                  placeholder="Pisahkan dengan koma, misal: ❌ FOTO, ❌ DETAILING"
-                  value={formData.readinessNotes}
-                  onChange={(e) => setFormData({ ...formData, readinessNotes: e.target.value })}
-                  className="w-full p-2 border border-warm-300 rounded-lg bg-white"
-                />
-              </div>
+              {/* ======================================================= */}
+              {/* BAGIAN 3: PENGATURAN TAMBAHAN (TRANSMISI, BBM, STATUS) */}
+              {/* ======================================================= */}
+              <div className="p-3 bg-warm-50/50 rounded-xl border border-warm-200 space-y-3">
+                <span className="font-bold text-[11px] text-charcoal-600 block uppercase">
+                  3. Pengaturan Tambahan (Transmisi, BBM &amp; Status)
+                </span>
 
-              <div>
-                <label className="block font-semibold text-charcoal-700 mb-1">Deskripsi Kondisi Unit</label>
-                <textarea
-                  rows={2}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-2 border border-warm-300 rounded-lg bg-white"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Transmisi</label>
+                    <select
+                      value={formData.transmission}
+                      onChange={(e) => setFormData({ ...formData, transmission: e.target.value as TransmissionType })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white text-xs"
+                    >
+                      {TRANSMISSIONS.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Bahan Bakar</label>
+                    <select
+                      value={formData.fuel}
+                      onChange={(e) => setFormData({ ...formData, fuel: e.target.value as FuelType })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white text-xs"
+                    >
+                      {FUELS.map((f) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Status Showroom</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as VehicleStockStatus })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white font-bold text-xs"
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">No. Urut Showroom</label>
+                    <input
+                      type="number"
+                      value={formData.stockNumber}
+                      onChange={(e) => setFormData({ ...formData, stockNumber: Number(e.target.value) || 1 })}
+                      className="w-full p-2 border border-warm-300 rounded-lg bg-white text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Catatan Kesiapan (misal: ❌ FOTO, ❌ DETAILING)</label>
+                  <input
+                    type="text"
+                    placeholder="Pisahkan dengan koma, misal: ❌ FOTO, ❌ DETAILING"
+                    value={formData.readinessNotes}
+                    onChange={(e) => setFormData({ ...formData, readinessNotes: e.target.value })}
+                    className="w-full p-2 border border-warm-300 rounded-lg bg-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Deskripsi Kondisi Unit</label>
+                  <textarea
+                    rows={2}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full p-2 border border-warm-300 rounded-lg bg-white text-xs"
+                    placeholder="Catatan kondisi mobil, riwayat servis, kondisi ban, kelengkapan surat..."
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-warm-200 shrink-0">

@@ -245,6 +245,26 @@ export function repairDatabaseRepairClaims(db: CrmDatabase): boolean {
   return modified;
 }
 
+export function detectPlateRegion(plate?: string): string {
+  if (!plate) return 'Garut';
+  const clean = plate.trim().toUpperCase();
+  if (clean.startsWith('D ') || clean.startsWith('D')) return 'Bandung';
+  if (clean.startsWith('B ') || clean.startsWith('B')) return 'Jakarta';
+  if (clean.startsWith('F ') || clean.startsWith('F')) return 'Bogor';
+  if (clean.startsWith('E ') || clean.startsWith('E')) return 'Cirebon';
+  if (clean.startsWith('T ') || clean.startsWith('T')) return 'Karawang';
+  if (clean.startsWith('A ') || clean.startsWith('A')) return 'Banten';
+  if (clean.startsWith('Z')) {
+    const parts = clean.split(/\s+/);
+    const suffix = parts.length >= 3 ? parts[2] : (parts.length === 2 ? parts[1].replace(/^[0-9]+/, '') : '');
+    if (/^[HIJKLMN]/i.test(suffix)) return 'Tasikmalaya';
+    if (/^[ABC]/i.test(suffix)) return 'Sumedang';
+    if (/^[TUVW]/i.test(suffix)) return 'Ciamis';
+    return 'Garut';
+  }
+  return 'Garut';
+}
+
 export function repairDatabaseStocks(db: CrmDatabase): boolean {
   let modified = false;
   if (!db || !Array.isArray(db.stocks) || db.stocks.length === 0) {
@@ -254,6 +274,10 @@ export function repairDatabaseStocks(db: CrmDatabase): boolean {
   db.stocks.forEach((s, idx) => {
     if (s.stockNumber === undefined || s.stockNumber === null) {
       s.stockNumber = idx + 1;
+      modified = true;
+    }
+    if (!s.plateRegion) {
+      s.plateRegion = detectPlateRegion(s.licensePlate || s.plateNumber);
       modified = true;
     }
     if (s.id === 'STK-2026-022' && s.status === 'Booking' && !s.bookingCustomerName) {

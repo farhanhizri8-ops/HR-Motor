@@ -300,6 +300,7 @@ export interface VehicleStock {
   status: VehicleStockStatus;
   plateNumber?: string;
   licensePlate?: string;
+  plateRegion?: string; // Daerah / Kota asal nomor polisi, e.g. Garut, Bandung, Jakarta, dll.
   // Simulasi Paket Kredit Showroom HR MOTOR (dari Google Sheet)
   creditDp?: number; // e.g. 15000000
   installment35x?: string; // e.g. "5.350 (35x)"
