@@ -208,8 +208,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 onClick={() => setMobileOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-200 relative ${
+                className={`group flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-150 relative ${
                   isActive
                     ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold border-l-4 border-l-gold-500'
                     : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300 border-l-4 border-l-transparent'

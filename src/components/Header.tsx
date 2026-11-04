@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Mobile Logo View - Clean Transparent without Box Background */}
-        <Link href="/" className="flex lg:hidden items-center">
+        <Link href="/" prefetch={true} className="flex lg:hidden items-center">
           <div className="flex items-center justify-center py-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

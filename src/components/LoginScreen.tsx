@@ -35,7 +35,6 @@ export const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -60,15 +59,10 @@ export const LoginScreen: React.FC = () => {
       return;
     }
 
-    setLoading(true);
     const res = await login(email, password);
-    setLoading(false);
 
     if (res.success) {
-      router.push('/');
-      if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-        window.location.href = '/';
-      }
+      router.replace('/');
     } else {
       setErrorMsg(res.error || 'Gagal masuk ke sistem.');
     }
@@ -92,7 +86,6 @@ export const LoginScreen: React.FC = () => {
       return;
     }
 
-    setLoading(true);
     const res = await registerUser({
       name: regName.trim(),
       email: regEmail.trim(),
@@ -100,7 +93,6 @@ export const LoginScreen: React.FC = () => {
       role: regRole,
       password: regPassword,
     });
-    setLoading(false);
 
     if (res.success) {
       const isOwnerEmail =
@@ -108,14 +100,9 @@ export const LoginScreen: React.FC = () => {
         regEmail.trim().toLowerCase() === 'farhanhizri8gmail.com';
 
       if (isOwnerEmail) {
-        setLoading(true);
         const loginRes = await login(regEmail.trim(), regPassword);
-        setLoading(false);
         if (loginRes.success) {
-          router.push('/');
-          if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-            window.location.href = '/';
-          }
+          router.replace('/');
           return;
         }
       }
@@ -270,17 +257,10 @@ export const LoginScreen: React.FC = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full py-3 px-4 rounded-xl btn-gold text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                  className="w-full py-3 px-4 rounded-xl btn-gold text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-[0.99] cursor-pointer"
                 >
-                  {loading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-charcoal-900 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>Masuk</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  <span>Masuk</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
             )}
@@ -387,17 +367,10 @@ export const LoginScreen: React.FC = () => {
                 {/* Submit Register */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full py-2.5 px-4 rounded-xl btn-gold font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all mt-2 disabled:opacity-50 shadow-md"
+                  className="w-full py-2.5 px-4 rounded-xl btn-gold font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all mt-2 shadow-md active:scale-[0.99] cursor-pointer"
                 >
-                  {loading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-charcoal-900 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <span>Ajukan Akun ke Owner</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  <span>Ajukan Akun ke Owner</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
             )}

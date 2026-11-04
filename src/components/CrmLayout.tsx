@@ -12,7 +12,8 @@ import { useCrm } from '@/context/CrmContext';
 import { LoginScreen } from '@/components/LoginScreen';
 
 export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useCrm();
+  const { isAuthenticated } = useCrm();
+  const [mounted, setMounted] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [quickActionOpen, setQuickActionOpen] = useState(false);
@@ -21,42 +22,22 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && isAuthenticated && pathname === '/login') {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && isAuthenticated && pathname === '/login') {
       router.replace('/');
     }
-  }, [loading, isAuthenticated, pathname, router]);
+  }, [mounted, isAuthenticated, pathname, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F8F7F4] flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3 animate-pulse">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-transparent.png?v=5" alt="HR MOTOR" className="h-16 w-auto object-contain drop-shadow-sm" />
-          <p className="text-xs text-charcoal-700 font-bold tracking-wider uppercase">
-            Memuat HR MOTOR...
-          </p>
-        </div>
-      </div>
-    );
+  // Render satset langsung tanpa layar tunggu loading
+  if (!mounted) {
+    return null;
   }
 
   if (!isAuthenticated) {
     return <LoginScreen />;
-  }
-
-  // If already authenticated and visiting /login, transition cleanly to dashboard
-  if (pathname === '/login') {
-    return (
-      <div className="min-h-screen bg-[#F8F7F4] flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-transparent.png?v=5" alt="HR MOTOR" className="h-16 w-auto object-contain animate-pulse drop-shadow-sm" />
-          <p className="text-xs text-gold-600 font-bold tracking-wider uppercase">
-            Membuka HR MOTOR...
-          </p>
-        </div>
-      </div>
-    );
   }
 
   return (

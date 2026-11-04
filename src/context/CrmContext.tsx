@@ -210,7 +210,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(INITIAL_ACTIVITY_LOGS);
   const [templates] = useState<MessageTemplate[]>(MESSAGE_TEMPLATES);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Sync with API on mount & Restore session
   useEffect(() => {
@@ -653,9 +653,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const resetToDemo = async () => {
-    setLoading(true);
     await executeApiMutation('RESET_DEMO_DATA', {});
-    setLoading(false);
   };
 
   const markNotificationAsRead = (id: string) => {
