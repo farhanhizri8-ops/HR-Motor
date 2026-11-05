@@ -351,9 +351,18 @@ export default function UserManagementPage() {
                     {/* Name & Avatar */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-2xs">
-                          {u.name.charAt(0)}
-                        </div>
+                        {u.avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={u.avatar}
+                            alt={u.name}
+                            className="w-9 h-9 rounded-xl object-cover border border-gold-300 shadow-2xs shrink-0 bg-warm-100"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-2xs">
+                            {u.name.charAt(0)}
+                          </div>
+                        )}
                         <div>
                           <p className="font-bold text-charcoal-900 text-sm">{u.name}</p>
                           <span className="text-[10px] text-charcoal-400 font-mono">{u.id}</span>

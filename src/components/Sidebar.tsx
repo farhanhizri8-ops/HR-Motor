@@ -387,7 +387,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className={`flex items-center gap-3 ${collapsed ? 'lg:justify-center' : ''}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'}
+              src={currentUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'}
               alt={currentUser.name}
               className="w-9 h-9 rounded-full object-cover border-2 border-gold-400 shadow-xs shrink-0"
             />

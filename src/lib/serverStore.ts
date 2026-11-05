@@ -182,7 +182,7 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
       password: 'Garut2005',
       role: 'Owner',
       phone: '081223450001',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf',
       isApproved: true,
       isActive: true,
       createdAt: '2026-01-01T08:00:00Z',

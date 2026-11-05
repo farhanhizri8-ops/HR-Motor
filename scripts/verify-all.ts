@@ -1024,7 +1024,7 @@ console.log('\n[10/10] Testing User Management: Approval Gating, Reject & Delete
   const updateRes = updateUserProfile('USR-001', {
     name: 'Farhan Hizri, S.T.',
     phone: '0812-2298-9999',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'
   });
   assert(updateRes.success, 'User profile updates successfully');
   assert(mockUserDb.users.find((u: any) => u.id === 'USR-001')?.name === 'Farhan Hizri, S.T.', 'Updated name is persisted');

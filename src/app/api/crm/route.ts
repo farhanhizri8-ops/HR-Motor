@@ -1123,7 +1123,7 @@ export async function POST(request: Request) {
               password: 'Garut2005',
               role: 'Owner',
               phone: '081223450001',
-              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80',
+              avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf',
               isApproved: true,
               isActive: true,
               createdAt: '2026-01-01T08:00:00Z',
@@ -1332,7 +1332,7 @@ export async function POST(request: Request) {
           password: payload.password || 'Garut2005',
           role: payload.role || 'Sales Representative',
           phone: payload.phone || '',
-          avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80`,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}&backgroundColor=d1d4f9`,
           isApproved: isOwnerEmail, // Pengguna baru WAJIB menunggu persetujuan (approval) Owner sebelum bisa login!
           isActive: true,
           createdAt: new Date().toISOString(),

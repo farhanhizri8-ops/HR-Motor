@@ -34,28 +34,23 @@ import {
 import { useCrm } from '@/context/CrmContext';
 
 const AVATAR_PRESETS = [
-  { id: '1', label: 'Eksekutif Showroom', url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
-  { id: '2', label: 'Dealer Manager', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-  { id: '3', label: 'Konsultan Otomotif', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
-  { id: '4', label: 'Customer Relations', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' },
-  { id: '5', label: 'Sales Executive', url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150' },
-  { id: '6', label: 'Admin Profesional', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+  { id: '1', label: 'Farhan (Owner)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf' },
+  { id: '2', label: 'Deni (Manager CRM)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DeniManager&backgroundColor=d1d4f9' },
+  { id: '3', label: 'Asep (Konsultan Sales)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AsepSales&backgroundColor=b6e3f4' },
+  { id: '4', label: 'Rina (Customer Service)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RinaCS&backgroundColor=ffd5dc' },
+  { id: '5', label: 'Siti (Admin WhatsApp)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SitiWA&backgroundColor=c0aede' },
+  { id: '6', label: 'Fajar (Marketing Lead)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FajarMarketing&backgroundColor=ffdfbf' },
+  { id: '7', label: 'Budi (Eksekutif Showroom)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=BudiExec&backgroundColor=d1d4f9' },
+  { id: '8', label: 'Dani (Spesialis Unit)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DaniExpert&backgroundColor=b6e3f4' },
 ];
 
 export default function SettingsDealerPage() {
   const {
     currentUser,
     updateProfile,
-    resetToDemo,
-    customers,
-    stocks,
-    purchases,
-    creditApplications,
-    followUps,
-    leads,
   } = useCrm();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'showroom' | 'notifications' | 'system'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'showroom' | 'notifications'>('profile');
 
   // ==========================================
   // TAB 1: EDIT PROFIL AKUN PENGGUNA
@@ -87,14 +82,9 @@ export default function SettingsDealerPage() {
   const [dealerTagline, setDealerTagline] = useState('Showroom Mobil Bekas Berkualitas & Bergaransi');
   const [dealerAddress, setDealerAddress] = useState('Jl. Samarang No. 88, Tarogong Kaler, Kabupaten Garut, Jawa Barat 44151');
   const [dealerPhone, setDealerPhone] = useState('0812-2345-0001');
-  const [dealerEmail, setDealerEmail] = useState('info@hrmotor.id');
   const [operatingHoursWeekday, setOperatingHoursWeekday] = useState('08:00 - 17:00 WIB');
-  const [operatingHoursWeekend, setOperatingHoursWeekend] = useState('09:00 - 15:00 WIB');
   const [bankBca, setBankBca] = useState('148-098-7711 a/n HR MOTOR GARUT');
   const [bankMandiri, setBankMandiri] = useState('131-00-9821-4452 a/n FARHAN HIZRI');
-  const [warrantyPolicy, setWarrantyPolicy] = useState(
-    'Garansi 1 Bulan Gratis Resmi HR MOTOR Garut (Mesin & Transmisi) ke Bengkel Rujukan Rekanan Showroom. Seluruh unit dijamin 100% Bebas Banjir dan Bebas Benturan Tabrakan Berat.'
-  );
 
   // Load saved showroom settings from localStorage
   useEffect(() => {
@@ -106,12 +96,9 @@ export default function SettingsDealerPage() {
         if (parsed.dealerTagline) setDealerTagline(parsed.dealerTagline);
         if (parsed.dealerAddress) setDealerAddress(parsed.dealerAddress);
         if (parsed.dealerPhone) setDealerPhone(parsed.dealerPhone);
-        if (parsed.dealerEmail) setDealerEmail(parsed.dealerEmail);
         if (parsed.operatingHoursWeekday) setOperatingHoursWeekday(parsed.operatingHoursWeekday);
-        if (parsed.operatingHoursWeekend) setOperatingHoursWeekend(parsed.operatingHoursWeekend);
         if (parsed.bankBca) setBankBca(parsed.bankBca);
         if (parsed.bankMandiri) setBankMandiri(parsed.bankMandiri);
-        if (parsed.warrantyPolicy) setWarrantyPolicy(parsed.warrantyPolicy);
       }
     } catch (e) {}
   }, []);
@@ -206,12 +193,9 @@ export default function SettingsDealerPage() {
       dealerTagline,
       dealerAddress,
       dealerPhone,
-      dealerEmail,
       operatingHoursWeekday,
-      operatingHoursWeekend,
       bankBca,
       bankMandiri,
-      warrantyPolicy,
     };
     try {
       localStorage.setItem('hr_motor_dealer_settings', JSON.stringify(settings));
@@ -225,45 +209,6 @@ export default function SettingsDealerPage() {
   const handleSaveNotifications = (e: React.FormEvent) => {
     e.preventDefault();
     showNotification('Template pesan WhatsApp dan pengaturan notifikasi berhasil disimpan!');
-  };
-
-  // Unduh Cadangan Data CRM (Export JSON)
-  const handleExportBackup = () => {
-    const backupData = {
-      dealer: dealerName,
-      exportedAt: new Date().toISOString(),
-      version: '1.0',
-      data: {
-        customers,
-        stocks,
-        purchases,
-        creditApplications,
-        followUps,
-        leads,
-      },
-    };
-
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `HR_MOTOR_Backup_${new Date().toISOString().slice(0, 10)}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-
-    showNotification('Cadangan data CRM berhasil diunduh ke komputer Anda.');
-  };
-
-  // Reset Data Demo
-  const handleResetData = async () => {
-    if (
-      window.confirm(
-        'PERINGATAN: Apakah Anda yakin ingin mereset seluruh data CRM ke dataset awal demo? Seluruh perubahan lokal akan dikembalikan.'
-      )
-    ) {
-      await resetToDemo();
-      showNotification('Data CRM telah berhasil dikembalikan ke dataset awal demo.');
-    }
   };
 
   return (
@@ -343,19 +288,6 @@ export default function SettingsDealerPage() {
           >
             <MessageSquare className="w-4 h-4 text-gold-600" />
             <span>Template WhatsApp &amp; Notifikasi</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('system')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'system'
-                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 shadow-xs'
-                : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
-            }`}
-          >
-            <Sliders className="w-4 h-4 text-gold-600" />
-            <span>Preferensi &amp; Cadangan Data</span>
           </button>
         </div>
       </div>
@@ -440,6 +372,21 @@ export default function SettingsDealerPage() {
                         <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const bgColors = ['ffdfbf', 'd1d4f9', 'b6e3f4', 'ffd5dc', 'c0aede'];
+                        const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
+                        const randomSeed = `HRMotor_${Date.now()}`;
+                        const newAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}&backgroundColor=${randomBg}`;
+                        setProfileAvatar(newAvatar);
+                        setIsCustomAvatar(false);
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-gold-100 hover:bg-gold-200 border border-gold-300 text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                      title="Buat karakter kartun animasi acak unik"
+                    >
+                      🎲 + Acak Kartun
+                    </button>
                     <button
                       type="button"
                       onClick={() => setIsCustomAvatar(!isCustomAvatar)}
@@ -678,22 +625,7 @@ export default function SettingsDealerPage() {
 
             <div>
               <label className="block text-xs font-bold text-charcoal-800 mb-1">
-                Alamat Email Showroom
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={dealerEmail}
-                  onChange={(e) => setDealerEmail(e.target.value)}
-                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-charcoal-800 mb-1">
-                Jam Buka Hari Kerja (Senin - Sabtu)
+                Jam Operasional Showroom
               </label>
               <div className="relative">
                 <Clock className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -701,21 +633,6 @@ export default function SettingsDealerPage() {
                   type="text"
                   value={operatingHoursWeekday}
                   onChange={(e) => setOperatingHoursWeekday(e.target.value)}
-                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-charcoal-800 mb-1">
-                Jam Buka Akhir Pekan (Minggu &amp; Libur)
-              </label>
-              <div className="relative">
-                <Clock className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={operatingHoursWeekend}
-                  onChange={(e) => setOperatingHoursWeekend(e.target.value)}
                   className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
                 />
               </div>
@@ -749,19 +666,6 @@ export default function SettingsDealerPage() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* Kebijakan Garansi Resmi Showroom */}
-          <div className="pt-4 border-t border-[#EAE8E3] space-y-2">
-            <label className="block text-xs font-bold text-charcoal-800">
-              Ketentuan Garansi Resmi Showroom HR MOTOR Garut
-            </label>
-            <textarea
-              rows={3}
-              value={warrantyPolicy}
-              onChange={(e) => setWarrantyPolicy(e.target.value)}
-              className="w-full text-xs p-3 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
-            />
           </div>
 
           <div className="flex items-center justify-end pt-4 border-t border-[#EAE8E3]">
@@ -897,103 +801,6 @@ export default function SettingsDealerPage() {
             </button>
           </div>
         </form>
-      )}
-
-      {/* ========================================================================= */}
-      {/* TAB 4: PREFERENSI SISTEM & PENGELOLAAN DATA CRM                            */}
-      {/* ========================================================================= */}
-      {activeTab === 'system' && (
-        <div className="space-y-6">
-          {/* Card Preferensi Sistem */}
-          <div className="crm-card p-5 sm:p-6 bg-white space-y-5 border border-[#EAE8E3]">
-            <div className="border-b border-[#EAE8E3] pb-4">
-              <h2 className="text-base font-black text-charcoal-900">Preferensi Regional &amp; Antarmuka Aplikasi</h2>
-              <p className="text-xs text-charcoal-500">
-                Konfigurasi format mata uang, tanggal, dan kecepatan akses aplikasi showroom.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
-                <span className="text-[10px] text-charcoal-500 uppercase tracking-wider font-bold block">
-                  Format Mata Uang
-                </span>
-                <span className="text-sm font-black text-charcoal-900 mt-1 block">{currencyFormat}</span>
-                <span className="text-[10px] text-emerald-700 font-semibold mt-0.5 block">Contoh: Rp 185.000.000</span>
-              </div>
-
-              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
-                <span className="text-[10px] text-charcoal-500 uppercase tracking-wider font-bold block">
-                  Format Tanggal &amp; Waktu
-                </span>
-                <span className="text-sm font-black text-charcoal-900 mt-1 block">{dateFormat}</span>
-                <span className="text-[10px] text-charcoal-500 font-semibold mt-0.5 block">Zona Waktu: WIB (GMT+7)</span>
-              </div>
-
-              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
-                <span className="text-[10px] text-charcoal-500 uppercase tracking-wider font-bold block">
-                  Mode Performa
-                </span>
-                <span className="text-sm font-black text-gold-700 mt-1 block">{performanceMode}</span>
-                <span className="text-[10px] text-charcoal-500 font-semibold mt-0.5 block">Nol Loading Screen</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Card Pemeliharaan & Cadangan Data Showroom */}
-          <div className="crm-card p-5 sm:p-6 bg-white space-y-5 border border-[#EAE8E3]">
-            <div className="border-b border-[#EAE8E3] pb-4">
-              <h2 className="text-base font-black text-charcoal-900">Cadangan Data &amp; Pemeliharaan Showroom</h2>
-              <p className="text-xs text-charcoal-500">
-                Simpan cadangan data CRM secara mandiri atau lakukan sinkronisasi data showroom.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Ekspor Cadangan */}
-              <div className="p-4 bg-[#FAF9F5] border border-[#EAE8E3] rounded-2xl flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center mb-2">
-                    <Download className="w-5 h-5 text-gold-700" />
-                  </div>
-                  <h3 className="text-sm font-black text-charcoal-900">Unduh Cadangan Lengkap CRM</h3>
-                  <p className="text-xs text-charcoal-500 mt-1">
-                    Unduh seluruh data stok mobil ({stocks.length} unit), data pelanggan ({customers.length} orang), transaksi penjualan, dan riwayat follow-up dalam bentuk file JSON.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleExportBackup}
-                  className="btn-gold flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-4 shadow-xs cursor-pointer w-full"
-                >
-                  <Download className="w-4 h-4 text-charcoal-950" />
-                  <span>Unduh File Cadangan (.JSON)</span>
-                </button>
-              </div>
-
-              {/* Reset Data Uji / Demo */}
-              <div className="p-4 bg-[#FAF9F5] border border-[#EAE8E3] rounded-2xl flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-800 border border-rose-300 flex items-center justify-center mb-2">
-                    <RotateCcw className="w-5 h-5 text-rose-700" />
-                  </div>
-                  <h3 className="text-sm font-black text-charcoal-900">Kembalikan Data Demo Awal</h3>
-                  <p className="text-xs text-charcoal-500 mt-1">
-                    Fitur khusus jika Anda ingin mengembalikan dataset CRM HR MOTOR Garut ke data simulasi demo awal.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleResetData}
-                  className="btn-outline-warm text-rose-700 border-rose-300 hover:bg-rose-50 flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-4 cursor-pointer w-full transition-colors"
-                >
-                  <RotateCcw className="w-4 h-4 text-rose-700" />
-                  <span>Reset ke Data Demo Awal</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

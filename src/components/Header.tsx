@@ -246,7 +246,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80'}
+              src={currentUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'}
               alt={currentUser.name}
               className="w-5 h-5 rounded-full object-cover border border-gold-400 shrink-0"
             />
@@ -280,7 +280,7 @@ export const Header: React.FC<HeaderProps> = ({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={u.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80'}
+                      src={u.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'}
                       alt={u.name}
                       className="w-6 h-6 rounded-full object-cover border border-gold-400"
                     />
