@@ -1463,232 +1463,248 @@ export default function StokUnitPage() {
             </table>
           </div>
 
-          {/* MOBILE TABLE VIEW (HP) - Berbentuk Tabel Penuh, Tanpa Foto, Pas 100% Layar Tanpa Geser Kiri-Kanan */}
-          <div className="md:hidden w-full overflow-hidden bg-white">
-            <table className="w-full text-left border-collapse table-fixed text-xs">
-              <thead>
-                <tr className="bg-[#FAF9F5] text-charcoal-800 border-b border-[#EAE8E3]">
-                  <th className="py-2.5 px-1.5 text-center w-8 text-[10px] font-bold text-gold-700">NO</th>
-                  <th className="py-2.5 px-2 text-[10px] font-bold text-charcoal-700">UNIT &amp; SPESIFIKASI</th>
-                  <th className="py-2.5 px-2 text-right w-28 sm:w-32 text-[10px] font-bold text-gold-700">HARGA &amp; STATUS</th>
-                  <th className="py-2.5 px-1 text-center w-10 text-[10px] font-bold text-charcoal-700">AKSI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-warm-200/80">
-                {filteredStocks.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="py-12 px-4 text-center text-charcoal-400">
-                      <Car className="w-10 h-10 mx-auto text-charcoal-300 mb-2 stroke-[1.5]" />
-                      <p className="text-sm font-bold text-charcoal-800">Tidak ada unit kendaraan</p>
-                      <p className="text-xs text-charcoal-500 mt-0.5">Sesuaikan filter atau kata kunci pencarian.</p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSearchQuery('');
-                          setFilterBrand('Semua');
-                          setFilterStatus('Semua');
-                          setFilterCreditOnly(false);
-                          setFilterYearMin('');
-                          setFilterYearMax('');
-                          setFilterPriceMin('');
-                          setFilterPriceMax('');
-                        }}
-                        className="mt-3 px-3 py-1.5 rounded-xl bg-warm-100 hover:bg-warm-200 text-charcoal-800 text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        Reset Filter
-                      </button>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredStocks.map((stock, idx) => {
-                    const colorKey = (stock.color || '').toUpperCase().trim();
-                    const colorStyle = COLOR_CONFIG[colorKey] || {
-                      bg: 'bg-warm-100 border-warm-200',
-                      dot: 'bg-charcoal-400',
-                      text: 'text-charcoal-700',
-                      label: stock.color,
-                    };
+          {/* MOBILE NATIVE CAR CARDS VIEW (HP) - Pengalaman Aplikasi Mobile Native (Carsome / Auto2000) */}
+          <div className="md:hidden space-y-3.5 p-1">
+            {filteredStocks.length === 0 ? (
+              <div className="crm-card p-8 text-center text-charcoal-400 bg-white">
+                <Car className="w-12 h-12 mx-auto text-charcoal-300 mb-2 stroke-[1.5]" />
+                <p className="text-sm font-bold text-charcoal-800">Tidak ada unit kendaraan</p>
+                <p className="text-xs text-charcoal-500 mt-0.5">Sesuaikan filter atau kata kunci pencarian.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterBrand('Semua');
+                    setFilterStatus('Semua');
+                    setFilterCreditOnly(false);
+                    setFilterYearMin('');
+                    setFilterYearMax('');
+                    setFilterPriceMin('');
+                    setFilterPriceMax('');
+                  }}
+                  className="mt-3 px-4 py-2 rounded-xl bg-warm-100 hover:bg-warm-200 text-charcoal-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            ) : (
+              filteredStocks.map((stock, idx) => {
+                const colorKey = (stock.color || '').toUpperCase().trim();
+                const colorStyle = COLOR_CONFIG[colorKey] || {
+                  bg: 'bg-warm-100 border-warm-200',
+                  dot: 'bg-charcoal-400',
+                  text: 'text-charcoal-700',
+                  label: stock.color,
+                };
 
-                    const isBooking = stock.status === 'Booking';
-                    const isTerjual = stock.status === 'Terjual';
+                const isBooking = stock.status === 'Booking';
+                const isTerjual = stock.status === 'Terjual';
+                const photoSrc = (stock.photos && stock.photos.length > 0) ? stock.photos[0] : 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600';
+                const photoCount = stock.photos ? stock.photos.length : 1;
 
-                    return (
-                      <tr
-                        key={stock.id}
-                        onClick={() => handleOpenDetail(stock)}
-                        className="hover:bg-amber-50/50 transition-colors cursor-pointer group"
-                      >
-                        {/* 1. NO URUT */}
-                        <td className="py-3 px-1.5 text-center align-top font-mono font-bold">
-                          <span className="w-6 h-6 inline-flex items-center justify-center rounded-md bg-warm-100 text-charcoal-900 text-[11px] font-extrabold border border-warm-200/80 shadow-2xs">
-                            {stock.stockNumber || idx + 1}
+                const shareText = `*HR MOTOR Garut - Info Unit Ready*\n🚗 *${stock.brand} ${stock.model}* (${stock.year})\n• Transmisi: ${stock.transmission}\n• Warna: ${stock.color}\n• Odo: ${stock.odometerDisplay || stock.mileage.toLocaleString('id-ID')} km\n• Plat: ${stock.licensePlate || 'Siap Balik Nama'} (${stock.plateRegion || detectPlateRegion(stock.licensePlate)})\n• *Harga Cash: ${formatRupiah(stock.price)}*\n${stock.creditDp ? `• DP Mulai: ${formatRupiah(stock.creditDp)}\n` : ''}${stock.installment35x ? `• Cicilan 35x: ${stock.installment35x}\n` : ''}${stock.installment47x ? `• Cicilan 47x: ${stock.installment47x}\n` : ''}\nMinat cek unit langsung di showroom HR MOTOR Garut? Hubungi kami segera!`;
+                const waShareHref = formatWhatsAppLink('', shareText);
+
+                return (
+                  <div
+                    key={stock.id}
+                    onClick={() => handleOpenDetail(stock)}
+                    className="crm-card overflow-hidden bg-white border border-[#EAE8E3] rounded-2xl shadow-xs hover:border-gold-400 transition-all cursor-pointer group"
+                  >
+                    {/* 1. FOTO MOBIL (16:9 NATIVE APP HERO PHOTO) */}
+                    <div className="relative aspect-[16/10] w-full bg-charcoal-900 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photoSrc}
+                        alt={`${stock.brand} ${stock.model}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/75 via-transparent to-black/30 pointer-events-none" />
+
+                      {/* Top Left: No Urut & Brand Pill */}
+                      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
+                        <span className="w-6 h-6 rounded-lg bg-charcoal-900/85 backdrop-blur-md text-white text-[10px] font-black flex items-center justify-center border border-white/20 shadow-xs font-mono">
+                          #{stock.stockNumber || idx + 1}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-lg bg-gold-500/90 backdrop-blur-md text-charcoal-950 text-[10px] font-black uppercase tracking-wider shadow-xs">
+                          {stock.brand}
+                        </span>
+                      </div>
+
+                      {/* Top Right: Status Badge */}
+                      <div className="absolute top-2.5 right-2.5 z-10">
+                        {stock.status === 'Tersedia' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/95 backdrop-blur-md text-white border border-emerald-400 shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            Ready
                           </span>
-                        </td>
+                        )}
+                        {stock.status === 'Booking' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/95 backdrop-blur-md text-charcoal-950 border border-amber-300 shadow-xs">
+                            <Clock className="w-3 h-3 text-charcoal-950" />
+                            Boking
+                          </span>
+                        )}
+                        {stock.status === 'Terjual' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600/95 backdrop-blur-md text-white border border-rose-400 shadow-xs">
+                            Sold Out
+                          </span>
+                        )}
+                      </div>
 
-                        {/* 2. UNIT & SPESIFIKASI */}
-                        <td className="py-3 px-2 align-top min-w-0">
-                          {/* Brand & Model Name */}
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-gold-100 text-gold-950 border border-gold-300/70 shrink-0">
-                              {stock.brand}
+                      {/* Bottom Overlay: Plat Nomor & Daerah + Foto Counter */}
+                      <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-white z-10">
+                        <div className="flex items-center gap-1.5">
+                          {stock.licensePlate ? (
+                            <span className="bg-charcoal-900/85 backdrop-blur-md text-white font-mono text-[10px] font-black px-2 py-0.5 rounded-md border border-white/25">
+                              {stock.licensePlate}
                             </span>
-                            <span className="font-bold text-xs text-charcoal-950 group-hover:text-gold-700 transition-colors leading-tight">
-                              {stock.model}
-                            </span>
-                          </div>
-
-                          {/* Sub-spesifikasi: Tahun, Transmisi, BBM */}
-                          <div className="flex items-center gap-1 text-[10px] text-charcoal-600 mt-1 flex-wrap leading-tight">
-                            <span className="font-bold text-charcoal-800 bg-warm-100 px-1 rounded border border-warm-200">
-                              {stock.year}
-                            </span>
-                            <span>•</span>
-                            <span>{stock.transmission}</span>
-                            <span>•</span>
-                            <span>{stock.fuel}</span>
-                          </div>
-
-                          {/* Plat Polisi & Daerah & Warna & Odo */}
-                          <div className="flex items-center gap-1 text-[10px] mt-1 flex-wrap leading-tight">
-                            {stock.licensePlate ? (
-                              <span className="inline-flex items-center gap-1">
-                                <span className="bg-[#FDF8ED] text-gold-900 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border border-gold-300">
-                                  {stock.licensePlate}
-                                </span>
-                                <span className="text-[9px] font-extrabold text-charcoal-700 bg-warm-100 px-1 py-0.2 rounded border border-warm-200 inline-flex items-center gap-0.5">
-                                  <MapPin className="w-2 h-2 text-gold-600" />
-                                  {stock.plateRegion || detectPlateRegion(stock.licensePlate)}
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="text-charcoal-400 text-[9px] italic">
-                                Siap Balik Nama
-                              </span>
-                            )}
-                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded border text-[9px] font-semibold ${colorStyle.bg} ${colorStyle.text}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${colorStyle.dot}`} />
-                              {colorStyle.label}
-                            </span>
-                            <span className="text-charcoal-500 font-mono text-[9px]">
-                              {stock.odometerDisplay ? `${stock.odometerDisplay} km` : `${stock.mileage.toLocaleString('id-ID')} km`}
-                            </span>
-                          </div>
-
-                          {/* Info Booking / Terjual jika ada */}
-                          {isBooking && (stock.bookingCustomerName || stock.bookingLeasing) && (
-                            <div className="mt-1 text-[9px] bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-amber-900 leading-tight">
-                              ⏳ {stock.bookingCustomerName ? `Pmsn: ${stock.bookingCustomerName}` : ''} {stock.bookingLeasing ? `(${stock.bookingLeasing})` : ''}
-                            </div>
-                          )}
-                          {isTerjual && stock.soldToCustomerName && (
-                            <div className="mt-1 text-[9px] bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 text-rose-900 leading-tight">
-                              🏁 Pembeli: {stock.soldToCustomerName}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* 3. HARGA CASH & PAKET KREDIT & STATUS */}
-                        <td className="py-3 px-2 text-right align-top min-w-0">
-                          {/* Status Badge */}
-                          <div className="flex justify-end mb-1">
-                            {stock.status === 'Tersedia' && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
-                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-700" />
-                                Ready
-                              </span>
-                            )}
-                            {stock.status === 'Booking' && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-950 border border-amber-300">
-                                <Clock className="w-2.5 h-2.5 text-amber-700" />
-                                Boking
-                              </span>
-                            )}
-                            {stock.status === 'Terjual' && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
-                                <CheckCircle2 className="w-2.5 h-2.5 text-rose-700" />
-                                Sold
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Harga Cash OTR */}
-                          <div className="font-mono font-black text-xs text-charcoal-950 tracking-tight leading-tight">
-                            {formatRupiah(stock.price)}
-                          </div>
-
-                          {/* Simulasi Kredit DP & Cicilan */}
-                          {stock.creditDp || stock.installment35x || stock.installment47x || stock.installment59x ? (
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenCalculator(stock);
-                              }}
-                              className="mt-0.5 text-[9px] leading-tight cursor-pointer hover:opacity-80 p-0.5 rounded"
-                              title="Klik untuk ubah estimasi DP & cicilan"
-                            >
-                              <span className="text-gold-900 font-extrabold block flex items-center justify-end gap-0.5">
-                                DP {stock.creditDp ? formatRupiah(stock.creditDp) : 'Tersedia'}
-                                <Pencil className="w-2 h-2 text-gold-700" />
-                              </span>
-                              <span className="text-charcoal-500 font-mono block">
-                                {stock.installment47x || stock.installment35x || stock.installment59x || ''}
-                              </span>
-                            </div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenCalculator(stock);
-                              }}
-                              className="text-[9px] text-gold-800 font-bold underline block mt-0.5 ml-auto cursor-pointer"
-                            >
-                              + Hitung Kredit
-                            </button>
+                            <span className="bg-charcoal-900/85 backdrop-blur-md text-gold-300 text-[10px] font-bold px-2 py-0.5 rounded-md border border-white/20">
+                              Siap Balik Nama
+                            </span>
                           )}
-                        </td>
+                          <span className="bg-gold-500/90 text-charcoal-950 font-extrabold text-[10px] px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-2xs">
+                            <MapPin className="w-2.5 h-2.5" />
+                            {stock.plateRegion || detectPlateRegion(stock.licensePlate)}
+                          </span>
+                        </div>
 
-                        {/* 4. AKSI */}
-                        <td 
-                          className="py-3 px-1 text-center align-top"
-                          onClick={(e) => e.stopPropagation()}
+                        <span className="text-[10px] font-medium bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded-md flex items-center gap-1 border border-white/10">
+                          <Camera className="w-3 h-3 text-gold-400" />
+                          {photoCount}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 2. KONTEN & SPESIFIKASI MOBIL */}
+                    <div className="p-3.5 space-y-2.5">
+                      {/* Nama Model */}
+                      <div>
+                        <h3 className="font-black text-sm text-charcoal-900 leading-snug group-hover:text-gold-700 transition-colors">
+                          {stock.model}
+                        </h3>
+                        {/* Spesifikasi Badge Chips */}
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-md bg-[#FAF9F5] border border-[#EAE8E3] text-[10px] font-bold text-charcoal-800">
+                            Thn {stock.year}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-[#FAF9F5] border border-[#EAE8E3] text-[10px] font-semibold text-charcoal-700">
+                            {stock.transmission}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-[#FAF9F5] border border-[#EAE8E3] text-[10px] font-mono text-charcoal-700">
+                            {stock.odometerDisplay ? `${stock.odometerDisplay} km` : `${stock.mileage.toLocaleString('id-ID')} km`}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold ${colorStyle.bg} ${colorStyle.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${colorStyle.dot}`} />
+                            {colorStyle.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Info Booking / Sold jika ada */}
+                      {isBooking && (stock.bookingCustomerName || stock.bookingLeasing) && (
+                        <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-[11px] font-bold flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                          <span className="truncate">
+                            Boking: {stock.bookingCustomerName || '-'} {stock.bookingLeasing ? `(${stock.bookingLeasing})` : ''}
+                          </span>
+                        </div>
+                      )}
+                      {isTerjual && stock.soldToCustomerName && (
+                        <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-[11px] font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-rose-700 shrink-0" />
+                          <span className="truncate">Terjual ke: {stock.soldToCustomerName}</span>
+                        </div>
+                      )}
+
+                      {/* 3. KOTAK HARGA CASH & PAKET KREDIT */}
+                      <div className="p-2.5 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] space-y-1.5">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-[10px] font-bold text-charcoal-500 uppercase tracking-wider">
+                            Harga Cash OTR
+                          </span>
+                          <span className="font-mono font-black text-base text-charcoal-950 tracking-tight">
+                            {formatRupiah(stock.price)}
+                          </span>
+                        </div>
+
+                        {/* Rincian DP & Tenor Kredit */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenCalculator(stock);
+                          }}
+                          className="pt-1.5 border-t border-[#EAE8E3] flex items-center justify-between text-[11px] hover:opacity-80 transition-opacity"
                         >
-                          <div className="flex flex-col items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenDetail(stock)}
-                              className="p-1.5 rounded-lg bg-[#FAF9F5] hover:bg-[#F0EDE6] text-gold-700 border border-gold-300 shadow-2xs transition-colors cursor-pointer"
-                              title="Lihat Detail Unit"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEdit(stock)}
-                              className="p-1.5 rounded-lg bg-warm-100 hover:bg-warm-200 text-blue-700 border border-warm-200 shadow-2xs transition-colors cursor-pointer"
-                              title="Edit Unit"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedStock(stock);
-                                setShowDeleteModal(true);
-                              }}
-                              className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shadow-2xs transition-colors cursor-pointer"
-                              title="Hapus Unit"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="text-[10px] font-extrabold text-gold-900 bg-gold-100 px-1.5 py-0.2 rounded border border-gold-300 shrink-0">
+                              DP: {stock.creditDp ? formatRupiah(stock.creditDp) : 'Fleksibel'}
+                            </span>
+                            <span className="text-[10px] text-charcoal-600 font-mono truncate">
+                              {stock.installment47x || stock.installment35x || stock.installment59x || 'Paket Kredit'}
+                            </span>
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          <span className="text-[10px] text-gold-700 font-bold flex items-center gap-0.5 shrink-0 ml-1">
+                            <Pencil className="w-2.5 h-2.5" />
+                            Ubah
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 4. TOMBOL AKSI JEMPOL (THUMB-FRIENDLY BUTTONS) */}
+                      <div
+                        className="flex items-center gap-2 pt-1 border-t border-[#EAE8E3]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <a
+                          href={waShareHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                          title="Bagikan rincian unit ke WhatsApp konsumen"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Kirim WA</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenDetail(stock)}
+                          className="py-2 px-3 rounded-xl bg-gold-100 hover:bg-gold-200 text-gold-950 border border-gold-300 font-bold text-xs flex items-center justify-center gap-1 shadow-2xs transition-colors"
+                          title="Lihat Detail Lengkap Unit"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-gold-800" />
+                          <span>Detail</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(stock)}
+                          className="p-2 rounded-xl bg-white hover:bg-warm-100 text-charcoal-700 border border-[#EAE8E3] shadow-2xs transition-colors"
+                          title="Edit Unit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedStock(stock);
+                            setShowDeleteModal(true);
+                          }}
+                          className="p-2 rounded-xl bg-white hover:bg-rose-50 text-rose-600 border border-[#EAE8E3] hover:border-rose-300 shadow-2xs transition-colors"
+                          title="Hapus Unit"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           {/* Table Footer Summary */}

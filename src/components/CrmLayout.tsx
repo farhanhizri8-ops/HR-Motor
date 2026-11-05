@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { CrmProvider } from '@/context/CrmContext';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { QuickActionModal } from '@/components/QuickActionModal';
 import { GlobalSearchModal } from '@/components/GlobalSearchModal';
 
@@ -62,10 +63,13 @@ export const CrmLayoutContent: React.FC<{ children: React.ReactNode }> = ({ chil
           onOpenGlobalSearch={() => setGlobalSearchOpen(true)}
         />
 
-        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 overflow-x-hidden w-full min-w-0">
+        <main className="flex-1 p-3.5 sm:p-5 lg:p-6 pb-24 lg:pb-6 overflow-x-hidden w-full min-w-0">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (App Experience) */}
+      <MobileBottomNav />
 
       {/* Modals */}
       <QuickActionModal

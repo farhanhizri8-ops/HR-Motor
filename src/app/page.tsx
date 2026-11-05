@@ -481,11 +481,11 @@ export default function DashboardPage() {
 
           {/* Filter Periode */}
           <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0">
-            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-warm-100 rounded-xl border border-warm-200">
+            <div className="flex items-center gap-1.5 p-1 bg-warm-100 rounded-xl border border-warm-200 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setDateFilter('bulan_ini')}
-                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'bulan_ini'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -496,7 +496,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('per_bulan')}
-                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'per_bulan'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -507,7 +507,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('tahun_ini')}
-                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'tahun_ini'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -518,7 +518,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('per_tahun')}
-                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'per_tahun'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -529,7 +529,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('semua')}
-                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'semua'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'
@@ -540,7 +540,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setDateFilter('kustom')}
-                className={`flex-1 sm:flex-none text-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   dateFilter === 'kustom'
                     ? 'bg-white text-charcoal-900 shadow-luxury font-bold border border-warm-200'
                     : 'text-charcoal-600 hover:text-charcoal-900'

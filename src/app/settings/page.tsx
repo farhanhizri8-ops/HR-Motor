@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   User,
+  Users,
   Building2,
   Phone,
   Mail,
   MapPin,
   Clock,
   Shield,
+  ShieldCheck,
   Key,
   Save,
   CheckCircle2,
@@ -29,8 +32,12 @@ import {
   RotateCcw,
   Smartphone,
   Calendar,
+  CalendarClock,
   Lock,
   Upload,
+  UserCheck,
+  History,
+  ChevronRight,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -347,6 +354,128 @@ export default function SettingsDealerPage() {
             <MessageSquare className="w-4 h-4 text-gold-600" />
             <span>Template WhatsApp &amp; Notifikasi</span>
           </button>
+        </div>
+      </div>
+
+      {/* 2. MENU & MODUL TAMBAHAN SHOWROOM (Pusat Akses Lengkap Navigasi Mobile & Desktop) */}
+      <div className="crm-card p-4 sm:p-5 bg-white border border-[#EAE8E3] rounded-2xl shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#EAE8E3]">
+          <div>
+            <h2 className="text-xs sm:text-sm font-black text-charcoal-900 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-gold-600" />
+              <span>Menu &amp; Modul Operasional Showroom</span>
+            </h2>
+            <p className="text-[11px] text-charcoal-500 mt-0.5">
+              Pusat akses cepat seluruh modul CRM HR MOTOR Garut untuk kemudahan navigasi di HP &amp; Laptop
+            </p>
+          </div>
+          <span className="badge-gold text-[10px]">Akses Lengkap</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {/* Data Pelanggan */}
+          <Link
+            href="/customers"
+            className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center">
+                <Users className="w-4 h-4" />
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+            </div>
+            <div className="mt-2">
+              <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Data Pelanggan</h3>
+              <p className="text-[10px] text-charcoal-500 truncate">Basis data &amp; kwitansi deal</p>
+            </div>
+          </Link>
+
+          {/* Follow Up */}
+          <Link
+            href="/follow-up"
+            className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-900 border border-blue-300 flex items-center justify-center">
+                <CalendarClock className="w-4 h-4" />
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+            </div>
+            <div className="mt-2">
+              <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Follow Up</h3>
+              <p className="text-[10px] text-charcoal-500 truncate">Riwayat &amp; kepuasan 1 tahun</p>
+            </div>
+          </Link>
+
+          {/* Garansi & Servis */}
+          <Link
+            href="/riwayat-perbaikan"
+            className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+            </div>
+            <div className="mt-2">
+              <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Garansi &amp; Servis</h3>
+              <p className="text-[10px] text-charcoal-500 truncate">Klaim &lt; 1 bulan &amp; bengkel</p>
+            </div>
+          </Link>
+
+          {/* Manajemen Pengguna (Owner Only) */}
+          {currentUser.role === 'Owner' && (
+            <Link
+              href="/users"
+              className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-900 border border-purple-300 flex items-center justify-center">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+              </div>
+              <div className="mt-2">
+                <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Manajemen Tim</h3>
+                <p className="text-[10px] text-charcoal-500 truncate">Persetujuan &amp; hak akses</p>
+              </div>
+            </Link>
+          )}
+
+          {/* Catatan Aktivitas */}
+          <Link
+            href="/activity-logs"
+            className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center">
+                <History className="w-4 h-4" />
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+            </div>
+            <div className="mt-2">
+              <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Riwayat Aktivitas</h3>
+              <p className="text-[10px] text-charcoal-500 truncate">Audit log &amp; aksi operasional</p>
+            </div>
+          </Link>
+
+          {/* Hub Komunikasi WA */}
+          <Link
+            href="/communication"
+            className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+            </div>
+            <div className="mt-2">
+              <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">WhatsApp Hub</h3>
+              <p className="text-[10px] text-charcoal-500 truncate">Template &amp; respon pesan</p>
+            </div>
+          </Link>
         </div>
       </div>
 
