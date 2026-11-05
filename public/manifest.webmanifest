@@ -4,7 +4,8 @@
   "description": "Sistem Manajemen Transaksi, Stok Kendaraan & Penjualan HR MOTOR Garut",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "orientation": "any",
   "background_color": "#FFFFFF",
   "theme_color": "#202020",
   "icons": [

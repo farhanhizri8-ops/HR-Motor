@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Menu,
@@ -14,6 +14,8 @@ import {
   Bell,
   Clock,
   Sparkles,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -40,6 +42,27 @@ export const Header: React.FC<HeaderProps> = ({
 
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
 
   // Calculate urgent reminders
   const todayStr = new Date().toISOString().split('T')[0];
@@ -114,6 +137,20 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Notification Bell, Quick Action, Role Switcher, Logout */}
       <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
+        {/* Tombol Layar Penuh (Maximize Full Screen) */}
+        <button
+          onClick={toggleFullscreen}
+          className="flex items-center justify-center w-8.5 h-8.5 sm:w-9 sm:h-9 rounded-xl bg-white hover:bg-warm-50 border border-warm-200 text-charcoal-700 hover:text-gold-600 transition-all shadow-2xs"
+          title={isFullscreen ? 'Keluar Layar Penuh (Esc)' : 'Layar Penuh (F11)'}
+          aria-label="Layar Penuh"
+        >
+          {isFullscreen ? (
+            <Minimize2 className="w-4 h-4 text-gold-600" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
+        </button>
+
         {/* Notification Bell */}
         <div className="relative">
           <button
