@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Car,
   X,
   Wrench,
@@ -22,6 +23,21 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
+
+interface NavSubItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: string[];
+}
+
+interface NavItem {
+  name: string;
+  href?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: string[];
+  children?: NavSubItem[];
+}
 
 interface SidebarProps {
   collapsed: boolean;
@@ -39,7 +55,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const pathname = usePathname();
   const { currentUser, logout } = useCrm();
 
-  const navigationItems = [
+  const cleanPath = (pathname || '').replace(/\/$/, '') || '/';
+
+  const isCrmPath = (path: string) => {
+    return (
+      path === '/customers' ||
+      path === '/leads' ||
+      path === '/pipeline' ||
+      path === '/follow-up'
+    );
+  };
+
+  const isCrmActive = isCrmPath(cleanPath);
+  const [crmOpen, setCrmOpen] = useState(true);
+
+  // Otomatis buka dropdown CRM jika user berada di halaman Data Pelanggan, Prospek, atau Follow Up
+  useEffect(() => {
+    if (isCrmActive) {
+      setCrmOpen(true);
+    }
+  }, [isCrmActive]);
+
+  const navigationItems: NavItem[] = [
     {
       name: 'Dasbor Utama',
       href: '/',
@@ -47,28 +84,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
     },
     {
-      name: 'Basis Data Pelanggan',
-      href: '/customers',
+      name: 'CRM',
       icon: Users,
-      roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
-    },
-    {
-      name: 'Prospek & Penjualan',
-      href: '/leads',
-      icon: GitPullRequest,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
+      children: [
+        {
+          name: 'Data Pelanggan',
+          href: '/customers',
+          icon: Users,
+          roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
+        },
+        {
+          name: 'Prospek',
+          href: '/leads',
+          icon: Target,
+          roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
+        },
+        {
+          name: 'Follow Up',
+          href: '/follow-up',
+          icon: CalendarClock,
+          roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
+        },
+      ],
     },
     {
       name: 'Stok Mobil Showroom',
       href: '/stok-unit',
       icon: Car,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'Marketing'],
-    },
-    {
-      name: 'Tindak Lanjut Konsumen',
-      href: '/follow-up',
-      icon: CalendarClock,
-      roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator'],
     },
     {
       name: 'Garansi & Servis Mobil',
@@ -113,9 +157,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const filteredNav = navigationItems.filter((item) =>
-    item.roles.includes(currentUser.role)
-  );
+  const filteredNav = navigationItems
+    .map((item) => {
+      if (item.children) {
+        const visibleChildren = item.children.filter((child) =>
+          child.roles.includes(currentUser.role)
+        );
+        if (visibleChildren.length === 0) return null;
+        return {
+          ...item,
+          children: visibleChildren,
+        };
+      }
+      return item.roles.includes(currentUser.role) ? item : null;
+    })
+    .filter((item): item is NavItem => item !== null);
 
   return (
     <>
@@ -197,17 +253,120 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1.5">
           {filteredNav.map((item) => {
-            const cleanPath = (pathname || '').replace(/\/$/, '') || '/';
+            const Icon = item.icon;
+
+            // Jika item memiliki anak (seperti menu dropdown CRM)
+            if (item.children && item.children.length > 0) {
+              const hasActiveChild = item.children.some(
+                (sub) =>
+                  cleanPath === sub.href ||
+                  (sub.href === '/leads' && cleanPath === '/pipeline')
+              );
+
+              return (
+                <div key={item.name} className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (collapsed) {
+                        setCollapsed(false);
+                        setCrmOpen(true);
+                      } else {
+                        setCrmOpen((prev) => !prev);
+                      }
+                    }}
+                    className={`group w-full flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer relative ${
+                      hasActiveChild
+                        ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold border-l-4 border-l-gold-500'
+                        : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300 border-l-4 border-l-transparent'
+                    } ${collapsed ? 'lg:justify-center lg:px-0 lg:border-l-0' : ''}`}
+                    title={collapsed ? `${item.name} (Data Pelanggan, Prospek, Follow Up)` : undefined}
+                  >
+                    <Icon
+                      className={`w-4.5 h-4.5 shrink-0 transition-colors ${
+                        hasActiveChild
+                          ? 'text-gold-400 stroke-[2.2]'
+                          : 'text-slate-400 group-hover:text-gold-400'
+                      }`}
+                    />
+
+                    {/* Show label on mobile always, or on desktop when not collapsed */}
+                    <span className={`truncate tracking-wide font-bold ${collapsed ? 'lg:hidden' : 'inline'}`}>
+                      {item.name}
+                    </span>
+
+                    {/* Chevron Indicator */}
+                    <span
+                      className={`ml-auto transition-transform duration-200 ${
+                        collapsed ? 'lg:hidden' : 'flex items-center'
+                      }`}
+                    >
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          crmOpen ? 'rotate-180 text-gold-400' : 'text-slate-400 group-hover:text-gold-400'
+                        }`}
+                      />
+                    </span>
+
+                    {/* Collapsed dot */}
+                    {hasActiveChild && collapsed && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold-400 absolute top-2 right-2 hidden lg:block" />
+                    )}
+                  </button>
+
+                  {/* Dropdown sub-items for CRM */}
+                  {crmOpen && (!collapsed || mobileOpen) && (
+                    <div className="ml-4 pl-3.5 border-l-2 border-gold-500/30 space-y-1 my-1 transition-all">
+                      {item.children.map((sub) => {
+                        const isSubActive =
+                          cleanPath === sub.href ||
+                          (sub.href === '/leads' && cleanPath === '/pipeline');
+                        const SubIcon = sub.icon;
+
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            prefetch={true}
+                            onClick={() => setMobileOpen(false)}
+                            className={`group flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 relative ${
+                              isSubActive
+                                ? 'bg-[#282828] text-gold-400 border border-gold-500/40 font-bold shadow-xs'
+                                : 'text-slate-300 hover:bg-[#242424] hover:text-gold-300 font-medium'
+                            }`}
+                            title={sub.name}
+                          >
+                            <SubIcon
+                              className={`w-4 h-4 shrink-0 transition-colors ${
+                                isSubActive
+                                  ? 'text-gold-400 stroke-[2.2]'
+                                  : 'text-slate-400 group-hover:text-gold-400'
+                              }`}
+                            />
+                            <span className="truncate">{sub.name}</span>
+                            {isSubActive && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-gold-400 ml-auto shrink-0 shadow-xs" />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // Menu reguler tanpa anak
             const isActive =
               cleanPath === item.href ||
               (item.href === '/leads' && cleanPath === '/pipeline') ||
-              (item.href === '/riwayat-perbaikan' && (cleanPath === '/garansi-perbaikan' || cleanPath === '/riwayat-perbaikan'));
-            const Icon = item.icon;
+              (item.href === '/riwayat-perbaikan' &&
+                (cleanPath === '/garansi-perbaikan' || cleanPath === '/riwayat-perbaikan'));
 
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.href || item.name}
+                href={item.href || '/'}
                 prefetch={true}
                 onClick={() => setMobileOpen(false)}
                 className={`group flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-150 relative ${

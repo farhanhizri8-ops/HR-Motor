@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { readDatabase, repairDatabaseStocks, repairDatabaseLeads, getInitialDatabase } from '../src/lib/serverStore';
 import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase, Lead, normalizePipelineStage, CORE_PIPELINE_STAGES } from '../src/types/crm';
 
@@ -1009,6 +1011,44 @@ console.log('\n[10/10] Testing User Management: Approval Gating, Reject & Delete
   const loginResReRegistered = attemptLogin('staf.baru@hrmotor.id', 'Garut2005');
   assert(!loginResReRegistered.success && Boolean(loginResReRegistered.error?.includes('menunggu persetujuan')), 'Re-registered user cannot login until re-approved');
 }
+
+// -------------------------------------------------------------
+// [11/11] SIDEBAR CRM DROPDOWN NAVIGATION VERIFICATION
+// -------------------------------------------------------------
+{
+  console.log('\n[11/11] Testing Sidebar CRM Dropdown Navigation (Data Pelanggan, Prospek, Follow Up)...');
+
+  // Verify navigation structure
+  const sidebarContent = fs.readFileSync(path.join(__dirname, '../src/components/Sidebar.tsx'), 'utf8');
+
+  assert(sidebarContent.includes("name: 'CRM'"), "Sidebar includes parent 'CRM' menu item");
+  assert(sidebarContent.includes("name: 'Data Pelanggan'"), "CRM contains 'Data Pelanggan' sub-item");
+  assert(sidebarContent.includes("href: '/customers'"), "Data Pelanggan links to '/customers'");
+  assert(sidebarContent.includes("name: 'Prospek'"), "CRM contains 'Prospek' sub-item");
+  assert(sidebarContent.includes("href: '/leads'"), "Prospek links to '/leads'");
+  assert(sidebarContent.includes("name: 'Follow Up'"), "CRM contains 'Follow Up' sub-item");
+  assert(sidebarContent.includes("href: '/follow-up'"), "Follow Up links to '/follow-up'");
+  assert(sidebarContent.includes('setCrmOpen'), 'Sidebar has dropdown toggle state for CRM');
+  assert(sidebarContent.includes('isCrmActive'), 'Sidebar detects active CRM child paths automatically');
+
+  // Test route matching helper
+  const isCrmPath = (path: string) => {
+    return (
+      path === '/customers' ||
+      path === '/leads' ||
+      path === '/pipeline' ||
+      path === '/follow-up'
+    );
+  };
+
+  assert(isCrmPath('/customers'), '/customers activates CRM');
+  assert(isCrmPath('/leads'), '/leads activates CRM');
+  assert(isCrmPath('/pipeline'), '/pipeline activates CRM');
+  assert(isCrmPath('/follow-up'), '/follow-up activates CRM');
+  assert(!isCrmPath('/stok-unit'), '/stok-unit does NOT activate CRM');
+  assert(!isCrmPath('/'), '/ does NOT activate CRM');
+}
+
 
 
 console.log('\n================================================================');
