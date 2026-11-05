@@ -2,777 +2,995 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Settings,
+  User,
   Building2,
-  MapPin,
   Phone,
   Mail,
+  MapPin,
   Clock,
   Shield,
-  Database,
-  RotateCcw,
-  CheckCircle,
+  Key,
   Save,
-  Car,
-  Cloud,
-  Server,
-  Globe,
-  ExternalLink,
-  RefreshCw,
   CheckCircle2,
-  AlertCircle,
-  Copy,
-  Terminal,
-  Zap,
-  Sparkles,
-  Layers,
+  Download,
+  RefreshCw,
+  Bell,
   MessageSquare,
-  CreditCard,
-  Search,
+  Eye,
+  EyeOff,
+  Car,
+  Sparkles,
+  Sliders,
   Check,
-  ChevronDown,
-  ChevronUp,
-  Cpu,
-  Radio,
+  AlertCircle,
+  CreditCard,
+  FileText,
+  Camera,
+  RotateCcw,
+  Smartphone,
+  Calendar,
   Lock,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
+const AVATAR_PRESETS = [
+  { id: '1', label: 'Eksekutif Showroom', url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
+  { id: '2', label: 'Dealer Manager', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
+  { id: '3', label: 'Konsultan Otomotif', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
+  { id: '4', label: 'Customer Relations', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150' },
+  { id: '5', label: 'Sales Executive', url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150' },
+  { id: '6', label: 'Admin Profesional', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+];
+
 export default function SettingsDealerPage() {
-  const { resetToDemo, currentUser } = useCrm();
+  const {
+    currentUser,
+    updateProfile,
+    resetToDemo,
+    customers,
+    stocks,
+    purchases,
+    creditApplications,
+    followUps,
+    leads,
+  } = useCrm();
 
-  const [activeTab, setActiveTab] = useState<'plugins' | 'profile' | 'security'>('plugins');
+  const [activeTab, setActiveTab] = useState<'profile' | 'showroom' | 'notifications' | 'system'>('profile');
 
-  // Showroom Profile States
-  const [dealerName, setDealerName] = useState('HR MOTOR Garut');
-  const [address, setAddress] = useState('Garut, Jawa Barat');
-  const [phone, setPhone] = useState('081223450001');
-  const [email, setEmail] = useState('info@hrmotor.id');
-  const [operatingHours, setOperatingHours] = useState('Senin - Sabtu: 08:00 - 17:00 WIB | Minggu: 09:00 - 15:00 WIB');
-  const [warrantyPolicy, setWarrantyPolicy] = useState('Garansi Mesin & Transmisi 1 Bulan Resmi HR MOTOR Garut, Bebas Banjir & Bebas Tabrak Berat.');
+  // ==========================================
+  // TAB 1: EDIT PROFIL AKUN PENGGUNA
+  // ==========================================
+  const [profileName, setProfileName] = useState(currentUser.name || '');
+  const [profileEmail, setProfileEmail] = useState(currentUser.email || '');
+  const [profilePhone, setProfilePhone] = useState(currentUser.phone || '');
+  const [profileAvatar, setProfileAvatar] = useState(currentUser.avatar || AVATAR_PRESETS[0].url);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isCustomAvatar, setIsCustomAvatar] = useState(false);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
 
-  const [savedSuccess, setSavedSuccess] = useState(false);
-
-  // Supabase & Hosting States
-  const [supabaseStatus, setSupabaseStatus] = useState<{
-    isConfigured: boolean;
-    url?: string;
-    hasAnonKey?: boolean;
-    hasServiceKey?: boolean;
-  }>({ isConfigured: true, url: 'https://mzgbawudyaimckpaluio.supabase.co' });
-
-  const [testingSupabase, setTestingSupabase] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string; latency?: number } | null>(null);
-
-  const [syncingSupabase, setSyncingSupabase] = useState(false);
-  const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; details?: any } | null>(null);
-
-  const [copiedEnv, setCopiedEnv] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-
+  // Sync profile when currentUser changes
   useEffect(() => {
-    async function checkSupabase() {
-      try {
-        const res = await fetch('/api/crm');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.supabase) {
-            setSupabaseStatus(json.supabase);
-          }
-        }
-      } catch (e) {
-        console.warn('Could not check Supabase status', e);
-      }
+    if (currentUser) {
+      setProfileName(currentUser.name || '');
+      setProfileEmail(currentUser.email || '');
+      setProfilePhone(currentUser.phone || '');
+      setProfileAvatar(currentUser.avatar || AVATAR_PRESETS[0].url);
     }
-    checkSupabase();
+  }, [currentUser]);
+
+  // ==========================================
+  // TAB 2: PROFIL & IDENTITAS SHOWROOM
+  // ==========================================
+  const [dealerName, setDealerName] = useState('HR MOTOR Garut');
+  const [dealerTagline, setDealerTagline] = useState('Showroom Mobil Bekas Berkualitas & Bergaransi');
+  const [dealerAddress, setDealerAddress] = useState('Jl. Samarang No. 88, Tarogong Kaler, Kabupaten Garut, Jawa Barat 44151');
+  const [dealerPhone, setDealerPhone] = useState('0812-2345-0001');
+  const [dealerEmail, setDealerEmail] = useState('info@hrmotor.id');
+  const [operatingHoursWeekday, setOperatingHoursWeekday] = useState('08:00 - 17:00 WIB');
+  const [operatingHoursWeekend, setOperatingHoursWeekend] = useState('09:00 - 15:00 WIB');
+  const [bankBca, setBankBca] = useState('148-098-7711 a/n HR MOTOR GARUT');
+  const [bankMandiri, setBankMandiri] = useState('131-00-9821-4452 a/n FARHAN HIZRI');
+  const [warrantyPolicy, setWarrantyPolicy] = useState(
+    'Garansi 1 Bulan Gratis Resmi HR MOTOR Garut (Mesin & Transmisi) ke Bengkel Rujukan Rekanan Showroom. Seluruh unit dijamin 100% Bebas Banjir dan Bebas Benturan Tabrakan Berat.'
+  );
+
+  // Load saved showroom settings from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('hr_motor_dealer_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.dealerName) setDealerName(parsed.dealerName);
+        if (parsed.dealerTagline) setDealerTagline(parsed.dealerTagline);
+        if (parsed.dealerAddress) setDealerAddress(parsed.dealerAddress);
+        if (parsed.dealerPhone) setDealerPhone(parsed.dealerPhone);
+        if (parsed.dealerEmail) setDealerEmail(parsed.dealerEmail);
+        if (parsed.operatingHoursWeekday) setOperatingHoursWeekday(parsed.operatingHoursWeekday);
+        if (parsed.operatingHoursWeekend) setOperatingHoursWeekend(parsed.operatingHoursWeekend);
+        if (parsed.bankBca) setBankBca(parsed.bankBca);
+        if (parsed.bankMandiri) setBankMandiri(parsed.bankMandiri);
+        if (parsed.warrantyPolicy) setWarrantyPolicy(parsed.warrantyPolicy);
+      }
+    } catch (e) {}
   }, []);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  // ==========================================
+  // TAB 3: NOTIFIKASI & TEMPLATE WHATSAPP
+  // ==========================================
+  const [notifyFollowUp, setNotifyFollowUp] = useState(true);
+  const [notifyCreditAcc, setNotifyCreditAcc] = useState(true);
+  const [notifyStockSold, setNotifyStockSold] = useState(true);
+  const [notifyNewLead, setNotifyNewLead] = useState(true);
+  const [templateGreeting, setTemplateGreeting] = useState(
+    'Halo Bapak/Ibu {nama_konsumen}, salam dari {dealer_name}. Terima kasih telah menghubungi showroom kami perihal unit {nama_mobil}. Ada yang bisa kami bantu jelaskan lebih lanjut?'
+  );
+  const [templateFollowUp5Q, setTemplateFollowUp5Q] = useState(
+    'Halo Bapak/Ibu {nama_konsumen}, ini Farhan dari HR MOTOR Garut. Bagaimana performa unit {nama_mobil} setelah pemakaian sejauh ini? Kami ingin memastikan Anda puas dengan mobil pilihan Anda. Jika ada kendala, garansi resmi 1 bulan showroom kami siap melayani.'
+  );
+  const [templateOfferUnit, setTemplateOfferUnit] = useState(
+    'Halo Bapak/Ibu {nama_konsumen}, berikut rincian unit ready {nama_mobil} (Tahun {tahun}) di HR MOTOR Garut:\n• Harga Cash: {harga_cash}\n• Estimasi Paket Kredit DP: {dp_estimasi}\n• Angsuran: {cicilan_estimasi}\nSilakan jadwalkan cek unit langsung di showroom kami.'
+  );
+
+  // ==========================================
+  // TAB 4: PREFERENSI SISTEM & DATA
+  // ==========================================
+  const [currencyFormat] = useState('IDR (Rp - Rupiah Indonesia)');
+  const [dateFormat] = useState('DD/MM/YYYY (Standar Indonesia)');
+  const [performanceMode, setPerformanceMode] = useState('Satset (Instant Local Caching)');
+
+  // Alert State
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const showNotification = (msg: string, isError: boolean = false) => {
+    if (isError) {
+      setErrorMessage(msg);
+      setTimeout(() => setErrorMessage(null), 4000);
+    } else {
+      setSuccessMessage(msg);
+      setTimeout(() => setSuccessMessage(null), 3500);
+    }
+  };
+
+  // Simpan Profil Pengguna
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3500);
-  };
+    setErrorMessage(null);
 
-  const handleResetData = async () => {
-    if (window.confirm('Reset seluruh dataset CRM HR MOTOR Garut ke data demo awal? Semua data uji baru akan dihapus dan data asli showroom akan dipulihkan.')) {
-      await resetToDemo();
-      alert('Data CRM telah dikembalikan ke dataset awal demo.');
-    }
-  };
-
-  const handleTestSupabase = async () => {
-    setTestingSupabase(true);
-    setTestResult(null);
-    const start = performance.now();
-    try {
-      const res = await fetch('/api/crm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'TEST_SUPABASE_CONNECTION' }),
-      });
-      const data = await res.json();
-      const latency = Math.round(performance.now() - start);
-      if (data.success) {
-        setTestResult({
-          success: true,
-          message: data.message || 'Koneksi ke Supabase PostgreSQL berhasil, latensi responsif.',
-          latency,
-        });
-      } else {
-        setTestResult({
-          success: false,
-          message: data.error || 'Gagal terhubung ke Supabase. Periksa kredensial environment variable.',
-          latency,
-        });
-      }
-    } catch (err: any) {
-      setTestResult({
-        success: false,
-        message: 'Tidak dapat menjangkau server API CRM lokal.',
-      });
-    } finally {
-      setTestingSupabase(false);
-    }
-  };
-
-  const handleSyncToSupabase = async () => {
-    if (!window.confirm('Mulai sinkronisasi seluruh dataset CRM (Pelanggan, Stok Unit, Leads, Garansi, Follow-up) ke tabel cloud PostgreSQL Supabase?')) {
+    if (!profileName.trim()) {
+      showNotification('Nama lengkap tidak boleh kosong.', true);
       return;
     }
-    setSyncingSupabase(true);
-    setSyncResult(null);
+    if (!profileEmail.trim()) {
+      showNotification('Alamat email tidak boleh kosong.', true);
+      return;
+    }
+
+    if (newPassword && newPassword !== confirmPassword) {
+      showNotification('Konfirmasi kata sandi baru tidak cocok. Periksa kembali.', true);
+      return;
+    }
+
+    setIsSaving(true);
     try {
-      const res = await fetch('/api/crm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'SYNC_TO_SUPABASE' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSyncResult({
-          success: true,
-          message: data.message || 'Sinkronisasi berhasil! Seluruh tabel terupdate di Supabase.',
-          details: data.details,
-        });
-      } else {
-        setSyncResult({
-          success: false,
-          message: data.error || data.message || 'Gagal sinkronisasi data ke Supabase.',
-        });
+      const payload: { name: string; email: string; phone: string; avatar: string; password?: string } = {
+        name: profileName.trim(),
+        email: profileEmail.trim(),
+        phone: profilePhone.trim(),
+        avatar: profileAvatar,
+      };
+
+      if (newPassword.trim()) {
+        payload.password = newPassword.trim();
       }
+
+      await updateProfile(payload);
+      setNewPassword('');
+      setConfirmPassword('');
+      showNotification('Profil akun Anda berhasil diperbarui! Perubahan langsung aktif.');
     } catch (err: any) {
-      setSyncResult({
-        success: false,
-        message: 'Gagal menghubungi server untuk sinkronisasi cloud.',
-      });
+      showNotification('Terjadi kendala saat memperbarui profil.', true);
     } finally {
-      setSyncingSupabase(false);
+      setIsSaving(false);
     }
   };
 
-  const copyEnvTemplate = () => {
-    const template = `NEXT_PUBLIC_SUPABASE_URL=https://mzgbawudyaimckpaluio.supabase.co\nNEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`;
-    navigator.clipboard.writeText(template);
-    setCopiedEnv(true);
-    setTimeout(() => setCopiedEnv(false), 2500);
+  // Simpan Pengaturan Showroom
+  const handleSaveShowroom = (e: React.FormEvent) => {
+    e.preventDefault();
+    const settings = {
+      dealerName,
+      dealerTagline,
+      dealerAddress,
+      dealerPhone,
+      dealerEmail,
+      operatingHoursWeekday,
+      operatingHoursWeekend,
+      bankBca,
+      bankMandiri,
+      warrantyPolicy,
+    };
+    try {
+      localStorage.setItem('hr_motor_dealer_settings', JSON.stringify(settings));
+      showNotification('Profil & Identitas Showroom HR MOTOR Garut berhasil disimpan!');
+    } catch (e) {
+      showNotification('Gagal menyimpan ke penyimpanan lokal.', true);
+    }
+  };
+
+  // Simpan Pesan & Notifikasi
+  const handleSaveNotifications = (e: React.FormEvent) => {
+    e.preventDefault();
+    showNotification('Template pesan WhatsApp dan pengaturan notifikasi berhasil disimpan!');
+  };
+
+  // Unduh Cadangan Data CRM (Export JSON)
+  const handleExportBackup = () => {
+    const backupData = {
+      dealer: dealerName,
+      exportedAt: new Date().toISOString(),
+      version: '1.0',
+      data: {
+        customers,
+        stocks,
+        purchases,
+        creditApplications,
+        followUps,
+        leads,
+      },
+    };
+
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `HR_MOTOR_Backup_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+
+    showNotification('Cadangan data CRM berhasil diunduh ke komputer Anda.');
+  };
+
+  // Reset Data Demo
+  const handleResetData = async () => {
+    if (
+      window.confirm(
+        'PERINGATAN: Apakah Anda yakin ingin mereset seluruh data CRM ke dataset awal demo? Seluruh perubahan lokal akan dikembalikan.'
+      )
+    ) {
+      await resetToDemo();
+      showNotification('Data CRM telah berhasil dikembalikan ke dataset awal demo.');
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-6xl pb-12">
-      {/* 1. HEADER UTAMA & STATUS EKOSISTEM */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5E2DB] shadow-sm relative overflow-hidden">
-        {/* Gold Luxury Left Accent Bar */}
-        <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-[#D99A32] to-[#F0B653]" />
+    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+      {/* 1. HEADER HALAMAN PENGATURAN DEALER */}
+      <div className="crm-card p-5 sm:p-6 bg-[#FAF9F5] border border-[#EAE8E3] relative overflow-hidden shadow-xs">
+        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF6EE] text-[#926017] border border-[#EAD7B0]">
-                <Sparkles className="w-3.5 h-3.5 text-[#D99A32]" />
-                PUSAT INTEGRASI & PLUGIN DEALER
-              </span>
-              <span className="text-xs text-[#666666] font-medium">• HR MOTOR Garut</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center shrink-0 shadow-2xs">
+              <Sliders className="w-6 h-6 text-gold-700" />
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#242424] tracking-tight">
-              Integrasi Layanan &amp; Pengaturan Showroom
-            </h1>
-            <p className="text-xs lg:text-sm text-[#666666]">
-              Kelola modul integrasi cloud Supabase, hosting Vercel, gateway WhatsApp, pembiayaan leasing, dan konfigurasi profil HR MOTOR Garut.
-            </p>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black text-charcoal-900 tracking-tight">
+                  Pengaturan Aplikasi
+                </h1>
+                <span className="badge-gold text-[10px]">HR MOTOR Garut</span>
+              </div>
+              <p className="text-xs text-charcoal-500 mt-0.5">
+                Pusat kendali profil akun, identitas dealer showroom, template pesan WhatsApp, dan preferensi operasional.
+              </p>
+            </div>
           </div>
 
-          {/* Quick Status Pill */}
-          <div className="flex items-center gap-2.5 bg-[#FAF6EE] p-3 rounded-xl border border-[#EAD7B0] shrink-0">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          {/* Quick User Badge */}
+          <div className="flex items-center gap-2.5 bg-white p-2.5 rounded-xl border border-[#EAE8E3] shadow-2xs shrink-0 self-start sm:self-auto">
+            <img
+              src={currentUser.avatar || AVATAR_PRESETS[0].url}
+              alt={currentUser.name}
+              className="w-8 h-8 rounded-full object-cover border border-gold-400"
+            />
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#926017] block">
-                Status Sistem Cloud
-              </span>
-              <span className="text-xs font-black text-[#242424]">
-                Semua Layanan Aktif (100% Online)
-              </span>
+              <p className="text-xs font-bold text-charcoal-900 leading-tight">{currentUser.name}</p>
+              <span className="text-[10px] text-gold-700 font-semibold uppercase">{currentUser.role}</span>
             </div>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 mt-6 pt-5 border-t border-[#E5E2DB]">
+        {/* 4 TAB PENGATURAN BERSIH & ELEGAN */}
+        <div className="flex flex-wrap gap-2 mt-5 pt-4 border-t border-[#EAE8E3]">
           <button
-            onClick={() => setActiveTab('plugins')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'plugins'
-                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
-                : 'bg-[#F7F6F2] text-[#4A4A4A] hover:bg-[#FAF6EE] hover:text-[#242424]'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>Layanan &amp; Integrasi Cloud (5)</span>
-          </button>
-
-          <button
+            type="button"
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'profile'
-                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
-                : 'bg-[#F7F6F2] text-[#4A4A4A] hover:bg-[#FAF6EE] hover:text-[#242424]'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 shadow-xs'
+                : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
             }`}
           >
-            <Building2 className="w-4 h-4" />
-            <span>Profil & Legalitas Showroom</span>
+            <User className="w-4 h-4 text-gold-600" />
+            <span>Profil Akun Saya</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('security')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'security'
-                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
-                : 'bg-[#F7F6F2] text-[#4A4A4A] hover:bg-[#FAF6EE] hover:text-[#242424]'
+            type="button"
+            onClick={() => setActiveTab('showroom')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'showroom'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 shadow-xs'
+                : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
             }`}
           >
-            <Shield className="w-4 h-4" />
-            <span>Keamanan & Cadangan Data</span>
+            <Building2 className="w-4 h-4 text-gold-600" />
+            <span>Profil &amp; Legalitas Showroom</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('notifications')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'notifications'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 shadow-xs'
+                : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 text-gold-600" />
+            <span>Template WhatsApp &amp; Notifikasi</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('system')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'system'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 shadow-xs'
+                : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
+            }`}
+          >
+            <Sliders className="w-4 h-4 text-gold-600" />
+            <span>Preferensi &amp; Cadangan Data</span>
           </button>
         </div>
       </div>
 
-      {/* FEEDBACK SUCCESS ALERT */}
-      {savedSuccess && (
-        <div className="p-4 bg-[#FAF6EE] border border-[#D99A32] rounded-xl text-xs text-[#926017] font-bold flex items-center justify-between shadow-sm animate-fadeIn">
+      {/* FEEDBACK ALERT MESSAGE */}
+      {successMessage && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-900 font-bold flex items-center justify-between shadow-2xs animate-in fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#D99A32]" />
-            <span>Konfigurasi profil showroom HR MOTOR berhasil disimpan dan diperbarui!</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{successMessage}</span>
           </div>
-          <button onClick={() => setSavedSuccess(false)} className="text-[#926017] font-black text-sm">×</button>
+          <button onClick={() => setSuccessMessage(null)} className="text-emerald-700 font-black text-sm cursor-pointer">
+            ×
+          </button>
         </div>
       )}
 
-      {/* TAB 1: KUMPULAN PLUGIN & INTEGRASI CLOUD */}
-      {activeTab === 'plugins' && (
-        <div className="space-y-5">
-          {/* TOP HIGHLIGHT PLUGIN: SUPABASE POSTGRESQL */}
-          <div className="bg-white rounded-2xl p-6 border border-[#E5E2DB] shadow-sm space-y-5 relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E2DB] pb-4">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#242424] to-[#1A1A1A] text-[#F0B653] border border-[#D99A32]/40 flex items-center justify-center font-bold shadow-md">
-                  <Database className="w-6 h-6 text-[#D99A32]" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base font-black text-[#242424]">
-                      Supabase Cloud Database Engine
-                    </h2>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      v15.1 Enterprise
-                    </span>
+      {errorMessage && (
+        <div className="p-3.5 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-900 font-bold flex items-center justify-between shadow-2xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+          <button onClick={() => setErrorMessage(null)} className="text-rose-700 font-black text-sm cursor-pointer">
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 1: EDIT PROFIL AKUN PENGGUNA (PROFIL SAYA)                            */}
+      {/* ========================================================================= */}
+      {activeTab === 'profile' && (
+        <div className="space-y-6">
+          <form onSubmit={handleSaveProfile} className="crm-card p-5 sm:p-6 bg-white space-y-6 border border-[#EAE8E3]">
+            {/* Header Bagian Profil */}
+            <div className="flex items-center justify-between border-b border-[#EAE8E3] pb-4">
+              <div>
+                <h2 className="text-base font-black text-charcoal-900">Informasi Pribadi &amp; Profil Pengguna</h2>
+                <p className="text-xs text-charcoal-500">
+                  Perbarui nama lengkap, nomor WhatsApp, foto avatar, dan kata sandi login Anda.
+                </p>
+              </div>
+              <span className="badge-gold text-[10px] hidden sm:inline-block">Status: Akun Aktif</span>
+            </div>
+
+            {/* Avatar Selector */}
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-2">
+                Foto Profil Pengguna (Avatar)
+              </label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="relative">
+                  <img
+                    src={profileAvatar}
+                    alt="Foto Profil"
+                    className="w-20 h-20 rounded-2xl object-cover border-2 border-gold-400 shadow-md"
+                  />
+                  <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-500 text-charcoal-950 flex items-center justify-center shadow-xs">
+                    <Camera className="w-3.5 h-3.5" />
                   </div>
-                  <p className="text-xs text-[#666666] mt-0.5">
-                    Basis data PostgreSQL cloud relasional enterprise untuk sinkronisasi permanen data mobil, pelanggan, dan transaksi HR MOTOR.
+                </div>
+
+                <div className="flex-1 space-y-2">
+                  <span className="text-[11px] text-charcoal-500 block">Pilih avatar preset showroom resmi:</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {AVATAR_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setProfileAvatar(preset.url);
+                          setIsCustomAvatar(false);
+                        }}
+                        className={`w-9 h-9 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                          profileAvatar === preset.url && !isCustomAvatar
+                            ? 'border-gold-500 ring-2 ring-gold-400/40 scale-105 shadow-xs'
+                            : 'border-transparent hover:border-gold-300 opacity-70 hover:opacity-100'
+                        }`}
+                        title={preset.label}
+                      >
+                        <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomAvatar(!isCustomAvatar)}
+                      className="px-2.5 py-1.5 rounded-lg border border-[#DDD9CF] text-[10px] font-bold text-charcoal-700 hover:bg-[#FAF9F5] transition-colors cursor-pointer"
+                    >
+                      {isCustomAvatar ? 'Tutup URL' : '+ URL Gambar'}
+                    </button>
+                  </div>
+
+                  {isCustomAvatar && (
+                    <div className="mt-2 flex gap-2 max-w-md">
+                      <input
+                        type="url"
+                        placeholder="Masukkan URL link foto profil..."
+                        value={customAvatarUrl}
+                        onChange={(e) => setCustomAvatarUrl(e.target.value)}
+                        className="text-xs px-3 py-1.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-lg w-full outline-none focus:border-gold-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (customAvatarUrl.trim()) {
+                            setProfileAvatar(customAvatarUrl.trim());
+                            showNotification('Avatar URL berhasil diterapkan.');
+                          }
+                        }}
+                        className="btn-gold text-xs py-1 px-3 whitespace-nowrap"
+                      >
+                        Terapkan
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Input Fields: Nama, Email, Telepon */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Nama Lengkap <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    placeholder="Nama lengkap Anda..."
+                    className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Alamat Email Akun <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    placeholder="nama@hrmotor.id"
+                    className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Nomor WhatsApp / Telepon
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    value={profilePhone}
+                    onChange={(e) => setProfilePhone(e.target.value)}
+                    placeholder="0812-XXXX-XXXX"
+                    className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                  Peran &amp; Hak Akses Showroom
+                </label>
+                <div className="flex items-center gap-2 p-2.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
+                  <Shield className="w-4 h-4 text-gold-600 shrink-0" />
+                  <span className="text-xs font-black text-charcoal-900">{currentUser.role}</span>
+                  <span className="text-[10px] text-charcoal-500 ml-auto">Wewenang Penuh Showroom</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bagian Ubah Kata Sandi */}
+            <div className="pt-4 border-t border-[#EAE8E3] space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-black text-charcoal-900 flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-gold-600" />
+                    Ubah Kata Sandi (Opsional)
+                  </h3>
+                  <p className="text-[11px] text-charcoal-500">
+                    Kosongkan jika Anda tidak bermaksud mengubah kata sandi saat ini.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[11px] font-bold text-charcoal-600 hover:text-gold-700 flex items-center gap-1 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{showPassword ? 'Sembunyikan' : 'Lihat'}</span>
+                </button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF6EE] border border-[#EAD7B0] text-[#926017] rounded-full font-bold text-xs shadow-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Cloud Terhubung & Sinkron
-                </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-charcoal-700 mb-1">Kata Sandi Baru</label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi baru..."
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-charcoal-700 mb-1">Konfirmasi Kata Sandi Baru</label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Ulangi kata sandi baru..."
+                    className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-mono"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Plugin Live Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              <div className="p-4 bg-[#F7F6F2] rounded-xl border border-[#E5E2DB]">
-                <span className="text-[11px] font-semibold text-[#666666] block">Status Koneksi Cloud</span>
-                <span className="text-sm font-black text-[#242424] block mt-0.5 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  Aktif (Cloud Connected)
-                </span>
-                <span className="text-[10px] text-[#666666] mt-1 block">PostgreSQL Database Pooler</span>
-              </div>
-
-              <div className="p-4 bg-[#F7F6F2] rounded-xl border border-[#E5E2DB]">
-                <span className="text-[11px] font-semibold text-[#666666] block">Supabase Endpoint URL</span>
-                <span className="text-xs font-mono font-bold text-[#242424] block mt-1 truncate" title={supabaseStatus.url}>
-                  {supabaseStatus.url || 'https://mzgbawudyaimckpaluio.supabase.co'}
-                </span>
-                <span className="text-[10px] text-emerald-700 font-semibold mt-0.5 block">HTTPS SSL Terenkripsi</span>
-              </div>
-
-              <div className="p-4 bg-[#F7F6F2] rounded-xl border border-[#E5E2DB]">
-                <span className="text-[11px] font-semibold text-[#666666] block">Skema Tabel Database</span>
-                <span className="text-sm font-black text-[#D99A32] block mt-0.5 flex items-center gap-1 font-mono">
-                  <CheckCircle2 className="w-4 h-4 text-[#D99A32]" />
-                  13 Tabel Relasional
-                </span>
-                <span className="text-[10px] text-[#666666] mt-1 block">supabase_schema.sql (Lengkap)</span>
-              </div>
-            </div>
-
-            {/* Test Result Alert */}
-            {testResult && (
-              <div
-                className={`p-4 rounded-xl border text-xs flex items-center justify-between ${
-                  testResult.success
-                    ? 'bg-[#FAF6EE] border-[#D99A32] text-[#926017] font-semibold'
-                    : 'bg-rose-50 border-rose-300 text-rose-800'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {testResult.success ? (
-                    <CheckCircle2 className="w-4 h-4 text-[#D99A32] shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  )}
-                  <span>{testResult.message}</span>
-                </div>
-                {testResult.latency !== undefined && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 bg-white/80 rounded border border-[#EAD7B0]">
-                    Latensi: {testResult.latency} ms
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Sync Result Alert */}
-            {syncResult && (
-              <div
-                className={`p-4 rounded-xl border text-xs space-y-1.5 ${
-                  syncResult.success
-                    ? 'bg-[#FAF6EE] border-[#D99A32] text-[#926017]'
-                    : 'bg-rose-50 border-rose-300 text-rose-800'
-                }`}
-              >
-                <div className="flex items-center gap-2 font-bold">
-                  {syncResult.success ? (
-                    <CheckCircle2 className="w-4 h-4 text-[#D99A32] shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  )}
-                  <span>{syncResult.message}</span>
-                </div>
-                {syncResult.details && (
-                  <div className="text-[11px] text-[#926017] pl-6 font-medium">
-                    Rincian data terunggah: {Object.entries(syncResult.details).map(([table, count]) => `${table} (${count})`).join(', ')}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Plugin Control Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            {/* Tombol Simpan Profil */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#EAE8E3]">
               <button
-                type="button"
-                onClick={handleTestSupabase}
-                disabled={testingSupabase}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white text-[#242424] border border-[#E5E2DB] hover:border-[#D99A32] hover:text-[#D99A32] hover:bg-[#FAF6EE] transition-all shadow-sm disabled:opacity-50"
+                type="submit"
+                disabled={isSaving}
+                className="btn-gold flex items-center gap-2 text-xs font-bold py-2.5 px-6 shadow-xs cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${testingSupabase ? 'animate-spin text-[#D99A32]' : ''}`} />
-                <span>{testingSupabase ? 'Menguji Latensi Cloud...' : 'Uji Koneksi Real-time'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSyncToSupabase}
-                disabled={syncingSupabase}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#D99A32] to-[#F0B653] text-[#1A1A1A] hover:opacity-95 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
-              >
-                <Zap className="w-4 h-4" />
-                <span>{syncingSupabase ? 'Menyinkronkan ke Cloud...' : 'Sinkronkan Data ke Supabase'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={copyEnvTemplate}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-[#F7F6F2] text-[#4A4A4A] border border-[#E5E2DB] hover:bg-[#FAF6EE] hover:text-[#D99A32] transition-all"
-              >
-                <Copy className="w-3.5 h-3.5 text-[#D99A32]" />
-                <span>{copiedEnv ? 'Format Kredensial Tersalin!' : 'Salin Format .env'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowGuide(!showGuide)}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#666666] hover:text-[#242424] ml-auto transition-colors"
-              >
-                <span>{showGuide ? 'Sembunyikan Panduan' : 'Lihat Panduan Integrasi'}</span>
-                {showGuide ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                <Save className="w-4 h-4 text-charcoal-950" />
+                <span>{isSaving ? 'Menyimpan...' : 'Simpan Perubahan Profil'}</span>
               </button>
             </div>
-
-            {/* Collapsible Guide */}
-            {showGuide && (
-              <div className="p-4 bg-[#F7F6F2] rounded-xl border border-[#E5E2DB] space-y-2 animate-fadeIn text-xs">
-                <div className="font-bold text-[#242424] flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-[#D99A32]" />
-                  <span>Petunjuk Kredensial Supabase PostgreSQL:</span>
-                </div>
-                <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-[#4A4A4A] leading-relaxed">
-                  <li>Proyek Supabase Anda: <code>https://mzgbawudyaimckpaluio.supabase.co</code>.</li>
-                  <li>Skema tabel telah diinisiasi dengan berkas <code>supabase_schema.sql</code> (13 tabel relasional).</li>
-                  <li>Kunci publik anon dan URL tersimpan aman pada Environment Variables Vercel & <code>.env.local</code>.</li>
-                  <li>Klik tombol <strong>Sinkronkan Data ke Supabase</strong> di atas kapan saja untuk menyelaraskan dataset showroom lokal ke cloud.</li>
-                </ol>
-              </div>
-            )}
-          </div>
-
-          {/* GRID PLUGIN MODUL-MODUL LAINNYA */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* PLUGIN 2: VERCEL EDGE CLOUD HOSTING */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold">
-                    <Globe className="w-5 h-5 text-[#F0B653]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#242424]">
-                      Vercel Serverless Edge Hosting
-                    </h3>
-                    <p className="text-[11px] text-[#666666]">
-                      Production Cloud Deployment Platform
-                    </p>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Online
-                </span>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Domain Resmi:</span>
-                  <a
-                    href="https://hr-motor.vercel.app"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-bold text-[#D99A32] hover:underline flex items-center gap-1"
-                  >
-                    <span>hr-motor.vercel.app</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Auto CI/CD:</span>
-                  <span className="font-bold text-[#242424]">GitHub (farhanhizri8-ops/HR-Motor)</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Sertifikat Keamanan:</span>
-                  <span className="font-bold text-emerald-700 flex items-center gap-1">
-                    <Lock className="w-3 h-3" />
-                    SSL 256-bit Encrypted
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* PLUGIN 3: WHATSAPP BUSINESS GATEWAY */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                    <MessageSquare className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#242424]">
-                      WhatsApp Official Showroom Gateway
-                    </h3>
-                    <p className="text-[11px] text-[#666666]">
-                      Otomasi Pesan Follow-up & After Sales
-                    </p>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF6EE] text-[#926017] border border-[#EAD7B0]">
-                  Terintegrasi
-                </span>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Nomor Showroom Resmi:</span>
-                  <span className="font-bold text-[#242424] font-mono">+62 812-2345-0001</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Cakupan Modul:</span>
-                  <span className="font-bold text-[#242424]">Follow-up, Garansi, & Leads</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Template Otomatis:</span>
-                  <span className="font-bold text-[#D99A32]">7 Template Siap Kirim</span>
-                </div>
-              </div>
-            </div>
-
-            {/* PLUGIN 4: MULTI-FINANCE LEASING GATEWAY */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center font-bold shadow-2xs">
-                    <CreditCard className="w-5 h-5 text-[#D99A32]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#242424]">
-                      Multi-Finance Leasing Gateway
-                    </h3>
-                    <p className="text-[11px] text-[#666666]">
-                      Engine Simulasi Kredit & Angsuran Mobil
-                    </p>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF6EE] text-[#926017] border border-[#EAD7B0]">
-                  4 Partner
-                </span>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Rekanan Lembaga Leasing:</span>
-                  <span className="font-bold text-[#242424]">BCA, MUF, Adira, OTO</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Tenor Pembiayaan:</span>
-                  <span className="font-bold text-[#242424]">12 s/d 60 Bulan (1 - 5 Tahun)</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Integrasi Pipeline:</span>
-                  <span className="font-bold text-emerald-700 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" />
-                    Aktif pada Tahap Negosiasi
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* PLUGIN 5: AUTO-MATCH STOK UNIT */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center font-bold shadow-2xs">
-                    <Car className="w-5 h-5 text-[#D99A32]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-[#242424]">
-                      Auto-Match Stok Unit (Smart AI Filter)
-                    </h3>
-                    <p className="text-[11px] text-[#666666]">
-                      Pencocokan Cerdas Preferensi Calon Pembeli
-                    </p>
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  Otomatis
-                </span>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Trigger Otomatis:</span>
-                  <span className="font-bold text-[#242424]">Saat Unit Baru Masuk Showroom</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Toleransi Budget:</span>
-                  <span className="font-bold text-[#242424]">±15% dari Preferensi Konsumen</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-[#F7F6F2] rounded-xl">
-                  <span className="text-[#666666] font-medium">Status Eksekusi:</span>
-                  <span className="font-bold text-emerald-700 flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" />
-                    Background Daemon Siap
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          </form>
         </div>
       )}
 
-      {/* TAB 2: PROFIL & LEGALITAS SHOWROOM */}
-      {activeTab === 'profile' && (
-        <form onSubmit={handleSaveSettings} className="bg-white rounded-2xl p-6 border border-[#E5E2DB] shadow-sm space-y-5 text-xs">
-          <div className="border-b border-[#E5E2DB] pb-4">
-            <h2 className="text-base font-black text-[#242424] flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-[#D99A32]" />
-              Informasi Legalitas & Lokasi Showroom HR MOTOR Garut
-            </h2>
-            <p className="text-xs text-[#666666] mt-0.5">
-              Data resmi showroom yang tercantum pada dokumen laporan, faktur penjualan, dan kartu garansi konsumen.
+      {/* ========================================================================= */}
+      {/* TAB 2: PROFIL & IDENTITAS SHOWROOM                                        */}
+      {/* ========================================================================= */}
+      {activeTab === 'showroom' && (
+        <form onSubmit={handleSaveShowroom} className="crm-card p-5 sm:p-6 bg-white space-y-6 border border-[#EAE8E3]">
+          <div className="border-b border-[#EAE8E3] pb-4">
+            <h2 className="text-base font-black text-charcoal-900">Identitas &amp; Legalitas Showroom HR MOTOR Garut</h2>
+            <p className="text-xs text-charcoal-500">
+              Data ini secara otomatis dicetak pada kwitansi pembayaran resmi kasir, dokumen penawaran, dan profil showroom.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-[#242424] mb-1.5">Nama Dealer / Showroom Resmi</label>
-              <input
-                type="text"
-                value={dealerName}
-                onChange={(e) => setDealerName(e.target.value)}
-                className="w-full text-xs px-3.5 py-2.5 bg-[#F7F6F2] border border-[#E5E2DB] rounded-xl outline-none focus:border-[#D99A32] font-bold text-[#242424] transition-all"
-              />
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Nama Resmi Showroom <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Building2 className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  required
+                  value={dealerName}
+                  onChange={(e) => setDealerName(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-bold"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block font-bold text-[#242424] mb-1.5">Nomor WhatsApp Bisnis Showroom</label>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full text-xs px-3.5 py-2.5 bg-[#F7F6F2] border border-[#E5E2DB] rounded-xl outline-none focus:border-[#D99A32] text-[#242424] font-medium transition-all"
-              />
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Slogan / Tagline Showroom
+              </label>
+              <div className="relative">
+                <Sparkles className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={dealerTagline}
+                  onChange={(e) => setDealerTagline(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Alamat Lengkap Showroom
+              </label>
+              <div className="relative">
+                <MapPin className="w-4 h-4 text-charcoal-400 absolute left-3 top-3" />
+                <textarea
+                  rows={2}
+                  value={dealerAddress}
+                  onChange={(e) => setDealerAddress(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Nomor WhatsApp Hotline Resmi
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={dealerPhone}
+                  onChange={(e) => setDealerPhone(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-mono"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Alamat Email Showroom
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  value={dealerEmail}
+                  onChange={(e) => setDealerEmail(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Jam Buka Hari Kerja (Senin - Sabtu)
+              </label>
+              <div className="relative">
+                <Clock className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={operatingHoursWeekday}
+                  onChange={(e) => setOperatingHoursWeekday(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                Jam Buka Akhir Pekan (Minggu &amp; Libur)
+              </label>
+              <div className="relative">
+                <Clock className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={operatingHoursWeekend}
+                  onChange={(e) => setOperatingHoursWeekend(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-semibold"
+                />
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block font-bold text-[#242424] mb-1.5">Alamat Lengkap Showroom Garut</label>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full text-xs px-3.5 py-2.5 bg-[#F7F6F2] border border-[#E5E2DB] rounded-xl outline-none focus:border-[#D99A32] text-[#242424] font-medium transition-all"
-            />
-          </div>
+          {/* Rekening Bank Resmi Showroom */}
+          <div className="pt-4 border-t border-[#EAE8E3] space-y-3">
+            <h3 className="text-xs font-black text-charcoal-900 flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4 text-gold-600" />
+              Rekening Bank Resmi Showroom (Tercantum pada Kwitansi Pembayaran)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[11px] font-bold text-charcoal-700 mb-1">Rekening Bank BCA</label>
+                <input
+                  type="text"
+                  value={bankBca}
+                  onChange={(e) => setBankBca(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-mono"
+                />
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold text-[#242424] mb-1.5">Email Resmi Showroom</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full text-xs px-3.5 py-2.5 bg-[#F7F6F2] border border-[#E5E2DB] rounded-xl outline-none focus:border-[#D99A32] text-[#242424] font-medium transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-[#242424] mb-1.5">Jam Operasional Layanan</label>
-              <input
-                type="text"
-                value={operatingHours}
-                onChange={(e) => setOperatingHours(e.target.value)}
-                className="w-full text-xs px-3.5 py-2.5 bg-[#F7F6F2] border border-[#E5E2DB] rounded-xl outline-none focus:border-[#D99A32] text-[#242424] font-medium transition-all"
-              />
+              <div>
+                <label className="block text-[11px] font-bold text-charcoal-700 mb-1">Rekening Bank Mandiri</label>
+                <input
+                  type="text"
+                  value={bankMandiri}
+                  onChange={(e) => setBankMandiri(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-mono"
+                />
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block font-bold text-[#242424] mb-1.5">Kebijakan Garansi Resmi Showroom</label>
+          {/* Kebijakan Garansi Resmi Showroom */}
+          <div className="pt-4 border-t border-[#EAE8E3] space-y-2">
+            <label className="block text-xs font-bold text-charcoal-800">
+              Ketentuan Garansi Resmi Showroom HR MOTOR Garut
+            </label>
             <textarea
-              rows={2}
+              rows={3}
               value={warrantyPolicy}
               onChange={(e) => setWarrantyPolicy(e.target.value)}
-              className="w-full text-xs px-3.5 py-2.5 bg-[#F7F6F2] border border-[#E5E2DB] rounded-xl outline-none focus:border-[#D99A32] text-[#242424] font-medium transition-all"
+              className="w-full text-xs p-3 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
             />
           </div>
 
-          <div className="flex justify-end pt-3 border-t border-[#E5E2DB]">
+          <div className="flex items-center justify-end pt-4 border-t border-[#EAE8E3]">
             <button
               type="submit"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#D99A32] to-[#F0B653] text-[#1A1A1A] hover:opacity-95 transition-all shadow-md hover:shadow-lg"
+              className="btn-gold flex items-center gap-2 text-xs font-bold py-2.5 px-6 shadow-xs cursor-pointer"
             >
-              <Save className="w-4 h-4" />
-              <span>Simpan Perubahan Profil</span>
+              <Save className="w-4 h-4 text-charcoal-950" />
+              <span>Simpan Profil Showroom</span>
             </button>
           </div>
         </form>
       )}
 
-      {/* TAB 3: KEAMANAN & CADANGAN DATA */}
-      {activeTab === 'security' && (
-        <div className="bg-white rounded-2xl p-6 border border-[#E5E2DB] shadow-sm space-y-6 text-xs">
-          <div className="border-b border-[#E5E2DB] pb-4">
-            <h2 className="text-base font-black text-[#242424] flex items-center gap-2">
-              <Shield className="w-5 h-5 text-[#D99A32]" />
-              Manajemen Cadangan & Pemulihan Data Showroom
-            </h2>
-            <p className="text-xs text-[#666666] mt-0.5">
-              Kelola pencadangan berkala, sinkronisasi cloud darurat, dan opsi reset data uji sistem.
+      {/* ========================================================================= */}
+      {/* TAB 3: TEMPLATE WHATSAPP & NOTIFIKASI OTOMATIS                            */}
+      {/* ========================================================================= */}
+      {activeTab === 'notifications' && (
+        <form onSubmit={handleSaveNotifications} className="crm-card p-5 sm:p-6 bg-white space-y-6 border border-[#EAE8E3]">
+          <div className="border-b border-[#EAE8E3] pb-4">
+            <h2 className="text-base font-black text-charcoal-900">Template Pesan WhatsApp &amp; Notifikasi Operasional</h2>
+            <p className="text-xs text-charcoal-500">
+              Format standar pesan otomatis saat menghubungi calon pembeli, follow-up kepuasan 1 tahun, dan penawaran kredit.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Auto Cloud Snapshot */}
-            <div className="p-5 bg-[#F7F6F2] rounded-2xl border border-[#E5E2DB] space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center font-bold shadow-2xs">
-                  <Cloud className="w-5 h-5 text-[#D99A32]" />
-                </div>
+          {/* Pengingat & Notifikasi Saklar */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-black text-charcoal-900">Pengingat Notifikasi Sistem CRM</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="flex items-center justify-between p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl cursor-pointer hover:border-gold-300">
                 <div>
-                  <h3 className="text-sm font-bold text-[#242424]">
-                    Cloud Database Snapshot
-                  </h3>
-                  <p className="text-[11px] text-[#666666]">
-                    Cadangan otomatis di Supabase PostgreSQL
-                  </p>
+                  <p className="text-xs font-bold text-charcoal-900">Pengingat Jadwal Follow-Up Konsumen</p>
+                  <p className="text-[10px] text-charcoal-500">Notifikasi harian jadwal 1 Bulan, 3 Bulan, 6 Bulan, 1 Tahun</p>
                 </div>
-              </div>
-              <p className="text-[11px] text-[#4A4A4A] leading-relaxed">
-                Seluruh data transaksi dan stok unit diamankan dengan replikasi serverless Supabase berstandar enterprise.
-              </p>
-              <button
-                type="button"
-                onClick={handleSyncToSupabase}
-                disabled={syncingSupabase}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold btn-gold transition-all cursor-pointer"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span>Buat Snapshot Baru</span>
-              </button>
+                <input
+                  type="checkbox"
+                  checked={notifyFollowUp}
+                  onChange={(e) => setNotifyFollowUp(e.target.checked)}
+                  className="w-4 h-4 accent-gold-500 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl cursor-pointer hover:border-gold-300">
+                <div>
+                  <p className="text-xs font-bold text-charcoal-900">Notifikasi Kredit Disetujui (ACC)</p>
+                  <p className="text-[10px] text-charcoal-500">Pemberitahuan saat leasing rekanan mengabari ACC unit</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifyCreditAcc}
+                  onChange={(e) => setNotifyCreditAcc(e.target.checked)}
+                  className="w-4 h-4 accent-gold-500 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl cursor-pointer hover:border-gold-300">
+                <div>
+                  <p className="text-xs font-bold text-charcoal-900">Peringatan Unit Terjual (Sold Out)</p>
+                  <p className="text-[10px] text-charcoal-500">Kunci otomatis unit agar tidak terjadi penawaran ganda</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifyStockSold}
+                  onChange={(e) => setNotifyStockSold(e.target.checked)}
+                  className="w-4 h-4 accent-gold-500 cursor-pointer"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl cursor-pointer hover:border-gold-300">
+                <div>
+                  <p className="text-xs font-bold text-charcoal-900">Notifikasi Prospek Konsumen Baru</p>
+                  <p className="text-[10px] text-charcoal-500">Pemberitahuan saat calon pembeli menghubungi showroom</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notifyNewLead}
+                  onChange={(e) => setNotifyNewLead(e.target.checked)}
+                  className="w-4 h-4 accent-gold-500 cursor-pointer"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Template Pesan WhatsApp */}
+          <div className="pt-4 border-t border-[#EAE8E3] space-y-4">
+            <h3 className="text-xs font-black text-charcoal-900">Template Pesan WhatsApp Resmi Dealer</h3>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                1. Template Follow-Up Kepuasan Konsumen (5 Pertanyaan Pasca-Penjualan)
+              </label>
+              <textarea
+                rows={3}
+                value={templateFollowUp5Q}
+                onChange={(e) => setTemplateFollowUp5Q(e.target.value)}
+                className="w-full text-xs p-3 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+              />
             </div>
 
-            {/* Reset Data Uji */}
-            <div className="p-5 bg-rose-50/50 rounded-2xl border border-rose-200 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
-                  <RotateCcw className="w-5 h-5 text-rose-600" />
-                </div>
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                2. Template Penawaran Spesifikasi Unit &amp; Paket Kredit
+              </label>
+              <textarea
+                rows={4}
+                value={templateOfferUnit}
+                onChange={(e) => setTemplateOfferUnit(e.target.value)}
+                className="w-full text-xs p-3 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal-800 mb-1">
+                3. Template Salam Sambutan Calon Konsumen Baru
+              </label>
+              <textarea
+                rows={3}
+                value={templateGreeting}
+                onChange={(e) => setTemplateGreeting(e.target.value)}
+                className="w-full text-xs p-3 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 text-charcoal-900 font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end pt-4 border-t border-[#EAE8E3]">
+            <button
+              type="submit"
+              className="btn-gold flex items-center gap-2 text-xs font-bold py-2.5 px-6 shadow-xs cursor-pointer"
+            >
+              <Save className="w-4 h-4 text-charcoal-950" />
+              <span>Simpan Pengaturan Pesan &amp; Notifikasi</span>
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: PREFERENSI SISTEM & PENGELOLAAN DATA CRM                            */}
+      {/* ========================================================================= */}
+      {activeTab === 'system' && (
+        <div className="space-y-6">
+          {/* Card Preferensi Sistem */}
+          <div className="crm-card p-5 sm:p-6 bg-white space-y-5 border border-[#EAE8E3]">
+            <div className="border-b border-[#EAE8E3] pb-4">
+              <h2 className="text-base font-black text-charcoal-900">Preferensi Regional &amp; Antarmuka Aplikasi</h2>
+              <p className="text-xs text-charcoal-500">
+                Konfigurasi format mata uang, tanggal, dan kecepatan akses aplikasi showroom.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
+                <span className="text-[10px] text-charcoal-500 uppercase tracking-wider font-bold block">
+                  Format Mata Uang
+                </span>
+                <span className="text-sm font-black text-charcoal-900 mt-1 block">{currencyFormat}</span>
+                <span className="text-[10px] text-emerald-700 font-semibold mt-0.5 block">Contoh: Rp 185.000.000</span>
+              </div>
+
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
+                <span className="text-[10px] text-charcoal-500 uppercase tracking-wider font-bold block">
+                  Format Tanggal &amp; Waktu
+                </span>
+                <span className="text-sm font-black text-charcoal-900 mt-1 block">{dateFormat}</span>
+                <span className="text-[10px] text-charcoal-500 font-semibold mt-0.5 block">Zona Waktu: WIB (GMT+7)</span>
+              </div>
+
+              <div className="p-3.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
+                <span className="text-[10px] text-charcoal-500 uppercase tracking-wider font-bold block">
+                  Mode Performa
+                </span>
+                <span className="text-sm font-black text-gold-700 mt-1 block">{performanceMode}</span>
+                <span className="text-[10px] text-charcoal-500 font-semibold mt-0.5 block">Nol Loading Screen</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card Pemeliharaan & Cadangan Data Showroom */}
+          <div className="crm-card p-5 sm:p-6 bg-white space-y-5 border border-[#EAE8E3]">
+            <div className="border-b border-[#EAE8E3] pb-4">
+              <h2 className="text-base font-black text-charcoal-900">Cadangan Data &amp; Pemeliharaan Showroom</h2>
+              <p className="text-xs text-charcoal-500">
+                Simpan cadangan data CRM secara mandiri atau lakukan sinkronisasi data showroom.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Ekspor Cadangan */}
+              <div className="p-4 bg-[#FAF9F5] border border-[#EAE8E3] rounded-2xl flex flex-col justify-between space-y-3">
                 <div>
-                  <h3 className="text-sm font-bold text-rose-900">
-                    Reset Dataset Uji (Demo Recovery)
-                  </h3>
-                  <p className="text-[11px] text-rose-700">
-                    Kembalikan ke konfigurasi awal HR MOTOR Garut
+                  <div className="w-10 h-10 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center mb-2">
+                    <Download className="w-5 h-5 text-gold-700" />
+                  </div>
+                  <h3 className="text-sm font-black text-charcoal-900">Unduh Cadangan Lengkap CRM</h3>
+                  <p className="text-xs text-charcoal-500 mt-1">
+                    Unduh seluruh data stok mobil ({stocks.length} unit), data pelanggan ({customers.length} orang), transaksi penjualan, dan riwayat follow-up dalam bentuk file JSON.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleExportBackup}
+                  className="btn-gold flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-4 shadow-xs cursor-pointer w-full"
+                >
+                  <Download className="w-4 h-4 text-charcoal-950" />
+                  <span>Unduh File Cadangan (.JSON)</span>
+                </button>
               </div>
-              <p className="text-[11px] text-rose-800 leading-relaxed">
-                Gunakan fitur ini jika Anda ingin mengembalikan data stok mobil (8 unit resmi), 6 pelanggan, dan riwayat garansi ke kondisi demo showroom awal.
-              </p>
-              <button
-                type="button"
-                onClick={handleResetData}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-rose-700 bg-white hover:bg-rose-100 border border-rose-300 transition-colors shadow-xs"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset ke Data Awal Demo</span>
-              </button>
+
+              {/* Reset Data Uji / Demo */}
+              <div className="p-4 bg-[#FAF9F5] border border-[#EAE8E3] rounded-2xl flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-800 border border-rose-300 flex items-center justify-center mb-2">
+                    <RotateCcw className="w-5 h-5 text-rose-700" />
+                  </div>
+                  <h3 className="text-sm font-black text-charcoal-900">Kembalikan Data Demo Awal</h3>
+                  <p className="text-xs text-charcoal-500 mt-1">
+                    Fitur khusus jika Anda ingin mengembalikan dataset CRM HR MOTOR Garut ke data simulasi demo awal.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetData}
+                  className="btn-outline-warm text-rose-700 border-rose-300 hover:bg-rose-50 flex items-center justify-center gap-2 text-xs font-bold py-2.5 px-4 cursor-pointer w-full transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4 text-rose-700" />
+                  <span>Reset ke Data Demo Awal</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

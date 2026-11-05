@@ -1293,6 +1293,23 @@ export async function POST(request: Request) {
         break;
       }
 
+      case 'UPDATE_USER_PROFILE': {
+        const targetId = payload.id || currentUser?.id;
+        const u = db.users.find(
+          (user) => user.id === targetId || (currentUser?.email && user.email.toLowerCase() === currentUser.email.toLowerCase())
+        );
+        if (u) {
+          if (payload.name) u.name = payload.name;
+          if (payload.phone) u.phone = payload.phone;
+          if (payload.email) u.email = payload.email;
+          if (payload.avatar) u.avatar = payload.avatar;
+          if (payload.password) u.password = payload.password;
+          u.updatedAt = new Date().toISOString();
+          logActivity('Perbarui Profil Pengguna', 'User', u.id, `Pengguna ${u.name} memperbarui informasi profil akun.`);
+        }
+        break;
+      }
+
       case 'REGISTER_USER': {
         const cleanEmail = (payload.email || '').trim().toLowerCase();
         const exists = db.users.find((u) => u.email.toLowerCase() === cleanEmail);

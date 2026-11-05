@@ -64,6 +64,7 @@ interface CrmContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  updateProfile: (data: { name?: string; email?: string; phone?: string; avatar?: string; password?: string }) => Promise<{ success: boolean; error?: string }>;
 
   // Transactions & Credit Applications
   createCashTransaction: (data: {
@@ -656,6 +657,42 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('REGISTER_USER', data);
   };
 
+  const updateProfile = async (data: { name?: string; email?: string; phone?: string; avatar?: string; password?: string }) => {
+    setCurrentUser((prev) => {
+      const updated = {
+        ...prev,
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      if (typeof window !== 'undefined') {
+        try {
+          const sessionObj = {
+            id: updated.id,
+            name: updated.name,
+            email: updated.email,
+            role: updated.role,
+            avatar: updated.avatar,
+            phone: updated.phone,
+            isApproved: updated.isApproved,
+            isActive: updated.isActive,
+          };
+          sessionStorage.setItem('hr_motor_session', JSON.stringify(sessionObj));
+          localStorage.setItem('hr_motor_session', JSON.stringify(sessionObj));
+          if (localStorage.getItem('hr_motor_mobile_session')) {
+            localStorage.setItem('hr_motor_mobile_session', JSON.stringify(sessionObj));
+          }
+        } catch (e) {}
+      }
+      return updated;
+    });
+
+    setUsers((prev) =>
+      prev.map((u) => (u.id === currentUser.id ? { ...u, ...data, updatedAt: new Date().toISOString() } : u))
+    );
+
+    return executeApiMutation('UPDATE_USER_PROFILE', { id: currentUser.id, ...data });
+  };
+
   const resetToDemo = async () => {
     await executeApiMutation('RESET_DEMO_DATA', {});
   };
@@ -783,6 +820,7 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         login,
         logout,
+        updateProfile,
         createCashTransaction,
         createCreditApplication,
         approveCreditApplication,

@@ -1010,6 +1010,25 @@ console.log('\n[10/10] Testing User Management: Approval Gating, Reject & Delete
   assert(Boolean(reRegisteredUser && !reRegisteredUser.isApproved), 'Re-registered account requires new approval from Owner');
   const loginResReRegistered = attemptLogin('staf.baru@hrmotor.id', 'Garut2005');
   assert(!loginResReRegistered.success && Boolean(loginResReRegistered.error?.includes('menunggu persetujuan')), 'Re-registered user cannot login until re-approved');
+
+  // Test 9: Profile update updates user name, phone, and avatar
+  const updateUserProfile = (userId: string, data: { name?: string; phone?: string; avatar?: string }) => {
+    const target = mockUserDb.users.find((u: any) => u.id === userId);
+    if (!target) return { success: false, error: 'User tidak ditemukan' };
+    if (data.name) target.name = data.name;
+    if (data.phone) target.phone = data.phone;
+    if (data.avatar) target.avatar = data.avatar;
+    target.updatedAt = new Date().toISOString();
+    return { success: true, user: target };
+  };
+  const updateRes = updateUserProfile('USR-001', {
+    name: 'Farhan Hizri, S.T.',
+    phone: '0812-2298-9999',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+  });
+  assert(updateRes.success, 'User profile updates successfully');
+  assert(mockUserDb.users.find((u: any) => u.id === 'USR-001')?.name === 'Farhan Hizri, S.T.', 'Updated name is persisted');
+  assert(mockUserDb.users.find((u: any) => u.id === 'USR-001')?.phone === '0812-2298-9999', 'Updated phone is persisted');
 }
 
 // -------------------------------------------------------------
