@@ -625,12 +625,14 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const rejectUser = async (id: string) => {
-    if (currentUser.role !== 'Owner' && !currentUser.email.toLowerCase().includes('farhanhizri8')) {
+    if (currentUser.role !== 'Owner' && !currentUser.email.toLowerCase().includes('farhanhizri8') && currentUser.role !== 'CRM Administrator') {
       return {
         success: false,
-        error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menolak pendaftaran akun.'
+        error: 'Akses Ditolak: Hanya akun Owner atau Administrator yang berhak menolak pendaftaran akun.'
       };
     }
+    // Optimistic removal for instant satset UI
+    setUsers((prev) => prev.filter((u) => u.id !== id));
     return executeApiMutation('REJECT_USER', { id });
   };
 
@@ -641,6 +643,8 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         error: 'Akses Ditolak: Hanya akun Owner atau Administrator yang berhak menghapus akun pengguna.'
       };
     }
+    // Optimistic removal for instant satset UI
+    setUsers((prev) => prev.filter((u) => u.id !== id));
     return executeApiMutation('DELETE_USER', { id });
   };
 

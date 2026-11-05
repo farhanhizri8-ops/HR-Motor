@@ -41,6 +41,7 @@ export default function UserManagementPage() {
   });
   const [formError, setFormError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Confirmation modals state
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<{ id: string; name: string; email: string } | null>(null);
@@ -87,7 +88,9 @@ export default function UserManagementPage() {
       alert('Akses Ditolak: Hanya Owner atau Administrator yang berhak menghapus akun.');
       return;
     }
+    setIsDeleting(true);
     const res = await deleteUser(id);
+    setIsDeleting(false);
     if (res.success) {
       setDeleteConfirmUser(null);
       setActionMessage(`Akun ${name} berhasil dihapus dari sistem CRM HR MOTOR.`);
@@ -413,34 +416,26 @@ export default function UserManagementPage() {
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-center">
                       {isPending ? (
-                        isOwner ? (
-                          <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1.5">
+                          {isOwner && (
                             <button
                               onClick={() => handleApprove(u.id, u.name)}
-                              className="btn-gold py-1 px-3 text-xs inline-flex items-center gap-1 shadow-sm"
+                              className="btn-gold py-1 px-2.5 text-xs inline-flex items-center gap-1 shadow-xs font-bold"
                               title="Setujui akun login karyawan"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                               <span>Setujui</span>
                             </button>
-                            <button
-                              onClick={() => setRejectConfirmUser({ id: u.id, name: u.name, email: u.email })}
-                              className="py-1 px-2.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl inline-flex items-center gap-1 transition-colors"
-                              title="Tolak permohonan pendaftaran akun"
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                              <span>Tolak</span>
-                            </button>
-                          </div>
-                        ) : (
-                          <span
-                            className="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200"
-                            title="Hanya Owner (farhanhizri8@gmail.com) yang berhak menyetujui akun"
+                          )}
+                          <button
+                            onClick={() => setDeleteConfirmUser({ id: u.id, name: u.name, email: u.email })}
+                            className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
+                            title={`Tolak pendaftaran & hapus akun ${u.name}`}
                           >
-                            <Lock className="w-3 h-3" />
-                            Hanya Owner
-                          </span>
-                        )
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Hapus Akun</span>
+                          </button>
+                        </div>
                       ) : isOwnerAccount ? (
                         <span className="badge-gold text-[10px] font-black inline-flex items-center gap-1">
                           <Shield className="w-3 h-3" />
@@ -454,7 +449,7 @@ export default function UserManagementPage() {
                       ) : (
                         <button
                           onClick={() => setDeleteConfirmUser({ id: u.id, name: u.name, email: u.email })}
-                          className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
+                          className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors cursor-pointer"
                           title={`Hapus akun ${u.name}`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -528,28 +523,24 @@ export default function UserManagementPage() {
                 {/* Mobile Actions */}
                 <div className="pt-1 flex items-center justify-end gap-2">
                   {isPending ? (
-                    isOwner ? (
-                      <>
+                    <div className="flex items-center gap-2 w-full">
+                      {isOwner && (
                         <button
                           onClick={() => handleApprove(u.id, u.name)}
-                          className="btn-gold py-1.5 px-3 text-xs inline-flex items-center gap-1 flex-1 justify-center"
+                          className="btn-gold py-1.5 px-3 text-xs inline-flex items-center gap-1 flex-1 justify-center font-bold"
                         >
                           <CheckCircle className="w-3.5 h-3.5" />
                           <span>Setujui</span>
                         </button>
-                        <button
-                          onClick={() => setRejectConfirmUser({ id: u.id, name: u.name, email: u.email })}
-                          className="py-1.5 px-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl inline-flex items-center gap-1 flex-1 justify-center"
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                          <span>Tolak</span>
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> Menunggu Persetujuan Owner
-                      </span>
-                    )
+                      )}
+                      <button
+                        onClick={() => setDeleteConfirmUser({ id: u.id, name: u.name, email: u.email })}
+                        className="py-1.5 px-3 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-600 hover:text-white border border-rose-200 rounded-xl inline-flex items-center gap-1 flex-1 justify-center transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Hapus Akun</span>
+                      </button>
+                    </div>
                   ) : isOwnerAccount ? (
                     <span className="badge-gold text-[10px] font-black inline-flex items-center gap-1">
                       <Shield className="w-3 h-3" /> Owner Showroom (Utama)
@@ -561,7 +552,7 @@ export default function UserManagementPage() {
                   ) : (
                     <button
                       onClick={() => setDeleteConfirmUser({ id: u.id, name: u.name, email: u.email })}
-                      className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors"
+                      className="text-rose-700 hover:text-white hover:bg-rose-600 bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 inline-flex items-center gap-1 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Hapus Akun</span>
@@ -576,11 +567,11 @@ export default function UserManagementPage() {
 
       {/* MODAL: KONFIRMASI HAPUS AKUN */}
       {deleteConfirmUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="crm-card w-full max-w-md overflow-hidden flex flex-col shadow-luxury border-rose-500/40">
-            <div className="flex items-center justify-between px-5 py-4 bg-rose-950/30 border-b border-rose-500/30">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-charcoal-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="crm-card w-full max-w-md overflow-hidden flex flex-col shadow-2xl border-rose-500/40 bg-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-rose-950/20 border-b border-rose-500/30">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center border border-rose-500/30">
+                <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-600 flex items-center justify-center border border-rose-500/30">
                   <Trash2 className="w-4 h-4" />
                 </div>
                 <div>
@@ -589,8 +580,9 @@ export default function UserManagementPage() {
                 </div>
               </div>
               <button
+                disabled={isDeleting}
                 onClick={() => setDeleteConfirmUser(null)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-700 hover:bg-warm-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -614,18 +606,20 @@ export default function UserManagementPage() {
             <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 bg-[#FAF9F5] border-t border-[#EAE8E3]">
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => setDeleteConfirmUser(null)}
-                className="btn-outline-warm text-xs py-2 px-3.5"
+                className="btn-outline-warm text-xs py-2 px-3.5 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => handleDeleteUser(deleteConfirmUser.id, deleteConfirmUser.name)}
-                className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-xs flex items-center gap-1.5"
+                className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Ya, Hapus Akun Ini</span>
+                <span>{isDeleting ? 'Menghapus...' : 'Ya, Hapus Akun Ini'}</span>
               </button>
             </div>
           </div>
