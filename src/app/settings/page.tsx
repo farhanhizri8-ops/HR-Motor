@@ -221,7 +221,7 @@ export default function SettingsDealerPage() {
             onClick={() => setActiveTab('plugins')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'plugins'
-                ? 'bg-[#242424] text-[#F0B653] shadow-md border border-[#333333]'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'bg-[#F7F6F2] text-[#4A4A4A] hover:bg-[#FAF6EE] hover:text-[#242424]'
             }`}
           >
@@ -233,7 +233,7 @@ export default function SettingsDealerPage() {
             onClick={() => setActiveTab('profile')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'profile'
-                ? 'bg-[#242424] text-[#F0B653] shadow-md border border-[#333333]'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'bg-[#F7F6F2] text-[#4A4A4A] hover:bg-[#FAF6EE] hover:text-[#242424]'
             }`}
           >
@@ -245,7 +245,7 @@ export default function SettingsDealerPage() {
             onClick={() => setActiveTab('security')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
               activeTab === 'security'
-                ? 'bg-[#242424] text-[#F0B653] shadow-md border border-[#333333]'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'bg-[#F7F6F2] text-[#4A4A4A] hover:bg-[#FAF6EE] hover:text-[#242424]'
             }`}
           >
@@ -442,7 +442,7 @@ export default function SettingsDealerPage() {
             <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#242424] text-white flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold">
                     <Globe className="w-5 h-5 text-[#F0B653]" />
                   </div>
                   <div>
@@ -532,7 +532,7 @@ export default function SettingsDealerPage() {
             <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#242424] text-[#F0B653] flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center font-bold shadow-2xs">
                     <CreditCard className="w-5 h-5 text-[#D99A32]" />
                   </div>
                   <div>
@@ -574,7 +574,7 @@ export default function SettingsDealerPage() {
             <div className="bg-white rounded-2xl p-5 border border-[#E5E2DB] shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-[#E5E2DB] pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#242424] text-[#F0B653] flex items-center justify-center font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center font-bold shadow-2xs">
                     <Car className="w-5 h-5 text-[#D99A32]" />
                   </div>
                   <div>
@@ -721,7 +721,7 @@ export default function SettingsDealerPage() {
             {/* Auto Cloud Snapshot */}
             <div className="p-5 bg-[#F7F6F2] rounded-2xl border border-[#E5E2DB] space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#242424] text-[#F0B653] flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center font-bold shadow-2xs">
                   <Cloud className="w-5 h-5 text-[#D99A32]" />
                 </div>
                 <div>
@@ -740,7 +740,7 @@ export default function SettingsDealerPage() {
                 type="button"
                 onClick={handleSyncToSupabase}
                 disabled={syncingSupabase}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#242424] text-[#F0B653] hover:bg-[#333333] transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold btn-gold transition-all cursor-pointer"
               >
                 <Zap className="w-3.5 h-3.5" />
                 <span>Buat Snapshot Baru</span>

@@ -710,8 +710,8 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-4 sm:p-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-lg border border-gold-500/30 shrink-0">
-              <CalendarClock className="w-5 h-5 sm:w-6 sm:h-6 text-gold-400" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#FDF8ED] text-gold-800 flex items-center justify-center shadow-xs border border-gold-300 shrink-0">
+              <CalendarClock className="w-5 h-5 sm:w-6 sm:h-6 text-gold-600" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -788,7 +788,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
           }}
           className={`p-3.5 sm:p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-3 sm:gap-4 ${
             activeMainTab === 'customer'
-              ? 'bg-charcoal-900 text-white border-gold-500/60 shadow-luxury'
+              ? 'bg-[#FDF8ED] text-charcoal-900 border-2 border-gold-400 shadow-sm'
               : 'bg-white text-charcoal-800 border-[#EAE8E3] hover:border-gold-300 hover:bg-[#FAF9F5]'
           }`}
         >
@@ -803,7 +803,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${activeMainTab === 'customer' ? 'text-gold-400' : 'text-gold-700'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${activeMainTab === 'customer' ? 'text-gold-800' : 'text-gold-700'}`}>
                 Tab 1 • Pasca-Penjualan
               </span>
               <div className="flex items-center gap-1.5">
@@ -814,17 +814,17 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                 )}
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-black ${
-                    activeMainTab === 'customer' ? 'bg-white/20 text-white' : 'bg-charcoal-100 text-charcoal-800'
+                    activeMainTab === 'customer' ? 'bg-gold-200 text-gold-950' : 'bg-charcoal-100 text-charcoal-800'
                   }`}
                 >
                   {customerFollowUps.length} Pelanggan
                 </span>
               </div>
             </div>
-            <h2 className={`text-base font-black tracking-tight mt-0.5 ${activeMainTab === 'customer' ? 'text-white' : 'text-charcoal-950'}`}>
+            <h2 className="text-base font-black tracking-tight mt-0.5 text-charcoal-950">
               Customer Follow Up (Pelanggan Pembeli)
             </h2>
-            <p className={`text-xs mt-1 leading-relaxed ${activeMainTab === 'customer' ? 'text-charcoal-300' : 'text-charcoal-500'}`}>
+            <p className={`text-xs mt-1 leading-relaxed ${activeMainTab === 'customer' ? 'text-charcoal-600' : 'text-charcoal-500'}`}>
               Jadwal berkala 1 tahun (1 Bulan, 3 Bulan, 6 Bulan, 1 Tahun) & WhatsApp 5 pertanyaan operasional showroom resmi.
             </p>
           </div>
@@ -838,7 +838,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
           }}
           className={`p-3.5 sm:p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex items-start gap-3 sm:gap-4 ${
             activeMainTab === 'prospect'
-              ? 'bg-charcoal-900 text-white border-gold-500/60 shadow-luxury'
+              ? 'bg-[#FDF8ED] text-charcoal-900 border-2 border-gold-400 shadow-sm'
               : 'bg-white text-charcoal-800 border-[#EAE8E3] hover:border-gold-300 hover:bg-[#FAF9F5]'
           }`}
         >
@@ -989,9 +989,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
             <div className="flex items-center gap-1.5 border-b border-[#EAE8E3] pb-3 overflow-x-auto max-w-full">
               <button
                 onClick={() => setFilterTimeTab('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   filterTimeTab === 'all'
-                    ? 'bg-charcoal-900 text-gold-400 shadow-sm'
+                    ? 'bg-gold-500 text-charcoal-950 shadow-xs'
                     : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-[#FAF9F5]'
                 }`}
               >
@@ -999,20 +999,20 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               </button>
               <button
                 onClick={() => setFilterTimeTab('today')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                   filterTimeTab === 'today'
-                    ? 'bg-amber-900 text-amber-200 shadow-sm'
+                    ? 'bg-amber-500 text-charcoal-950 shadow-xs'
                     : 'text-charcoal-600 hover:text-amber-800 hover:bg-amber-50'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                <Clock className="w-3.5 h-3.5 text-amber-700" />
                 Hari Ini ({customerStats.today})
               </button>
               <button
                 onClick={() => setFilterTimeTab('overdue')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                   filterTimeTab === 'overdue'
-                    ? 'bg-rose-900 text-rose-200 shadow-sm'
+                    ? 'bg-rose-500 text-white shadow-xs'
                     : 'text-charcoal-600 hover:text-rose-800 hover:bg-rose-50'
                 }`}
               >
@@ -1021,9 +1021,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               </button>
               <button
                 onClick={() => setFilterTimeTab('upcoming')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   filterTimeTab === 'upcoming'
-                    ? 'bg-charcoal-900 text-gold-400 shadow-sm'
+                    ? 'bg-gold-500 text-charcoal-950 shadow-xs'
                     : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-[#FAF9F5]'
                 }`}
               >
@@ -1230,9 +1230,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
 
                       <button
                         onClick={() => handleOpenCustomerMilestoneModal(item)}
-                        className="flex-1 py-2 px-3 bg-charcoal-900 hover:bg-black text-gold-400 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                        className="flex-1 py-2 px-3 bg-gold-500 hover:bg-gold-600 text-charcoal-950 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-charcoal-950" />
                         <span>Catat Respon</span>
                       </button>
 
@@ -1411,9 +1411,9 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                               {/* Button Catat Respon */}
                               <button
                                 onClick={() => handleOpenCustomerMilestoneModal(item)}
-                                className="px-3 py-1.5 bg-charcoal-900 hover:bg-black text-gold-400 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors"
+                                className="px-3 py-1.5 bg-gold-500 hover:bg-gold-600 text-charcoal-950 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                               >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <CheckCircle2 className="w-3.5 h-3.5 text-charcoal-950" />
                                 <span>Catat Respon</span>
                               </button>
 
@@ -1552,7 +1552,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
                           className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${
                             isMatched
                               ? 'bg-emerald-600 text-white shadow-xs'
-                              : 'bg-charcoal-900 text-gold-400'
+                              : 'bg-gold-100 text-gold-900 border border-gold-300'
                           }`}
                         >
                           <User className="w-5 h-5" />
@@ -1771,24 +1771,25 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 1: CATAT RESPON PELANGGAN & MAJU MILESTONE (TAB 1)                   */}
       {/* ========================================================================= */}
       {showCustomerMilestoneModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">
                   Tahap: {selectedItem.periodicStep || '1 Bulan'}
                 </span>
-                <h3 className="text-base font-black text-white tracking-tight">
+                <h3 className="text-base font-black text-charcoal-900 tracking-tight">
                   Catat Respon Follow-up: {selectedItem.customerName}
                 </h3>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Unit: {selectedItem.vehicleInfo || 'Mobil Showroom'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCustomerMilestoneModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1978,22 +1979,23 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 2: CATAT CALON PELANGGAN MENCARI MOBIL (PROSPECT TAB 2)              */}
       {/* ========================================================================= */}
       {showAddProspectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">Calon Pembeli</span>
-                <h3 className="text-base font-black text-white tracking-tight">
+                <h3 className="text-base font-black text-charcoal-900 tracking-tight">
                   Catat Calon Pelanggan Cari Mobil (Stok Belum Ready)
                 </h3>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Sistem otomatis mencocokkan jika ada unit stok yang masuk atau kembali ready
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddProspectModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2172,21 +2174,22 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 3: TAMBAH CUSTOMER FOLLOW-UP MANUAL (TAB 1)                         */}
       {/* ========================================================================= */}
       {showAddCustomerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
-                <h3 className="text-base font-black text-white tracking-tight">
+                <h3 className="text-base font-black text-charcoal-900 tracking-tight">
                   Jadwalkan Follow-up Pembeli Baru
                 </h3>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Masukkan jadwal follow-up berkala 1 tahun pasca-penjualan mobil
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAddCustomerModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2325,16 +2328,17 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 4: UBAH STATUS PROSPEK CEPAT                                        */}
       {/* ========================================================================= */}
       {showProspectStatusModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
-          <div className="crm-card w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-charcoal-800 text-white shrink-0">
-              <h3 className="text-base font-black text-white tracking-tight">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-[#EAE8E3] my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
+              <h3 className="text-base font-black text-charcoal-900 tracking-tight">
                 Update Status Calon Pembeli
               </h3>
               <button
                 type="button"
                 onClick={() => setShowProspectStatusModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2394,18 +2398,19 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
       {/* MODAL 5: RIWAYAT TIMELINE KOMUNIKASI                                      */}
       {/* ========================================================================= */}
       {showHistoryModal && selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
-          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-charcoal-800 text-white shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-[#EAE8E3] my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-charcoal-800 text-gold-400 flex items-center justify-center shadow-sm shrink-0">
-                  <History className="w-4 h-4 text-gold-400" />
+                <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-800 border border-gold-300 flex items-center justify-center shadow-2xs shrink-0">
+                  <History className="w-4 h-4 text-gold-700" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white truncate max-w-[200px] sm:max-w-md">
+                  <h3 className="text-base font-bold text-charcoal-900 truncate max-w-[200px] sm:max-w-md">
                     Riwayat Komunikasi: {selectedItem.customerName}
                   </h3>
-                  <p className="text-xs text-charcoal-300">
+                  <p className="text-xs text-charcoal-500">
                     {selectedItem.vehicleInfo || selectedItem.searchBrand || 'Showroom Follow-up'}
                   </p>
                 </div>
@@ -2413,7 +2418,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2460,7 +2465,7 @@ Apakah saat ini Bapak/Ibu masih aktif mencari unit tersebut? Begitu ada unit ist
               <button
                 type="button"
                 onClick={() => setShowHistoryModal(false)}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-charcoal-900 text-white font-semibold text-xs hover:bg-black transition-colors"
+                className="btn-outline-warm w-full sm:w-auto text-xs font-semibold py-2 px-5 cursor-pointer"
               >
                 Tutup
               </button>

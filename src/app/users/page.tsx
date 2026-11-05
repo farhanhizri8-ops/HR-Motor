@@ -195,20 +195,20 @@ export default function UserManagementPage() {
       )}
 
       {/* Security Info Card */}
-      <div className="crm-card-charcoal p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-gold-500/30">
+      <div className="crm-card p-5 bg-[#FAF9F5] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-gold-300">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-charcoal-800 text-gold-400 flex items-center justify-center border border-gold-500/40 shrink-0 shadow-xs">
-            <Shield className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-xl bg-gold-100 text-gold-900 flex items-center justify-center border border-gold-300 shrink-0 shadow-2xs">
+            <Shield className="w-6 h-6 text-gold-700" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="badge-gold text-[10px]">Akun Aktif</span>
-              <h3 className="text-sm font-black text-white">
+              <h3 className="text-sm font-black text-charcoal-900">
                 {currentUser.name}
               </h3>
             </div>
-            <p className="text-xs text-charcoal-300 mt-0.5">
-              Peran Anda saat ini: <strong className="text-gold-400">{currentUser.role}</strong>.
+            <p className="text-xs text-charcoal-600 mt-0.5">
+              Peran Anda saat ini: <strong className="text-gold-700">{currentUser.role}</strong>.
               {isOwner ? (
                 ' Anda memiliki wewenang penuh untuk menyetujui, menolak, dan menghapus akun staf showroom.'
               ) : (
@@ -351,7 +351,7 @@ export default function UserManagementPage() {
                     {/* Name & Avatar */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-xs">
+                        <div className="w-9 h-9 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-2xs">
                           {u.name.charAt(0)}
                         </div>
                         <div>
@@ -386,7 +386,7 @@ export default function UserManagementPage() {
                             u.role === 'Owner'
                               ? 'bg-gold-50 text-gold-800 border border-gold-300 font-black'
                               : u.role === 'CRM Administrator'
-                              ? 'bg-charcoal-900 text-gold-400'
+                              ? 'bg-[#FDF8ED] text-gold-900 border border-gold-400 font-bold'
                               : 'bg-warm-100 text-charcoal-700 border border-warm-200'
                           }`}
                         >
@@ -475,7 +475,7 @@ export default function UserManagementPage() {
               <div key={u.id} className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-sm uppercase shrink-0 shadow-xs">
+                    <div className="w-10 h-10 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold text-sm uppercase shrink-0 shadow-2xs">
                       {u.name.charAt(0)}
                     </div>
                     <div>
@@ -628,7 +628,7 @@ export default function UserManagementPage() {
 
       {/* MODAL: KONFIRMASI TOLAK PENDAFTARAN */}
       {rejectConfirmUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="crm-card w-full max-w-md overflow-hidden flex flex-col shadow-luxury border-amber-500/40">
             <div className="flex items-center justify-between px-5 py-4 bg-amber-950/20 border-b border-amber-500/30">
               <div className="flex items-center gap-2.5">
@@ -686,14 +686,14 @@ export default function UserManagementPage() {
 
       {/* MODAL: REGISTER EMPLOYEE */}
       {isRegisterModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
           <div className="crm-card w-full max-w-md my-auto max-h-[90vh] overflow-hidden flex flex-col shadow-luxury border-gold-500/30">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">Registrasi Akun</span>
-                <h3 className="text-base font-black text-white">Daftarkan Karyawan Baru</h3>
-                <p className="text-xs text-charcoal-300">Akun baru akan berstatus PENDING hingga disetujui Owner</p>
+                <h3 className="text-base font-black text-charcoal-900">Daftarkan Karyawan Baru</h3>
+                <p className="text-xs text-charcoal-500">Akun baru akan berstatus PENDING hingga disetujui Owner</p>
               </div>
               <button
                 onClick={() => setIsRegisterModalOpen(false)}

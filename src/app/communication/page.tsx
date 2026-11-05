@@ -275,7 +275,7 @@ export default function CommunicationCenterPage() {
 
                 <button
                   onClick={handleLogInteraction}
-                  className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-emerald-600 rounded-xl shadow-xs transition-colors"
+                  className="btn-gold text-xs font-bold transition-all cursor-pointer"
                 >
                   Simpan Catatan Interaksi
                 </button>

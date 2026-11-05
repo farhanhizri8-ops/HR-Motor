@@ -858,8 +858,8 @@ export default function StokUnitPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 crm-card p-4 sm:p-6 border-b-2 border-b-gold-500/40">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-charcoal-900 text-gold-400 flex items-center justify-center shadow-md shrink-0">
-              <Car className="w-5 h-5 text-gold-400" />
+            <div className="w-10 h-10 rounded-xl bg-[#FDF8ED] text-gold-800 border border-gold-300 flex items-center justify-center shadow-2xs shrink-0">
+              <Car className="w-5 h-5 text-gold-600" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -974,7 +974,7 @@ export default function StokUnitPage() {
           onClick={() => setFilterStatus('Semua')}
           className={`py-2 px-1 rounded-xl transition-all cursor-pointer ${
             filterStatus === 'Semua'
-              ? 'bg-charcoal-900 text-gold-400 font-bold shadow-xs'
+              ? 'bg-[#FDF8ED] text-gold-900 border border-gold-400 font-bold shadow-xs'
               : 'text-charcoal-600 hover:text-charcoal-900'
           }`}
         >
@@ -1072,7 +1072,7 @@ export default function StokUnitPage() {
                   onClick={() => setFilterBrand(brand)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
                     filterBrand === brand
-                      ? 'bg-charcoal-900 text-gold-400 shadow-xs'
+                      ? 'bg-gold-500 text-charcoal-950 font-bold shadow-2xs'
                       : 'text-charcoal-600 hover:text-charcoal-900'
                   }`}
                 >
@@ -1200,17 +1200,17 @@ export default function StokUnitPage() {
         <div className="hidden md:block overflow-x-auto w-full">
           <table className="crm-table w-full min-w-[980px] text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#141414] text-white border-b border-[#2A2A2A]">
-                  <th className="py-3.5 px-3 text-center w-12 text-[11px] font-bold text-gold-400">NO</th>
-                  <th className="py-3.5 px-4 text-[11px] font-bold">MERK / TYPE KENDARAAN</th>
-                  <th className="py-3.5 px-2.5 text-center text-[11px] font-bold">TAHUN</th>
-                  <th className="py-3.5 px-3.5 text-left text-[11px] font-bold">WARNA</th>
-                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">ODO</th>
-                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">NO POLISI &amp; DAERAH</th>
-                  <th className="py-3.5 px-4 text-right text-[11px] font-bold text-gold-400">HARGA CASH</th>
-                  <th className="py-3.5 px-4 text-center text-[11px] font-bold text-amber-300">PAKET KREDIT (DP & TENOR)</th>
-                  <th className="py-3.5 px-3 text-center text-[11px] font-bold">STATUS</th>
-                  <th className="py-3.5 px-3 text-center text-[11px] font-bold w-28">AKSI</th>
+                <tr className="bg-[#FAF9F5] text-charcoal-800 border-b border-[#EAE8E3]">
+                  <th className="py-3.5 px-3 text-center w-12 text-[11px] font-bold text-gold-700">NO</th>
+                  <th className="py-3.5 px-4 text-[11px] font-bold text-charcoal-700">MERK / TYPE KENDARAAN</th>
+                  <th className="py-3.5 px-2.5 text-center text-[11px] font-bold text-charcoal-700">TAHUN</th>
+                  <th className="py-3.5 px-3.5 text-left text-[11px] font-bold text-charcoal-700">WARNA</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold text-charcoal-700">ODO</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold text-charcoal-700">NO POLISI &amp; DAERAH</th>
+                  <th className="py-3.5 px-4 text-right text-[11px] font-bold text-gold-700">HARGA CASH</th>
+                  <th className="py-3.5 px-4 text-center text-[11px] font-bold text-gold-800">PAKET KREDIT (DP &amp; TENOR)</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold text-charcoal-700">STATUS</th>
+                  <th className="py-3.5 px-3 text-center text-[11px] font-bold w-28 text-charcoal-700">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-warm-200/80">
@@ -1308,7 +1308,7 @@ export default function StokUnitPage() {
                         <td className="py-3.5 px-3 text-center whitespace-nowrap font-mono text-xs font-bold text-charcoal-800">
                           {stock.licensePlate ? (
                             <div className="inline-flex flex-col items-center gap-1">
-                              <span className="bg-charcoal-900 text-gold-400 font-bold px-2.5 py-1 rounded-md border border-charcoal-700 text-xs tracking-wider shadow-xs">
+                              <span className="bg-[#FDF8ED] text-gold-900 font-bold px-2.5 py-1 rounded-md border border-gold-300 text-xs tracking-wider shadow-2xs">
                                 {stock.licensePlate}
                               </span>
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-warm-100 text-charcoal-700 border border-warm-200">
@@ -1467,11 +1467,11 @@ export default function StokUnitPage() {
           <div className="md:hidden w-full overflow-hidden bg-white">
             <table className="w-full text-left border-collapse table-fixed text-xs">
               <thead>
-                <tr className="bg-[#141414] text-white border-b border-[#2A2A2A]">
-                  <th className="py-2.5 px-1.5 text-center w-8 text-[10px] font-bold text-gold-400">NO</th>
-                  <th className="py-2.5 px-2 text-[10px] font-bold text-warm-100">UNIT & SPESIFIKASI</th>
-                  <th className="py-2.5 px-2 text-right w-28 sm:w-32 text-[10px] font-bold text-gold-400">HARGA & STATUS</th>
-                  <th className="py-2.5 px-1 text-center w-10 text-[10px] font-bold text-warm-200">AKSI</th>
+                <tr className="bg-[#FAF9F5] text-charcoal-800 border-b border-[#EAE8E3]">
+                  <th className="py-2.5 px-1.5 text-center w-8 text-[10px] font-bold text-gold-700">NO</th>
+                  <th className="py-2.5 px-2 text-[10px] font-bold text-charcoal-700">UNIT &amp; SPESIFIKASI</th>
+                  <th className="py-2.5 px-2 text-right w-28 sm:w-32 text-[10px] font-bold text-gold-700">HARGA &amp; STATUS</th>
+                  <th className="py-2.5 px-1 text-center w-10 text-[10px] font-bold text-charcoal-700">AKSI</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-warm-200/80">
@@ -1552,7 +1552,7 @@ export default function StokUnitPage() {
                           <div className="flex items-center gap-1 text-[10px] mt-1 flex-wrap leading-tight">
                             {stock.licensePlate ? (
                               <span className="inline-flex items-center gap-1">
-                                <span className="bg-charcoal-900 text-gold-400 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border border-charcoal-700">
+                                <span className="bg-[#FDF8ED] text-gold-900 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border border-gold-300">
                                   {stock.licensePlate}
                                 </span>
                                 <span className="text-[9px] font-extrabold text-charcoal-700 bg-warm-100 px-1 py-0.2 rounded border border-warm-200 inline-flex items-center gap-0.5">
@@ -1657,7 +1657,7 @@ export default function StokUnitPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenDetail(stock)}
-                              className="p-1.5 rounded-lg bg-charcoal-900 hover:bg-black text-gold-400 shadow-2xs transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#FAF9F5] hover:bg-[#F0EDE6] text-gold-700 border border-gold-300 shadow-2xs transition-colors cursor-pointer"
                               title="Lihat Detail Unit"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1718,24 +1718,25 @@ export default function StokUnitPage() {
       {/* MODAL 1: KALKULATOR SIMULASI KREDIT SHOWROOM                              */}
       {/* ========================================================================= */}
       {showCreditCalculatorModal && selectedStock && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
-                  <Calculator className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-800 border border-gold-300 flex items-center justify-center shrink-0">
+                  <Calculator className="w-4 h-4 text-gold-700" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Atur &amp; Hitung Paket Kredit Showroom</h3>
-                  <p className="text-[11px] text-charcoal-400 truncate max-w-[220px] sm:max-w-xs">
+                  <h3 className="text-sm font-bold text-charcoal-900">Atur &amp; Hitung Paket Kredit Showroom</h3>
+                  <p className="text-[11px] text-charcoal-500 truncate max-w-[220px] sm:max-w-xs">
                     {selectedStock.merkType || selectedStock.model} ({selectedStock.year}) • No #{selectedStock.stockNumber}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowCreditCalculatorModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1912,26 +1913,27 @@ export default function StokUnitPage() {
       {/* MODAL 2: DETAIL SPESIFIKASI KENDARAAN                                     */}
       {/* ========================================================================= */}
       {showDetailModal && selectedStock && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
-                  <Car className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-800 border border-gold-300 flex items-center justify-center shrink-0">
+                  <Car className="w-4 h-4 text-gold-700" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white truncate max-w-[220px] sm:max-w-md">
+                  <h3 className="text-sm font-bold text-charcoal-900 truncate max-w-[220px] sm:max-w-md">
                     {selectedStock.merkType || `${selectedStock.brand} ${selectedStock.model}`}
                   </h3>
-                  <p className="text-[11px] text-charcoal-400">
+                  <p className="text-[11px] text-charcoal-500">
                     No. Urut #{selectedStock.stockNumber} • ID: {selectedStock.id}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1964,7 +1966,7 @@ export default function StokUnitPage() {
               )}
 
               {/* Unit Specifications Header Banner (Tanpa Foto) */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-charcoal-900 via-charcoal-950 to-charcoal-900 text-white border border-gold-500/30 shadow-md">
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#FAF9F5] via-[#FFFDF9] to-[#F5F2EB] text-charcoal-900 border-2 border-gold-300 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -1973,30 +1975,30 @@ export default function StokUnitPage() {
                       </span>
                       {selectedStock.licensePlate ? (
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="px-2.5 py-0.5 rounded bg-black/70 text-gold-400 font-mono text-xs font-bold border border-gold-500/30">
+                          <span className="px-2.5 py-0.5 rounded bg-[#FDF8ED] text-gold-900 font-mono text-xs font-bold border border-gold-400">
                             {selectedStock.licensePlate}
                           </span>
-                          <span className="px-2 py-0.5 rounded bg-gold-500/20 text-gold-300 font-bold text-xs border border-gold-500/40 inline-flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-gold-400" />
+                          <span className="px-2 py-0.5 rounded bg-gold-100/70 text-gold-900 font-bold text-xs border border-gold-300 inline-flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gold-600" />
                             Plat {selectedStock.plateRegion || detectPlateRegion(selectedStock.licensePlate)}
                           </span>
                         </div>
                       ) : (
-                        <span className="px-2 py-0.5 rounded bg-black/50 text-warm-300 font-mono text-[11px] italic">
+                        <span className="px-2 py-0.5 rounded bg-[#F0EDE6] text-charcoal-600 font-mono text-[11px] italic">
                           Siap Balik Nama
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                    <h3 className="text-lg sm:text-xl font-black text-charcoal-900 tracking-tight">
                       {selectedStock.brand} {selectedStock.model}
                     </h3>
-                    <p className="text-xs text-warm-300">
+                    <p className="text-xs text-charcoal-600">
                       Tahun {selectedStock.year} • {selectedStock.transmission} • {selectedStock.fuel} • Odo: {selectedStock.odometerDisplay || `${selectedStock.mileage.toLocaleString('id-ID')} km`}
                     </p>
                   </div>
                   <div className="sm:text-right shrink-0">
-                    <span className="text-[10px] text-warm-400 block uppercase tracking-wider font-bold">Harga Cash OTR</span>
-                    <span className="text-xl sm:text-2xl font-black text-gold-400 font-mono">
+                    <span className="text-[10px] text-charcoal-500 block uppercase tracking-wider font-bold">Harga Cash OTR</span>
+                    <span className="text-xl sm:text-2xl font-black text-gold-700 font-mono">
                       {formatRupiah(selectedStock.price)}
                     </span>
                   </div>
@@ -2143,19 +2145,20 @@ export default function StokUnitPage() {
       {/* MODAL 3: TAMBAH & EDIT UNIT KENDARAAN                                     */}
       {/* ========================================================================= */}
       {(showAddModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
-                  <Car className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-800 border border-gold-300 flex items-center justify-center shrink-0">
+                  <Car className="w-4 h-4 text-gold-700" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">
+                  <h3 className="text-sm font-bold text-charcoal-900">
                     {showAddModal ? 'Tambah Unit Baru ke Inventaris Showroom' : 'Edit Data Unit Kendaraan'}
                   </h3>
-                  <p className="text-[11px] text-charcoal-400">Inventaris resmi HR MOTOR Garut</p>
+                  <p className="text-[11px] text-charcoal-500">Inventaris resmi HR MOTOR Garut</p>
                 </div>
               </div>
               <button
@@ -2163,7 +2166,7 @@ export default function StokUnitPage() {
                   setShowAddModal(false);
                   setShowEditModal(false);
                 }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-charcoal-800 transition-colors shrink-0"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors shrink-0 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2345,7 +2348,7 @@ export default function StokUnitPage() {
                           onClick={() => setFormData({ ...formData, plateRegion: reg })}
                           className={`text-[9px] px-1.5 py-0.5 rounded border transition-colors ${
                             formData.plateRegion.toLowerCase() === reg.toLowerCase()
-                              ? 'bg-charcoal-900 text-gold-400 font-bold border-charcoal-900'
+                              ? 'bg-gold-500 text-charcoal-950 font-bold border-gold-500'
                               : 'bg-white text-charcoal-600 border-warm-200 hover:bg-gold-50'
                           }`}
                         >

@@ -163,21 +163,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-charcoal-950/40 backdrop-blur-xs lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar Container: Charcoal Black Theme */}
+      {/* Sidebar Container: Clean Luxury Warm Dealership Theme */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#1C1C1C] text-white transition-all duration-300 ease-in-out border-r border-[#2A2A2A] shadow-2xl w-72 max-w-[85vw] ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-[#FCFBF9] text-charcoal-800 transition-all duration-300 ease-in-out border-r border-[#EAE8E3] shadow-md w-72 max-w-[85vw] ${
           collapsed ? 'lg:w-20' : 'lg:w-64'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header with Real HR MOTOR Logo */}
-        <div className="flex items-center justify-between h-20 px-4 bg-[#141414] border-b border-[#2A2A2A] relative">
+        <div className="flex items-center justify-between h-20 px-4 bg-[#FAF9F5] border-b border-[#EAE8E3] relative">
           {/* Subtle top gold accent line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600 opacity-80" />
+          <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600 opacity-90" />
 
           <Link
             href="/"
@@ -186,7 +186,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               collapsed ? 'lg:justify-center w-full lg:w-auto' : 'gap-2.5'
             }`}
           >
-            {/* Real Official HR MOTOR Logo - Clean Transparent without Box Background */}
+            {/* Real Official HR MOTOR Logo */}
             <div
               className={`flex items-center justify-center transition-all ${
                 collapsed ? 'lg:w-12 lg:h-12 p-1' : 'h-14 w-auto max-w-[190px] py-1'
@@ -196,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <img
                 src="/logo-transparent.png?v=5"
                 alt="Logo Resmi HR MOTOR"
-                className="h-full w-auto max-h-12 object-contain drop-shadow-md hover:scale-105 transition-transform"
+                className="h-full w-auto max-h-12 object-contain drop-shadow-xs hover:scale-105 transition-transform"
               />
             </div>
           </Link>
@@ -205,7 +205,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {!collapsed && (
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-[#242424] hover:bg-[#2D2D2D] text-slate-400 hover:text-gold-400 border border-[#333333] transition-colors"
+              className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg bg-[#F0EDE6] hover:bg-[#E5E1D8] text-charcoal-600 hover:text-gold-700 border border-[#DDD9CF] transition-colors"
               title="Ciutkan Sidebar"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -215,7 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="flex lg:hidden items-center justify-center w-9 h-9 rounded-xl bg-[#262626] text-slate-300 hover:text-white border border-[#333333] transition-colors shadow-2xs"
+            className="flex lg:hidden items-center justify-center w-9 h-9 rounded-xl bg-[#F0EDE6] text-charcoal-600 hover:text-charcoal-900 border border-[#DDD9CF] transition-colors shadow-2xs"
             aria-label="Tutup Menu"
           >
             <X className="w-5 h-5" />
@@ -224,10 +224,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Collapsed Expand Trigger */}
         {collapsed && (
-          <div className="hidden lg:flex justify-center py-2 border-b border-[#2A2A2A]">
+          <div className="hidden lg:flex justify-center py-2 border-b border-[#EAE8E3]">
             <button
               onClick={() => setCollapsed(false)}
-              className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#242424] hover:bg-[#2D2D2D] text-slate-400 hover:text-gold-400 border border-[#333333] transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#F0EDE6] hover:bg-[#E5E1D8] text-charcoal-600 hover:text-gold-700 border border-[#DDD9CF] transition-colors"
               title="Perluas Sidebar"
             >
               <ChevronRight className="w-4 h-4" />
@@ -262,16 +262,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }}
                     className={`group w-full flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer relative ${
                       hasActiveChild
-                        ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold border-l-4 border-l-gold-500'
-                        : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300 border-l-4 border-l-transparent'
+                        ? 'bg-[#FDF8ED] text-gold-800 border border-gold-300 shadow-xs font-bold border-l-4 border-l-gold-500'
+                        : 'text-charcoal-700 hover:bg-[#F3EFE6] hover:text-gold-700 border-l-4 border-l-transparent'
                     } ${collapsed ? 'lg:justify-center lg:px-0 lg:border-l-0' : ''}`}
                     title={collapsed ? `${item.name} (Data Pelanggan, Prospek, Follow Up)` : undefined}
                   >
                     <Icon
                       className={`w-4.5 h-4.5 shrink-0 transition-colors ${
                         hasActiveChild
-                          ? 'text-gold-400 stroke-[2.2]'
-                          : 'text-slate-400 group-hover:text-gold-400'
+                          ? 'text-gold-600 stroke-[2.2]'
+                          : 'text-charcoal-400 group-hover:text-gold-600'
                       }`}
                     />
 
@@ -288,20 +288,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     >
                       <ChevronDown
                         className={`w-4 h-4 transition-transform duration-200 ${
-                          crmOpen ? 'rotate-180 text-gold-400' : 'text-slate-400 group-hover:text-gold-400'
+                          crmOpen ? 'rotate-180 text-gold-600' : 'text-charcoal-400 group-hover:text-gold-600'
                         }`}
                       />
                     </span>
 
                     {/* Collapsed dot */}
                     {hasActiveChild && collapsed && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-gold-400 absolute top-2 right-2 hidden lg:block" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-gold-500 absolute top-2 right-2 hidden lg:block" />
                     )}
                   </button>
 
                   {/* Dropdown sub-items for CRM */}
                   {crmOpen && (!collapsed || mobileOpen) && (
-                    <div className="ml-4 pl-3.5 border-l-2 border-gold-500/30 space-y-1 my-1 transition-all">
+                    <div className="ml-4 pl-3.5 border-l-2 border-gold-400/40 space-y-1 my-1 transition-all">
                       {item.children.map((sub) => {
                         const isSubActive =
                           cleanPath === sub.href ||
@@ -316,21 +316,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             onClick={() => setMobileOpen(false)}
                             className={`group flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 relative ${
                               isSubActive
-                                ? 'bg-[#282828] text-gold-400 border border-gold-500/40 font-bold shadow-xs'
-                                : 'text-slate-300 hover:bg-[#242424] hover:text-gold-300 font-medium'
+                                ? 'bg-[#FDF8ED] text-gold-800 border border-gold-300 font-bold shadow-xs'
+                                : 'text-charcoal-600 hover:bg-[#F3EFE6] hover:text-charcoal-900 font-medium'
                             }`}
                             title={sub.name}
                           >
                             <SubIcon
                               className={`w-4 h-4 shrink-0 transition-colors ${
                                 isSubActive
-                                  ? 'text-gold-400 stroke-[2.2]'
-                                  : 'text-slate-400 group-hover:text-gold-400'
+                                  ? 'text-gold-600 stroke-[2.2]'
+                                  : 'text-charcoal-400 group-hover:text-gold-600'
                               }`}
                             />
                             <span className="truncate">{sub.name}</span>
                             {isSubActive && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-gold-400 ml-auto shrink-0 shadow-xs" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-gold-500 ml-auto shrink-0 shadow-xs" />
                             )}
                           </Link>
                         );
@@ -356,16 +356,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => setMobileOpen(false)}
                 className={`group flex items-center gap-3 px-3 py-2.5 sm:py-3 rounded-xl text-xs font-semibold transition-all duration-150 relative ${
                   isActive
-                    ? 'bg-[#282828] text-gold-400 border border-gold-500/40 shadow-sm font-bold border-l-4 border-l-gold-500'
-                    : 'text-slate-300 hover:bg-[#262626] hover:text-gold-300 border-l-4 border-l-transparent'
+                    ? 'bg-[#FDF8ED] text-gold-800 border border-gold-300 shadow-xs font-bold border-l-4 border-l-gold-500'
+                    : 'text-charcoal-700 hover:bg-[#F3EFE6] hover:text-gold-700 border-l-4 border-l-transparent'
                 } ${collapsed ? 'lg:justify-center lg:px-0 lg:border-l-0' : ''}`}
                 title={collapsed ? item.name : undefined}
               >
                 <Icon
                   className={`w-4.5 h-4.5 shrink-0 transition-colors ${
                     isActive
-                      ? 'text-gold-400 stroke-[2.2]'
-                      : 'text-slate-400 group-hover:text-gold-400'
+                      ? 'text-gold-600 stroke-[2.2]'
+                      : 'text-charcoal-400 group-hover:text-gold-600'
                   }`}
                 />
 
@@ -375,7 +375,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
 
                 {isActive && (
-                  <span className={`w-1.5 h-1.5 rounded-full bg-gold-400 ml-auto ${collapsed ? 'lg:hidden' : 'inline-block'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full bg-gold-500 ml-auto ${collapsed ? 'lg:hidden' : 'inline-block'}`} />
                 )}
               </Link>
             );
@@ -383,22 +383,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* User Profile Card & Role Footer */}
-        <div className="p-3 bg-[#141414] border-t border-[#2A2A2A]">
+        <div className="p-3 bg-[#FAF9F5] border-t border-[#EAE8E3]">
           <div className={`flex items-center gap-3 ${collapsed ? 'lg:justify-center' : ''}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={currentUser.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'}
               alt={currentUser.name}
-              className="w-9 h-9 rounded-full object-cover border-2 border-gold-500 shadow-xs shrink-0"
+              className="w-9 h-9 rounded-full object-cover border-2 border-gold-400 shadow-xs shrink-0"
             />
             <div className={`flex-1 min-w-0 flex items-center justify-between gap-1 ${collapsed ? 'lg:hidden' : 'flex'}`}>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">
+                <p className="text-xs font-bold text-charcoal-900 truncate">
                   {currentUser.name}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-400" />
-                  <p className="text-[10px] text-gold-400/90 font-medium truncate uppercase tracking-wider">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-500" />
+                  <p className="text-[10px] text-gold-700 font-semibold truncate uppercase tracking-wider">
                     {getRoleDisplayName(currentUser.role)}
                   </p>
                 </div>
@@ -406,7 +406,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 onClick={logout}
                 title="Keluar dari Akun"
-                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-[#202020] rounded-lg transition-colors shrink-0"
+                className="p-2 text-charcoal-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shrink-0 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>

@@ -2069,7 +2069,8 @@ export default function RiwayatPerbaikanGaransiPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
+            <div className="flex items-center justify-between p-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
                   <ShieldCheck className="w-5 h-5" />
@@ -2410,7 +2411,8 @@ export default function RiwayatPerbaikanGaransiPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
+            <div className="flex items-center justify-between p-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center">
                   <ShieldCheck className="w-5 h-5" />
@@ -2624,7 +2626,8 @@ export default function RiwayatPerbaikanGaransiPage() {
       {isEditModalOpen && editFormData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
           <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-luxury border border-warm-200 overflow-hidden my-auto max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 bg-slate-900 text-white shrink-0">
+            <div className="flex items-center justify-between p-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2">
                 <Edit className="w-4 h-4 text-gold-400" />
                 <h3 className="text-sm font-bold">Edit Klaim Garansi ({editFormData.claimNumber})</h3>

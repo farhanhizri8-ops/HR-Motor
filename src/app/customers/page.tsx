@@ -1255,9 +1255,9 @@ export default function CustomersPage() {
                 setFormError('');
                 setIsCreditModalOpen(true);
               }}
-              className="px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer w-full sm:w-auto"
+              className="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer w-full sm:w-auto"
             >
-              <CreditCard className="w-4 h-4 text-gold-400" />
+              <CreditCard className="w-4 h-4 text-charcoal-950" />
               <span>+ Pengajuan Kredit Baru</span>
             </button>
           </div>
@@ -1303,11 +1303,11 @@ export default function CustomersPage() {
           onClick={() => setActiveTab('customers')}
           className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
             activeTab === 'customers'
-              ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
+              ? 'bg-[#FDF8ED] text-gold-900 shadow-xs border-2 border-gold-500 font-bold'
               : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
           }`}
         >
-          <Users className="w-4 h-4 text-gold-500" />
+          <Users className="w-4 h-4 text-gold-600" />
           <span>Tabel Data Pelanggan & Penjualan ({officialCustomers.length})</span>
         </button>
 
@@ -1316,7 +1316,7 @@ export default function CustomersPage() {
           onClick={() => setActiveTab('pending')}
           className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
             activeTab === 'pending'
-              ? 'bg-amber-500 text-charcoal-950 shadow-sm border border-amber-600 font-black'
+              ? 'bg-amber-100 text-amber-950 shadow-xs border-2 border-amber-500 font-black'
               : 'bg-white text-amber-900 hover:text-amber-950 border border-amber-200'
           }`}
         >
@@ -1334,7 +1334,7 @@ export default function CustomersPage() {
           onClick={() => setActiveTab('rejected')}
           className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer w-full sm:w-auto ${
             activeTab === 'rejected'
-              ? 'bg-charcoal-900 text-gold-400 shadow-sm border border-gold-500/40'
+              ? 'bg-rose-50 text-rose-800 shadow-xs border-2 border-rose-400 font-bold'
               : 'bg-white text-charcoal-600 hover:text-charcoal-900 border border-[#EAE8E3]'
           }`}
         >
@@ -1416,8 +1416,8 @@ export default function CustomersPage() {
               onClick={() => setFilterPayment('ALL')}
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 filterPayment === 'ALL'
-                  ? 'bg-charcoal-900 text-gold-400 shadow-2xs'
-                  : 'bg-warm-100 text-charcoal-700 hover:bg-warm-200'
+                  ? 'bg-gold-500 text-charcoal-950 shadow-2xs font-bold'
+                  : 'bg-[#F0EDE6] text-charcoal-700 hover:bg-[#EAE8E3]'
               }`}
             >
               Semua ({officialCustomers.length})
@@ -1537,7 +1537,7 @@ export default function CustomersPage() {
                     <span className="text-[10px] text-charcoal-400 block font-semibold">Unit Kendaraan:</span>
                     <p className="font-bold text-charcoal-900 truncate">{vehicleName}</p>
                     {plateNo && plateNo !== '-' ? (
-                      <span className="inline-block mt-0.5 bg-charcoal-900 text-gold-400 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded">
+                      <span className="inline-block mt-0.5 bg-[#FDF8ED] text-gold-900 border border-gold-300 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded">
                         {plateNo}
                       </span>
                     ) : (
@@ -1609,13 +1609,13 @@ export default function CustomersPage() {
         <div className="overflow-x-auto">
           <table className="crm-table w-full text-left min-w-[950px]">
             <thead>
-              <tr className="bg-[#141414] text-white border-b border-[#2A2A2A]">
-                <th className="py-3 px-3 text-center w-12 text-[11px] font-bold text-gold-400">NO</th>
-                <th className="py-3 px-4 text-[11px] font-bold">KONSUMEN & METODE TRANSAKSI</th>
-                <th className="py-3 px-4 text-[11px] font-bold">UNIT KENDARAAN</th>
-                <th className="py-3 px-4 text-[11px] font-bold">KONTAK & DOMISILI</th>
-                <th className="py-3 px-4 text-right text-[11px] font-bold text-gold-400">NILAI & PEMBAYARAN</th>
-                <th className="py-3 px-4 text-center text-[11px] font-bold w-40">AKSI</th>
+              <tr className="bg-[#FAF9F5] text-charcoal-800 border-b border-[#EAE8E3]">
+                <th className="py-3 px-3 text-center w-12 text-[11px] font-bold text-gold-700">NO</th>
+                <th className="py-3 px-4 text-[11px] font-bold text-charcoal-700">KONSUMEN & METODE TRANSAKSI</th>
+                <th className="py-3 px-4 text-[11px] font-bold text-charcoal-700">UNIT KENDARAAN</th>
+                <th className="py-3 px-4 text-[11px] font-bold text-charcoal-700">KONTAK & DOMISILI</th>
+                <th className="py-3 px-4 text-right text-[11px] font-bold text-gold-700">NILAI & PEMBAYARAN</th>
+                <th className="py-3 px-4 text-center text-[11px] font-bold w-40 text-charcoal-700">AKSI</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAE8E3] text-xs">
@@ -1659,7 +1659,7 @@ export default function CustomersPage() {
                       {/* 2. Pelanggan & Metode Transaksi */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-charcoal-900 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-xs">
+                          <div className="w-9 h-9 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-2xs">
                             {cust.fullName.charAt(0)}
                           </div>
                           <div>
@@ -1694,7 +1694,7 @@ export default function CustomersPage() {
                           <p className="font-bold text-charcoal-900 text-xs">{vehicleName}</p>
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {plateNo && plateNo !== '-' ? (
-                              <span className="bg-charcoal-900 text-gold-400 font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-charcoal-700">
+                              <span className="bg-[#FDF8ED] text-gold-900 font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-gold-300">
                                 {plateNo}
                               </span>
                             ) : (
@@ -1835,9 +1835,9 @@ export default function CustomersPage() {
                 setFormError('');
                 setIsCreditModalOpen(true);
               }}
-              className="px-3.5 py-2 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer shrink-0"
+              className="px-3.5 py-2 rounded-xl bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer shrink-0"
             >
-              <CreditCard className="w-4 h-4 text-gold-400" />
+              <CreditCard className="w-4 h-4 text-charcoal-950" />
               <span>+ Pengajuan Kredit Baru</span>
             </button>
           </div>
@@ -1871,9 +1871,9 @@ export default function CustomersPage() {
                   setFormError('');
                   setIsCreditModalOpen(true);
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-charcoal-900 hover:bg-black text-gold-400 border border-gold-500/40 font-bold text-xs shadow-sm transition-all cursor-pointer mt-2"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-charcoal-950 font-bold text-xs shadow-xs transition-all cursor-pointer mt-2"
               >
-                <CreditCard className="w-4 h-4 text-gold-400" />
+                <CreditCard className="w-4 h-4 text-charcoal-950" />
                 <span>+ Buat Pengajuan Kredit Baru</span>
               </button>
             </div>
@@ -2038,7 +2038,7 @@ export default function CustomersPage() {
                           <td className="py-3.5 px-4">
                             <p className="font-bold text-xs text-charcoal-900">{app.vehicleName}</p>
                             {app.plateNumber && (
-                              <span className="text-[10px] font-mono font-bold bg-charcoal-900 text-gold-400 px-1.5 py-0.5 rounded mt-1 inline-block">
+                              <span className="text-[10px] font-mono font-bold bg-[#FDF8ED] text-gold-900 border border-gold-300 px-1.5 py-0.5 rounded mt-1 inline-block">
                                 {app.plateNumber}
                               </span>
                             )}
@@ -2343,24 +2343,25 @@ export default function CustomersPage() {
 
       {/* ADD / EDIT CUSTOMER MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30 my-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">
                   {editingCustomer ? 'Perbarui Data Konsumen' : 'Registrasi Konsumen Baru'}
                 </span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   {editingCustomer ? `Edit: ${editingCustomer.fullName}` : 'Tambah Konsumen Baru Showroom'}
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   {editingCustomer ? `ID Pelanggan: ${editingCustomer.id}` : 'Registrasi calon atau pembeli mobil HR MOTOR Garut'}
                 </p>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2772,20 +2773,21 @@ export default function CustomersPage() {
 
       {/* CUSTOMER DETAIL DRAWER / MODAL */}
       {selectedCustomer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
             {/* Header */}
-            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-charcoal-800 text-gold-400 border border-gold-500/40 flex items-center justify-center font-black text-base sm:text-lg uppercase shadow-xs shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center font-black text-base sm:text-lg uppercase shadow-2xs shrink-0">
                   {selectedCustomer.fullName.charAt(0)}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <h2 className="text-base sm:text-lg font-black text-white truncate">{selectedCustomer.fullName}</h2>
+                    <h2 className="text-base sm:text-lg font-black text-charcoal-900 truncate">{selectedCustomer.fullName}</h2>
                     <span className="badge-gold text-[10px]">Pelanggan Terdaftar</span>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-charcoal-300 truncate">
+                  <p className="text-[11px] sm:text-xs text-charcoal-500 truncate">
                     ID: {selectedCustomer.id} • Terdaftar: {formatDate(selectedCustomer.registeredDate)}
                   </p>
                 </div>
@@ -3076,7 +3078,7 @@ export default function CustomersPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedCustomer(null)}
-                  className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors shadow-xs"
+                  className="btn-outline-warm text-xs font-bold py-2 px-4 shadow-xs cursor-pointer"
                 >
                   Tutup
                 </button>
@@ -3121,13 +3123,14 @@ export default function CustomersPage() {
 
       {/* MODAL KWITANSI PEMBAYARAN KASIR RESMI HR MOTOR */}
       {selectedKwitansi && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-2xl w-full border border-gold-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
             {/* Header Toolbar */}
-            <div className="px-3.5 sm:px-5 py-3 sm:py-3.5 bg-charcoal-900 text-white flex items-center justify-between border-b border-gold-500/30 shrink-0 gap-2">
+            <div className="px-3.5 sm:px-5 py-3 sm:py-3.5 bg-[#FAF9F5] text-charcoal-900 flex items-center justify-between border-b border-[#EAE8E3] shrink-0 gap-2 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                <FileText className="w-4 h-4 text-gold-400 shrink-0" />
-                <span className="font-bold text-xs sm:text-sm tracking-wide truncate max-w-[150px] xs:max-w-none">
+                <FileText className="w-4 h-4 text-gold-600 shrink-0" />
+                <span className="font-bold text-xs sm:text-sm tracking-wide text-charcoal-900 truncate max-w-[150px] xs:max-w-none">
                   Kwitansi Resmi Showroom
                 </span>
               </div>
@@ -3151,7 +3154,7 @@ export default function CustomersPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedKwitansi(null)}
-                  className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-lg text-charcoal-500 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3263,7 +3266,7 @@ export default function CustomersPage() {
               <button
                 type="button"
                 onClick={() => setSelectedKwitansi(null)}
-                className="px-4 py-2 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
+                className="btn-outline-warm text-xs font-bold py-2 px-4 cursor-pointer"
               >
                 Tutup Kwitansi
               </button>
@@ -3274,24 +3277,25 @@ export default function CustomersPage() {
 
       {/* MODAL 1: TRANSAKSI PENJUALAN CASH */}
       {isCashModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-emerald-500/30 text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-600" />
               <div>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 mb-1">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 mb-1">
                   <DollarSign className="w-3 h-3" /> Transaksi Penjualan Cash Showroom
                 </span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   Input Transaksi Penjualan Cash
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Unit mobil otomatis berstatus SOLD OUT & Kwitansi resmi otomatis diterbitkan
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCashModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -3509,24 +3513,25 @@ export default function CustomersPage() {
 
       {/* MODAL 2: PENGAJUAN KREDIT BARU */}
       {isCreditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-600/50 mb-1">
-                  <CreditCard className="w-3 h-3" /> Pengajuan Kredit Baru Showroom
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gold-100 text-gold-900 border border-gold-300 mb-1">
+                  <CreditCard className="w-3 h-3 text-gold-700" /> Pengajuan Kredit Baru Showroom
                 </span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   Input Pengajuan Kredit (Leasing)
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Unit mobil di stok otomatis berstatus BOOKING (BOKING) dan terkunci dari pemesanan lain
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCreditModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -3787,24 +3792,25 @@ export default function CustomersPage() {
 
       {/* MODAL 3: TOMBOL ACC (PERSETUJUAN KREDIT) */}
       {isAccModalOpen && selectedCreditApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-emerald-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-emerald-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-emerald-500/30 text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-600" />
               <div>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 mb-1">
-                  <Check className="w-3 h-3" /> Konfirmasi Keputusan Kredit
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 mb-1">
+                  <Check className="w-3 h-3 text-emerald-700" /> Konfirmasi Keputusan Kredit
                 </span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   Persetujuan Kredit (ACC)
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Ubah status unit menjadi Terjual (SOLD OUT) dan catat data penjualan resmi
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAccModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -3915,24 +3921,25 @@ export default function CustomersPage() {
 
       {/* MODAL 4: TOMBOL DITOLAK (PENOLAKAN KREDIT) */}
       {isRejectModalOpen && selectedCreditApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
           <div className="crm-card w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-rose-500/40 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-rose-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-rose-500/30 text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-rose-500 via-rose-400 to-rose-600" />
               <div>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-300 border border-rose-600/50 mb-1">
-                  <XCircle className="w-3 h-3" /> Konfirmasi Penolakan Pengajuan
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300 mb-1">
+                  <XCircle className="w-3 h-3 text-rose-700" /> Konfirmasi Penolakan Pengajuan
                 </span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   Tolak Pengajuan Kredit
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   Unit mobil akan otomatis dikembalikan ke status TERSEDIA (READY) di showroom
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsRejectModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -4005,22 +4012,23 @@ export default function CustomersPage() {
 
       {/* MODAL 5: RIWAYAT AUDIT PENGAJUAN KREDIT */}
       {isHistoryModalOpen && selectedCreditApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
-          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-charcoal-700 my-auto">
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-charcoal-800 text-white shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+          <div className="crm-card w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-[#EAE8E3] my-auto">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">Audit Trail & Timeline</span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   Riwayat Pengajuan: {selectedCreditApp.customerName}
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   ID: {selectedCreditApp.id} • Unit: {selectedCreditApp.vehicleName}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -4106,7 +4114,7 @@ export default function CustomersPage() {
               <button
                 type="button"
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-charcoal-900 text-white font-bold text-xs hover:bg-black transition-colors"
+                className="btn-outline-warm w-full sm:w-auto text-xs font-bold py-2.5 px-5 cursor-pointer"
               >
                 Tutup
               </button>

@@ -1097,7 +1097,7 @@ export function ReportsAnalyticsView({ className = '' }: { className?: string })
               <div className="overflow-x-auto w-full">
                 <table className="w-full min-w-[640px] text-left">
                   <thead>
-                    <tr className="bg-[#242424] text-[#F0B653] text-[11px] font-bold uppercase tracking-wider border-b border-[#1A1A1A]">
+                    <tr className="bg-[#FAF9F5] text-charcoal-800 text-[11px] font-bold uppercase tracking-wider border-b border-[#EAE8E3]">
                       <th className="py-3 px-4">Saluran Promosi</th>
                       <th className="py-3 px-4">Jumlah Prospek</th>
                       <th className="py-3 px-4">Jumlah Deal</th>

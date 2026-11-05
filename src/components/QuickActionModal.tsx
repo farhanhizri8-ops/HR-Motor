@@ -443,18 +443,19 @@ export const QuickActionModal: React.FC<QuickActionModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/40 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="crm-card w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gold-500/30 bg-charcoal-900 text-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#EAE8E3] bg-[#FAF9F5] text-charcoal-900 relative">
+          <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
           <div>
             <span className="badge-gold text-[10px] mb-1 inline-block">Shortcut Pintasan</span>
-            <h2 className="text-base font-black text-white">Aksi Cepat Showroom</h2>
-            <p className="text-xs text-charcoal-300">Pilih tindakan cepat operasional HR MOTOR Garut</p>
+            <h2 className="text-base font-black text-charcoal-900">Aksi Cepat Showroom</h2>
+            <p className="text-xs text-charcoal-500">Pilih tindakan cepat operasional HR MOTOR Garut</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

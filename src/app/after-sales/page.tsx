@@ -815,57 +815,57 @@ export default function AfterSalesPage() {
         <div className="flex flex-wrap gap-1 p-1 bg-[#F8F7F4] rounded-xl border border-[#EAE8E3]">
           <button
             onClick={() => setActiveTab('repairs')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'repairs'
-                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
-            <Wrench className="w-3.5 h-3.5" />
+            <Wrench className="w-3.5 h-3.5 text-gold-600" />
             Garansi & Perbaikan ({repairClaims.length})
           </button>
           <button
             onClick={() => setActiveTab('purchases')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'purchases'
-                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
-            <Car className="w-3.5 h-3.5" />
+            <Car className="w-3.5 h-3.5 text-gold-600" />
             Kendaraan Terjual ({purchases.length})
           </button>
           <button
             onClick={() => setActiveTab('feedback')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'feedback'
-                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
-            <Star className="w-3.5 h-3.5" />
+            <Star className="w-3.5 h-3.5 text-gold-600" />
             Kepuasan & Ulasan ({feedback.length})
           </button>
           <button
             onClick={() => setActiveTab('complaints')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'complaints'
-                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5" />
+            <AlertTriangle className="w-3.5 h-3.5 text-gold-600" />
             Keluhan / Komplain ({complaints.length})
           </button>
           <button
             onClick={() => setActiveTab('referrals')}
-            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 ${
+            className={`py-2 px-3.5 text-xs font-bold rounded-lg transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'referrals'
-                ? 'bg-[#202020] text-gold-400 shadow-luxury border border-gold-500/30'
+                ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                 : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-gold-50/60'
             }`}
           >
-            <Gift className="w-3.5 h-3.5" />
+            <Gift className="w-3.5 h-3.5 text-gold-600" />
             Pelacakan Referral ({referrals.length})
           </button>
         </div>
@@ -1049,12 +1049,12 @@ export default function AfterSalesPage() {
                 <span className="text-[10px] text-charcoal-400">Ongkos teknisi</span>
               </div>
 
-              <div className="crm-card-charcoal p-3.5 text-white border border-gold-500/30">
-                <span className="text-[11px] font-semibold text-gold-400 block">Total Biaya Perbaikan</span>
-                <span className="text-lg lg:text-xl font-black text-white mt-0.5 block truncate">
+              <div className="crm-card p-3.5 bg-[#FAF9F5] text-charcoal-900 border border-gold-400 shadow-xs">
+                <span className="text-[11px] font-semibold text-gold-800 block">Total Biaya Perbaikan</span>
+                <span className="text-lg lg:text-xl font-black text-charcoal-900 mt-0.5 block truncate">
                   {formatRupiah(totalOverallCost)}
                 </span>
-                <span className="text-[10px] text-gold-300 font-semibold">Sparepart + Jasa</span>
+                <span className="text-[10px] text-gold-700 font-semibold">Sparepart + Jasa</span>
               </div>
             </div>
           </div>
@@ -1289,7 +1289,7 @@ export default function AfterSalesPage() {
             <div className="overflow-x-auto">
               <table className="crm-table w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
+                  <tr className="bg-[#FAF9F5] text-charcoal-800 text-[11px] font-bold uppercase tracking-wider border-b border-[#EAE8E3]">
                     <th className="py-3 px-4 w-12 text-center text-charcoal-400">No.</th>
                     <th className="py-3 px-4">Nama Konsumen</th>
                     <th className="py-3 px-4">Mobil yang Dimiliki</th>
@@ -1433,7 +1433,7 @@ export default function AfterSalesPage() {
           <div className="overflow-x-auto">
             <table className="crm-table w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
+                <tr className="bg-[#FAF9F5] text-charcoal-800 text-[11px] font-bold uppercase tracking-wider border-b border-[#EAE8E3]">
                   <th className="py-3 px-4">Pembeli Mobil</th>
                   <th className="py-3 px-4">Unit Mobil Bekas</th>
                   <th className="py-3 px-4">No. Polisi (Plat Z)</th>
@@ -1525,7 +1525,7 @@ export default function AfterSalesPage() {
             <div className="overflow-x-auto">
               <table className="crm-table w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
+                  <tr className="bg-[#FAF9F5] text-charcoal-800 text-[11px] font-bold uppercase tracking-wider border-b border-[#EAE8E3]">
                     <th className="py-3 px-4">No. Tiket</th>
                     <th className="py-3 px-4">Pelanggan & Kontak</th>
                     <th className="py-3 px-4">Judul & Kategori Keluhan</th>
@@ -1622,7 +1622,7 @@ export default function AfterSalesPage() {
           <div className="overflow-x-auto">
             <table className="crm-table w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#202020] text-gold-400 text-[11px] font-bold uppercase tracking-wider border-b border-charcoal-800">
+                <tr className="bg-[#FAF9F5] text-charcoal-800 text-[11px] font-bold uppercase tracking-wider border-b border-[#EAE8E3]">
                   <th className="py-3 px-4">Pelanggan Pemberi Rekomendasi</th>
                   <th className="py-3 px-4">Calon Pembeli Direferensikan</th>
                   <th className="py-3 px-4">Kontak Prospek</th>
@@ -1677,7 +1677,7 @@ export default function AfterSalesPage() {
       {isRepairModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#EAE8E3] bg-[#FAF9F5] text-charcoal-900 relative">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <Wrench className="w-4 h-4 text-gold-400" />
@@ -2016,7 +2016,7 @@ export default function AfterSalesPage() {
       {detailRepair && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#EAE8E3] bg-[#FAF9F5] text-charcoal-900 relative">
               <div className="flex items-center gap-2">
                 <span
                   className={`px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -2204,7 +2204,7 @@ export default function AfterSalesPage() {
       {isFeedbackModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#EAE8E3] bg-[#FAF9F5] text-charcoal-900 relative">
               <div>
                 <h3 className="text-sm font-bold text-white">Catat Ulasan & Kepuasan Pelanggan</h3>
                 <p className="text-xs text-charcoal-400 mt-0.5">Dokumentasikan testimoni pembeli HR MOTOR Garut</p>
@@ -2306,7 +2306,7 @@ export default function AfterSalesPage() {
       {isComplaintModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#EAE8E3] bg-[#FAF9F5] text-charcoal-900 relative">
               <div>
                 <h3 className="text-sm font-bold text-white">Buka Tiket Komplain Baru</h3>
                 <p className="text-xs text-charcoal-400 mt-0.5">Penanganan kendala purna jual unit konsumen</p>
@@ -2424,7 +2424,7 @@ export default function AfterSalesPage() {
       {resolvingComplaint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/70 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl shadow-luxury border border-[#EAE8E3] w-full max-w-md overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal-800 bg-[#202020] text-white">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#EAE8E3] bg-[#FAF9F5] text-charcoal-900 relative">
               <div>
                 <h3 className="text-sm font-bold text-white">Selesaikan Tiket Komplain</h3>
                 <p className="text-xs text-charcoal-400 mt-0.5">Tiket: {resolvingComplaint.ticketNumber}</p>

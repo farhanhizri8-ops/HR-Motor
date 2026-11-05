@@ -669,13 +669,13 @@ export default function DashboardPage() {
         {/* Kartu 2: Total Unit Sold Out */}
         <Link
           href="/customers"
-          className="crm-card p-3 sm:p-4 flex flex-col justify-between border-l-4 border-l-charcoal-900 hover:border-gold-500 hover:shadow-luxury transition-all group"
+          className="crm-card p-3 sm:p-4 flex flex-col justify-between border-l-4 border-l-gold-500 hover:border-gold-500 hover:shadow-luxury transition-all group"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] sm:text-[11px] font-bold text-charcoal-700 uppercase tracking-wider truncate">
               Total Mobil Terjual
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-charcoal-100 text-charcoal-800 border border-charcoal-200 flex items-center justify-center shrink-0 group-hover:bg-charcoal-900 group-hover:text-gold-400 transition-colors">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold-50 text-gold-800 border border-gold-200 flex items-center justify-center shrink-0 group-hover:bg-gold-500 group-hover:text-charcoal-950 transition-colors">
               <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
@@ -880,7 +880,7 @@ export default function DashboardPage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-5 h-5 rounded-md bg-charcoal-900 text-gold-400 text-[10px] font-black flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-md bg-gold-100 text-gold-900 border border-gold-300 text-[10px] font-black flex items-center justify-center shrink-0">
                           {index + 1}
                         </span>
                         <div className="min-w-0">

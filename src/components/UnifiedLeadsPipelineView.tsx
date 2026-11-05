@@ -734,8 +734,8 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
               onClick={() => setFilterStage('ALL')}
               className={`p-4 rounded-xl border transition-all cursor-pointer relative overflow-hidden ${
                 filterStage === 'ALL'
-                  ? 'border-charcoal-700 bg-[#202020] text-white shadow-md'
-                  : 'border-[#EAE8E3] bg-[#FAF9F5] hover:border-charcoal-400'
+                  ? 'border-2 border-gold-400 bg-[#FDF8ED] text-charcoal-900 shadow-sm'
+                  : 'border-[#EAE8E3] bg-[#FAF9F5] hover:border-gold-300'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -747,13 +747,13 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
                   >
                     Seluruh Corong
                   </span>
-                  <h3 className={`text-xs font-bold mt-2 ${filterStage === 'ALL' ? 'text-slate-300' : 'text-charcoal-700'}`}>
+                  <h3 className="text-xs font-bold mt-2 text-charcoal-700">
                     Total Calon Pembeli
                   </h3>
-                  <p className={`text-2xl font-black mt-0.5 ${filterStage === 'ALL' ? 'text-gold-400' : 'text-charcoal-900'}`}>
+                  <p className={`text-2xl font-black mt-0.5 ${filterStage === 'ALL' ? 'text-gold-700' : 'text-charcoal-900'}`}>
                     {stageCounts.total}
                   </p>
-                  <p className={`text-[11px] mt-1 ${filterStage === 'ALL' ? 'text-slate-400' : 'text-charcoal-500'}`}>
+                  <p className="text-[11px] mt-1 text-charcoal-500">
                     Interaksi konsumen aktif terdata
                   </p>
                 </div>
@@ -1234,7 +1234,7 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
               onClick={() => setMobileKanbanTab('ALL')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                 mobileKanbanTab === 'ALL'
-                  ? 'bg-charcoal-900 text-white shadow-xs'
+                  ? 'bg-[#FDF8ED] text-gold-900 border-2 border-gold-400 font-bold shadow-xs'
                   : 'bg-white text-charcoal-600 border border-[#EAE8E3]'
               }`}
             >
@@ -1464,24 +1464,25 @@ export default function UnifiedLeadsPipelineView({ defaultView = 'table' }: Unif
       {/* 5. MODAL: + TAMBAH / EDIT CALON PEMBELI                                     */}
       {/* ========================================================================= */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-charcoal-950/40 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
           <div className="crm-card w-full max-w-xl my-auto max-h-[90vh] flex flex-col overflow-hidden shadow-luxury border-gold-500/30">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-charcoal-900 border-b border-gold-500/30 text-white shrink-0">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAF9F5] border-b border-[#EAE8E3] text-charcoal-900 shrink-0 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-gold-500 via-gold-400 to-gold-600" />
               <div>
                 <span className="badge-gold text-[10px] mb-1 inline-block">
                   {editingLead ? 'Perbarui Calon Pembeli' : 'Registrasi Calon Pembeli Baru'}
                 </span>
-                <h2 className="text-base font-black text-white tracking-tight">
+                <h2 className="text-base font-black text-charcoal-900 tracking-tight">
                   {editingLead ? `Edit Data: ${editingLead.customerName}` : '+ Tambah Calon Pembeli'}
                 </h2>
-                <p className="text-xs text-charcoal-300">
+                <p className="text-xs text-charcoal-500">
                   {editingLead ? `ID: ${editingLead.id}` : 'Input data calon pembeli mobil showroom HR MOTOR'}
                 </p>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-400 hover:text-charcoal-900 hover:bg-[#F0EDE6] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
