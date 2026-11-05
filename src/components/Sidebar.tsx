@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -57,24 +57,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const cleanPath = (pathname || '').replace(/\/$/, '') || '/';
 
-  const isCrmPath = (path: string) => {
-    return (
-      path === '/customers' ||
-      path === '/leads' ||
-      path === '/pipeline' ||
-      path === '/follow-up'
-    );
-  };
-
-  const isCrmActive = isCrmPath(cleanPath);
-  const [crmOpen, setCrmOpen] = useState(true);
-
-  // Otomatis buka dropdown CRM jika user berada di halaman Data Pelanggan, Prospek, atau Follow Up
-  useEffect(() => {
-    if (isCrmActive) {
-      setCrmOpen(true);
-    }
-  }, [isCrmActive]);
+  // Dropdown menu CRM tertutup secara default saat login/buka aplikasi
+  // Menu hanya akan terbuka saat user mengkliknya, dan jika diklik lagi akan tertutup
+  const [crmOpen, setCrmOpen] = useState(false);
 
   const navigationItems: NavItem[] = [
     {

@@ -1029,7 +1029,7 @@ console.log('\n[10/10] Testing User Management: Approval Gating, Reject & Delete
   assert(sidebarContent.includes("name: 'Follow Up'"), "CRM contains 'Follow Up' sub-item");
   assert(sidebarContent.includes("href: '/follow-up'"), "Follow Up links to '/follow-up'");
   assert(sidebarContent.includes('setCrmOpen'), 'Sidebar has dropdown toggle state for CRM');
-  assert(sidebarContent.includes('isCrmActive'), 'Sidebar detects active CRM child paths automatically');
+  assert(sidebarContent.includes('useState(false)'), 'CRM dropdown defaults to closed (false) on initial login');
 
   // Test route matching helper
   const isCrmPath = (path: string) => {
