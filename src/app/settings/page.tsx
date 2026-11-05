@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   User,
   Building2,
@@ -30,6 +30,7 @@ import {
   Smartphone,
   Calendar,
   Lock,
+  Upload,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -62,8 +63,65 @@ export default function SettingsDealerPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isCustomAvatar, setIsCustomAvatar] = useState(false);
-  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Unggah foto profil langsung dari HP (kamera/galeri) atau Laptop (file explorer)
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showNotification('Mohon pilih file gambar yang valid (JPG, PNG, WebP).', true);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      showNotification('Ukuran foto maksimal 10MB.', true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const rawDataUrl = event.target?.result as string;
+      if (!rawDataUrl) return;
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 256;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setProfileAvatar(compressedDataUrl);
+          showNotification('Foto berhasil diunggah! Klik "Simpan Perubahan Profil" untuk menyimpan.');
+        } else {
+          setProfileAvatar(rawDataUrl);
+          showNotification('Foto berhasil diunggah! Klik "Simpan Perubahan Profil" untuk menyimpan.');
+        }
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   // Sync profile when currentUser changes
   useEffect(() => {
@@ -340,30 +398,31 @@ export default function SettingsDealerPage() {
                 Foto Profil Pengguna (Avatar)
               </label>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="relative">
+                <div
+                  className="relative cursor-pointer group"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Klik untuk unggah foto baru dari HP atau Laptop"
+                >
                   <img
                     src={profileAvatar}
                     alt="Foto Profil"
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-gold-400 shadow-md"
+                    className="w-20 h-20 rounded-2xl object-cover border-2 border-gold-400 shadow-md group-hover:border-gold-500 transition-all"
                   />
-                  <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-500 text-charcoal-950 flex items-center justify-center shadow-xs">
+                  <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-500 text-charcoal-950 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
                     <Camera className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
                 <div className="flex-1 space-y-2">
-                  <span className="text-[11px] text-charcoal-500 block">Pilih avatar preset showroom resmi:</span>
+                  <span className="text-[11px] text-charcoal-500 block">Pilih avatar preset showroom resmi atau unggah foto:</span>
                   <div className="flex items-center gap-2 flex-wrap">
                     {AVATAR_PRESETS.map((preset) => (
                       <button
                         key={preset.id}
                         type="button"
-                        onClick={() => {
-                          setProfileAvatar(preset.url);
-                          setIsCustomAvatar(false);
-                        }}
+                        onClick={() => setProfileAvatar(preset.url)}
                         className={`w-9 h-9 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
-                          profileAvatar === preset.url && !isCustomAvatar
+                          profileAvatar === preset.url
                             ? 'border-gold-500 ring-2 ring-gold-400/40 scale-105 shadow-xs'
                             : 'border-transparent hover:border-gold-300 opacity-70 hover:opacity-100'
                         }`}
@@ -380,45 +439,34 @@ export default function SettingsDealerPage() {
                         const randomSeed = `HRMotor_${Date.now()}`;
                         const newAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}&backgroundColor=${randomBg}`;
                         setProfileAvatar(newAvatar);
-                        setIsCustomAvatar(false);
                       }}
                       className="px-2.5 py-1.5 rounded-lg bg-gold-100 hover:bg-gold-200 border border-gold-300 text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
                       title="Buat karakter kartun animasi acak unik"
                     >
                       🎲 + Acak Kartun
                     </button>
+
+                    {/* Hidden Native File Input (Bisa langsung kamera HP / Galeri HP / File Laptop) */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*"
+                      className="hidden"
+                      id="avatar-file-upload"
+                    />
+
+                    {/* Tombol Unggah Foto (Menggantikan + URL Gambar) */}
                     <button
                       type="button"
-                      onClick={() => setIsCustomAvatar(!isCustomAvatar)}
-                      className="px-2.5 py-1.5 rounded-lg border border-[#DDD9CF] text-[10px] font-bold text-charcoal-700 hover:bg-[#FAF9F5] transition-colors cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-2.5 py-1.5 rounded-lg border border-gold-400 bg-white hover:bg-[#FDF8ED] text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                      title="Unggah foto langsung dari kamera HP atau file laptop"
                     >
-                      {isCustomAvatar ? 'Tutup URL' : '+ URL Gambar'}
+                      <Upload className="w-3.5 h-3.5 text-gold-700" />
+                      <span>Unggah Foto</span>
                     </button>
                   </div>
-
-                  {isCustomAvatar && (
-                    <div className="mt-2 flex gap-2 max-w-md">
-                      <input
-                        type="url"
-                        placeholder="Masukkan URL link foto profil..."
-                        value={customAvatarUrl}
-                        onChange={(e) => setCustomAvatarUrl(e.target.value)}
-                        className="text-xs px-3 py-1.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-lg w-full outline-none focus:border-gold-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (customAvatarUrl.trim()) {
-                            setProfileAvatar(customAvatarUrl.trim());
-                            showNotification('Avatar URL berhasil diterapkan.');
-                          }
-                        }}
-                        className="btn-gold text-xs py-1 px-3 whitespace-nowrap"
-                      >
-                        Terapkan
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
