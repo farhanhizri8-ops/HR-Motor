@@ -1179,7 +1179,7 @@ export default function StokUnitPage() {
               onChange={(e: any) => setSortBy(e.target.value)}
               className="px-2.5 py-1.5 bg-warm-50 border border-warm-200 rounded-xl text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
             >
-              <option value="no_asc">No. Urut Showroom (1-32)</option>
+              <option value="no_asc">Urutan Standar Showroom</option>
               <option value="price_asc">Harga Termurah</option>
               <option value="price_desc">Harga Termahal</option>
               <option value="year_desc">Tahun Terbaru</option>
@@ -1504,12 +1504,9 @@ export default function StokUnitPage() {
                     onClick={() => handleOpenDetail(stock)}
                     className="crm-card p-3.5 bg-white border border-[#EAE8E3] rounded-2xl shadow-xs hover:border-gold-400 transition-all cursor-pointer group space-y-2.5"
                   >
-                    {/* Header Bar: No Urut + Brand + Nama Model + Status Badge */}
+                    {/* Header Bar: Brand + Nama Model + Status Badge */}
                     <div className="flex items-start justify-between gap-2 border-b border-[#EAE8E3] pb-2">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="w-6 h-6 rounded-lg bg-warm-100 text-charcoal-900 text-[10px] font-black flex items-center justify-center border border-warm-200 shrink-0 font-mono">
-                          #{stock.stockNumber || idx + 1}
-                        </span>
                         <span className="px-2 py-0.5 rounded-lg bg-gold-100 text-gold-950 border border-gold-300 text-[10px] font-black uppercase tracking-wider shrink-0">
                           {stock.brand}
                         </span>
@@ -1702,7 +1699,7 @@ export default function StokUnitPage() {
                 <div>
                   <h3 className="text-sm font-bold text-charcoal-900">Atur &amp; Hitung Paket Kredit Showroom</h3>
                   <p className="text-[11px] text-charcoal-500 truncate max-w-[220px] sm:max-w-xs">
-                    {selectedStock.merkType || selectedStock.model} ({selectedStock.year}) • No #{selectedStock.stockNumber}
+                    {selectedStock.merkType || selectedStock.model} ({selectedStock.year})
                   </p>
                 </div>
               </div>
@@ -1899,7 +1896,7 @@ export default function StokUnitPage() {
                     {selectedStock.merkType || `${selectedStock.brand} ${selectedStock.model}`}
                   </h3>
                   <p className="text-[11px] text-charcoal-500">
-                    No. Urut #{selectedStock.stockNumber} • ID: {selectedStock.id}
+                    ID Unit: {selectedStock.id}
                   </p>
                 </div>
               </div>
@@ -2518,7 +2515,7 @@ export default function StokUnitPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">No. Urut Showroom</label>
+                    <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Urutan Tampilan</label>
                     <input
                       type="number"
                       value={formData.stockNumber}
