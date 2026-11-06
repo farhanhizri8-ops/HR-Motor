@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useCrm } from '@/context/CrmContext';
-import { VehicleStock, VehicleStockStatus, TransmissionType, FuelType } from '@/types/crm';
+import { VehicleStock, VehicleStockStatus, TransmissionType, FuelType, getVehicleReadinessPending } from '@/types/crm';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -181,6 +181,10 @@ export default function StokUnitPage() {
     installment47x: string;
     installment59x: string;
     readinessNotes: string;
+    isRepaired: boolean;
+    isPainted: boolean;
+    isDetailed: boolean;
+    isPhotographed: boolean;
     photos: string[];
     newPhotoUrl: string;
   }>({
@@ -205,6 +209,10 @@ export default function StokUnitPage() {
     installment47x: '',
     installment59x: '',
     readinessNotes: '',
+    isRepaired: false,
+    isPainted: false,
+    isDetailed: false,
+    isPhotographed: false,
     photos: [],
     newPhotoUrl: '',
   });
@@ -403,6 +411,10 @@ export default function StokUnitPage() {
       installment47x: est.installment47x,
       installment59x: est.installment59x,
       readinessNotes: '',
+      isRepaired: false,
+      isPainted: false,
+      isDetailed: false,
+      isPhotographed: false,
       photos: [
         'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&auto=format&fit=crop&q=80',
@@ -445,6 +457,10 @@ export default function StokUnitPage() {
       installment47x: stock.installment47x || est.installment47x,
       installment59x: stock.installment59x || est.installment59x,
       readinessNotes: stock.readinessNotes ? stock.readinessNotes.join(', ') : '',
+      isRepaired: typeof stock.isRepaired === 'boolean' ? stock.isRepaired : !stock.readinessNotes?.some((n) => n.toLowerCase().includes('perbaikan')),
+      isPainted: typeof stock.isPainted === 'boolean' ? stock.isPainted : !stock.readinessNotes?.some((n) => n.toLowerCase().includes('cat')),
+      isDetailed: typeof stock.isDetailed === 'boolean' ? stock.isDetailed : !stock.readinessNotes?.some((n) => n.toLowerCase().includes('salon') || n.toLowerCase().includes('detail')),
+      isPhotographed: typeof stock.isPhotographed === 'boolean' ? stock.isPhotographed : !stock.readinessNotes?.some((n) => n.toLowerCase().includes('foto')),
       photos: stock.photos && stock.photos.length > 0 ? [...stock.photos] : [],
       newPhotoUrl: '',
     });
@@ -665,7 +681,18 @@ export default function StokUnitPage() {
         installment47x: formData.installment47x.trim() || undefined,
         installment59x: formData.installment59x.trim() || undefined,
         leasingPartners: (formData.creditDp || formData.installment35x) ? ['OTO', 'MUF', 'ADIRA'] : undefined,
-        readinessNotes: formData.readinessNotes.trim() ? formData.readinessNotes.split(',').map((s) => s.trim()) : undefined,
+        isRepaired: formData.isRepaired,
+        isPainted: formData.isPainted,
+        isDetailed: formData.isDetailed,
+        isPhotographed: formData.isPhotographed,
+        readinessNotes: (() => {
+          const list: string[] = [];
+          if (!formData.isRepaired) list.push('Belum Perbaikan');
+          if (!formData.isPainted) list.push('Belum Cat');
+          if (!formData.isDetailed) list.push('Belum Salon');
+          if (!formData.isPhotographed) list.push('Belum Foto Unit');
+          return list.length > 0 ? list : undefined;
+        })(),
         photos:
           formData.photos.length > 0
             ? formData.photos
@@ -722,7 +749,18 @@ export default function StokUnitPage() {
         installment35x: formData.installment35x.trim() || undefined,
         installment47x: formData.installment47x.trim() || undefined,
         installment59x: formData.installment59x.trim() || undefined,
-        readinessNotes: formData.readinessNotes.trim() ? formData.readinessNotes.split(',').map((s) => s.trim()) : undefined,
+        isRepaired: formData.isRepaired,
+        isPainted: formData.isPainted,
+        isDetailed: formData.isDetailed,
+        isPhotographed: formData.isPhotographed,
+        readinessNotes: (() => {
+          const list: string[] = [];
+          if (!formData.isRepaired) list.push('Belum Perbaikan');
+          if (!formData.isPainted) list.push('Belum Cat');
+          if (!formData.isDetailed) list.push('Belum Salon');
+          if (!formData.isPhotographed) list.push('Belum Foto Unit');
+          return list.length > 0 ? list : undefined;
+        })(),
         photos: formData.photos,
       });
 
@@ -1258,14 +1296,27 @@ export default function StokUnitPage() {
                             </span>
                             <span className="text-charcoal-300">•</span>
                             <span className="text-charcoal-600 font-medium">{stock.fuel}</span>
-                            {stock.readinessNotes && stock.readinessNotes.length > 0 && (
-                              <>
-                                <span className="text-charcoal-300">•</span>
-                                <span className="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 text-[9px]">
-                                  {stock.readinessNotes.join(', ')}
-                                </span>
-                              </>
-                            )}
+                            {(() => {
+                              const pending = getVehicleReadinessPending(stock);
+                              if (pending.length === 0) return null;
+                              return (
+                                <>
+                                  <span className="text-charcoal-300">•</span>
+                                  <span className="inline-flex items-center gap-1 flex-wrap">
+                                    {pending.map((item) => (
+                                      <span
+                                        key={item}
+                                        className="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-300 text-[9px] inline-flex items-center gap-0.5"
+                                        title="Menunggu Kesiapan Unit Showroom"
+                                      >
+                                        <span className="w-1 h-1 rounded-full bg-amber-500" />
+                                        {item}
+                                      </span>
+                                    ))}
+                                  </span>
+                                </>
+                              );
+                            })()}
                             {stock.leasingPartners && stock.leasingPartners.length > 0 && (
                               <>
                                 <span className="text-charcoal-300">•</span>
@@ -1566,6 +1617,25 @@ export default function StokUnitPage() {
                         {colorStyle.label}
                       </span>
                     </div>
+
+                    {/* Status Kesiapan Unit Showroom di HP (Otomatis Keterangan Belum Selesai / Bersih jika selesai semua) */}
+                    {(() => {
+                      const pending = getVehicleReadinessPending(stock);
+                      if (pending.length === 0) return null;
+                      return (
+                        <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                          {pending.map((item) => (
+                            <span
+                              key={item}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-300 font-bold text-[10px] shadow-2xs"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
 
                     {/* Info Booking / Sold jika ada */}
                     {isBooking && (stock.bookingCustomerName || stock.bookingLeasing) && (
@@ -2059,6 +2129,56 @@ export default function StokUnitPage() {
                 </div>
               )}
 
+              {/* Checklist Kesiapan Unit */}
+              <div className="p-3 bg-[#FAF9F5] rounded-xl border border-[#EAE8E3] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-charcoal-900 text-xs">Status Kesiapan Fisik Unit:</span>
+                  {getVehicleReadinessPending(selectedStock).length === 0 ? (
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                      ✓ Siap Dijual (Lengkap)
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">
+                      Proses Persiapan
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                  <div className={`p-2 rounded-lg border text-center ${
+                    selectedStock.isRepaired || !getVehicleReadinessPending(selectedStock).includes('Belum Perbaikan')
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                      : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                  }`}>
+                    <p className="text-[10px] text-charcoal-500">Perbaikan</p>
+                    <p>{selectedStock.isRepaired || !getVehicleReadinessPending(selectedStock).includes('Belum Perbaikan') ? '✓ Sudah Selesai' : '⏳ Belum'}</p>
+                  </div>
+                  <div className={`p-2 rounded-lg border text-center ${
+                    selectedStock.isPainted || !getVehicleReadinessPending(selectedStock).includes('Belum Cat')
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                      : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                  }`}>
+                    <p className="text-[10px] text-charcoal-500">Pengecatan</p>
+                    <p>{selectedStock.isPainted || !getVehicleReadinessPending(selectedStock).includes('Belum Cat') ? '✓ Sudah Cat' : '⏳ Belum'}</p>
+                  </div>
+                  <div className={`p-2 rounded-lg border text-center ${
+                    selectedStock.isDetailed || !getVehicleReadinessPending(selectedStock).includes('Belum Salon')
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                      : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                  }`}>
+                    <p className="text-[10px] text-charcoal-500">Salon / Detailing</p>
+                    <p>{selectedStock.isDetailed || !getVehicleReadinessPending(selectedStock).includes('Belum Salon') ? '✓ Sudah Salon' : '⏳ Belum'}</p>
+                  </div>
+                  <div className={`p-2 rounded-lg border text-center ${
+                    selectedStock.isPhotographed || !getVehicleReadinessPending(selectedStock).includes('Belum Foto Unit')
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                      : 'bg-amber-50 border-amber-300 text-amber-900 font-medium'
+                  }`}>
+                    <p className="text-[10px] text-charcoal-500">Foto Unit</p>
+                    <p>{selectedStock.isPhotographed || !getVehicleReadinessPending(selectedStock).includes('Belum Foto Unit') ? '✓ Sudah Foto' : '⏳ Belum'}</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Description */}
               <div className="text-xs text-charcoal-700 bg-warm-50 p-3 rounded-xl border border-warm-200">
                 <span className="font-bold text-charcoal-900 block mb-1">Catatan Showroom HR MOTOR:</span>
@@ -2525,15 +2645,89 @@ export default function StokUnitPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-charcoal-700 mb-1">Catatan Kesiapan (misal: ❌ FOTO, ❌ DETAILING)</label>
-                  <input
-                    type="text"
-                    placeholder="Pisahkan dengan koma, misal: ❌ FOTO, ❌ DETAILING"
-                    value={formData.readinessNotes}
-                    onChange={(e) => setFormData({ ...formData, readinessNotes: e.target.value })}
-                    className="w-full p-2 border border-warm-300 rounded-lg bg-white text-xs"
-                  />
+                {/* Checklist Kesiapan Unit Showroom */}
+                <div className="p-3.5 bg-[#FAF9F5] rounded-xl border border-[#EAE8E3] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-charcoal-900">
+                      Checklist Kesiapan Unit Showroom
+                    </label>
+                    <span className="text-[10px] text-charcoal-500 font-medium">
+                      Centang jika sudah selesai
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-charcoal-500 leading-tight">
+                    Jika belum dicentang salah satu, tabel stok otomatis menampilkan keterangan <em>Belum Perbaikan, Belum Cat, Belum Salon, atau Belum Foto Unit</em>. Jika semua sudah dicentang, tabel bersih tanpa keterangan.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {/* 1. Sudah Perbaikan */}
+                    <label
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+                        formData.isRepaired
+                          ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs'
+                          : 'bg-white border-[#EAE8E3] text-charcoal-700 hover:border-gold-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.isRepaired}
+                        onChange={(e) => setFormData({ ...formData, isRepaired: e.target.checked })}
+                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+                      />
+                      <span className="text-xs">Sudah Perbaikan</span>
+                    </label>
+
+                    {/* 2. Sudah Cat */}
+                    <label
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+                        formData.isPainted
+                          ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs'
+                          : 'bg-white border-[#EAE8E3] text-charcoal-700 hover:border-gold-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.isPainted}
+                        onChange={(e) => setFormData({ ...formData, isPainted: e.target.checked })}
+                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+                      />
+                      <span className="text-xs">Sudah Cat</span>
+                    </label>
+
+                    {/* 3. Sudah Salon */}
+                    <label
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+                        formData.isDetailed
+                          ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs'
+                          : 'bg-white border-[#EAE8E3] text-charcoal-700 hover:border-gold-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.isDetailed}
+                        onChange={(e) => setFormData({ ...formData, isDetailed: e.target.checked })}
+                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+                      />
+                      <span className="text-xs">Sudah Salon</span>
+                    </label>
+
+                    {/* 4. Sudah Foto Unit */}
+                    <label
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+                        formData.isPhotographed
+                          ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs'
+                          : 'bg-white border-[#EAE8E3] text-charcoal-700 hover:border-gold-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.isPhotographed}
+                        onChange={(e) => setFormData({ ...formData, isPhotographed: e.target.checked })}
+                        className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+                      />
+                      <span className="text-xs">Sudah Foto Unit</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div>

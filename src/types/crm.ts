@@ -385,7 +385,12 @@ export interface VehicleStock {
   installment47x?: string; // e.g. "4.335 (47x)"
   installment59x?: string; // e.g. "4.065 (59x)"
   leasingPartners?: string[]; // e.g. ["OTO", "MUF", "ADIRA"]
-  readinessNotes?: string[]; // e.g. ["❌ FOTO", "❌ DETAILING", "SOLDOUT", "BOOKING"]
+  readinessNotes?: string[];
+  // Checklist Kesiapan Unit Showroom
+  isRepaired?: boolean; // Centang Sudah Perbaikan
+  isPainted?: boolean; // Centang Sudah Cat
+  isDetailed?: boolean; // Centang Sudah Salon
+  isPhotographed?: boolean; // Centang Sudah Foto Unit
   engineNumber?: string;
   chassisNumber?: string;
   taxValidUntil?: string;
@@ -402,6 +407,40 @@ export interface VehicleStock {
   createdAt: string;
   updatedAt: string;
 }
+
+export function getVehicleReadinessPending(stock?: Partial<VehicleStock> | null): string[] {
+  if (!stock) return [];
+  const hasFlags =
+    typeof stock.isRepaired === 'boolean' ||
+    typeof stock.isPainted === 'boolean' ||
+    typeof stock.isDetailed === 'boolean' ||
+    typeof stock.isPhotographed === 'boolean';
+
+  if (hasFlags) {
+    const pending: string[] = [];
+    if (!stock.isRepaired) pending.push('Belum Perbaikan');
+    if (!stock.isPainted) pending.push('Belum Cat');
+    if (!stock.isDetailed) pending.push('Belum Salon');
+    if (!stock.isPhotographed) pending.push('Belum Foto Unit');
+    return pending;
+  }
+
+  if (stock.readinessNotes && Array.isArray(stock.readinessNotes)) {
+    const list: string[] = [];
+    stock.readinessNotes.forEach((n) => {
+      const lower = n.toLowerCase();
+      if (lower.includes('perbaikan') || lower.includes('servis')) list.push('Belum Perbaikan');
+      else if (lower.includes('cat')) list.push('Belum Cat');
+      else if (lower.includes('salon') || lower.includes('detail')) list.push('Belum Salon');
+      else if (lower.includes('foto')) list.push('Belum Foto Unit');
+      else if (n.startsWith('Belum')) list.push(n);
+    });
+    return Array.from(new Set(list));
+  }
+
+  return [];
+}
+
 
 export type CreditStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 

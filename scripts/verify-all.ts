@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { readDatabase, repairDatabaseStocks, repairDatabaseLeads, getInitialDatabase } from '../src/lib/serverStore';
-import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase, Lead, normalizePipelineStage, CORE_PIPELINE_STAGES } from '../src/types/crm';
+import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase, Lead, normalizePipelineStage, CORE_PIPELINE_STAGES, getVehicleReadinessPending } from '../src/types/crm';
 
 console.log('================================================================');
 console.log('       HR MOTOR CRM - COMPREHENSIVE VERIFICATION SUITE          ');
@@ -1069,6 +1069,86 @@ console.log('\n[10/10] Testing User Management: Approval Gating, Reject & Delete
 }
 
 
+
+
+// ============================================================================
+// SUITE 12: VEHICLE READINESS CHECKLIST & AUTOMATED PENDING LABELS
+// ============================================================================
+console.log('\n[12/12] Testing Vehicle Stock Readiness Checklist & Automated Pending Labels...');
+
+{
+  // 1. All checked (isRepaired, isPainted, isDetailed, isPhotographed: true) -> NO KETERANGAN ([])
+  const fullyReadyStock: Partial<VehicleStock> = {
+    isRepaired: true,
+    isPainted: true,
+    isDetailed: true,
+    isPhotographed: true,
+  };
+  const pendingReady = getVehicleReadinessPending(fullyReadyStock);
+  assert(pendingReady.length === 0, 'Jika semua sudah dicentang (sudah perbaikan, sudah cat, sudah salon, sudah foto), pending list KOSONG / tidak ada keterangan di tabel');
+
+  // 2. Belum perbaikan (unchecked isRepaired) -> 'Belum Perbaikan'
+  const unrepStock: Partial<VehicleStock> = {
+    isRepaired: false,
+    isPainted: true,
+    isDetailed: true,
+    isPhotographed: true,
+  };
+  const pendingUnrep = getVehicleReadinessPending(unrepStock);
+  assert(pendingUnrep.length === 1 && pendingUnrep[0] === 'Belum Perbaikan', 'Unchecked perbaikan otomatis menampilkan "Belum Perbaikan"');
+
+  // 3. Belum cat (unchecked isPainted) -> 'Belum Cat'
+  const unpaintedStock: Partial<VehicleStock> = {
+    isRepaired: true,
+    isPainted: false,
+    isDetailed: true,
+    isPhotographed: true,
+  };
+  const pendingUnpainted = getVehicleReadinessPending(unpaintedStock);
+  assert(pendingUnpainted.length === 1 && pendingUnpainted[0] === 'Belum Cat', 'Unchecked cat otomatis menampilkan "Belum Cat"');
+
+  // 4. Belum salon (unchecked isDetailed) -> 'Belum Salon'
+  const undetailedStock: Partial<VehicleStock> = {
+    isRepaired: true,
+    isPainted: true,
+    isDetailed: false,
+    isPhotographed: true,
+  };
+  const pendingUndetailed = getVehicleReadinessPending(undetailedStock);
+  assert(pendingUndetailed.length === 1 && pendingUndetailed[0] === 'Belum Salon', 'Unchecked salon otomatis menampilkan "Belum Salon"');
+
+  // 5. Belum foto unit (unchecked isPhotographed) -> 'Belum Foto Unit'
+  const unphotographedStock: Partial<VehicleStock> = {
+    isRepaired: true,
+    isPainted: true,
+    isDetailed: true,
+    isPhotographed: false,
+  };
+  const pendingUnphoto = getVehicleReadinessPending(unphotographedStock);
+  assert(pendingUnphoto.length === 1 && pendingUnphoto[0] === 'Belum Foto Unit', 'Unchecked foto unit otomatis menampilkan "Belum Foto Unit"');
+
+  // 6. Multiple unchecked -> displays all matching pending labels
+  const multiUncheckedStock: Partial<VehicleStock> = {
+    isRepaired: false,
+    isPainted: false,
+    isDetailed: false,
+    isPhotographed: false,
+  };
+  const pendingAll = getVehicleReadinessPending(multiUncheckedStock);
+  assert(pendingAll.length === 4, 'Semua belum dicentang menghasilkan 4 keterangan');
+  assert(pendingAll.includes('Belum Perbaikan'), 'Mengandung Belum Perbaikan');
+  assert(pendingAll.includes('Belum Cat'), 'Mengandung Belum Cat');
+  assert(pendingAll.includes('Belum Salon'), 'Mengandung Belum Salon');
+  assert(pendingAll.includes('Belum Foto Unit'), 'Mengandung Belum Foto Unit');
+
+  // 7. Legacy readinessNotes fallback
+  const legacyStock: Partial<VehicleStock> = {
+    readinessNotes: ['❌ FOTO', '❌ PERBAIKAN MESIN'],
+  };
+  const pendingLegacy = getVehicleReadinessPending(legacyStock);
+  assert(pendingLegacy.includes('Belum Foto Unit'), 'Legacy foto mapping works');
+  assert(pendingLegacy.includes('Belum Perbaikan'), 'Legacy perbaikan mapping works');
+}
 
 console.log('\n================================================================');
 console.log(`SUMMARY: ${passCount} PASSED, ${failCount} FAILED`);
