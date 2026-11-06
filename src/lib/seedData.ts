@@ -4342,8 +4342,12 @@ export const INITIAL_STOCKS: VehicleStock[] = [
       "MUF",
       "ADIRA"
     ],
+    "isRepaired": true,
+    "isPainted": false,
+    "isDetailed": true,
+    "isPhotographed": true,
     "readinessNotes": [
-      "INDICATOR COLOUR"
+      "Belum Cat"
     ],
     "createdAt": "2026-08-01T08:00:00Z",
     "updatedAt": "2026-11-03T01:00:00Z"
@@ -4375,6 +4379,13 @@ export const INITIAL_STOCKS: VehicleStock[] = [
     "status": "Tersedia",
     "licensePlate": "Z 1319 DZ",
     "plateNumber": "Z 1319 DZ",
+    "isRepaired": false,
+    "isPainted": true,
+    "isDetailed": true,
+    "isPhotographed": true,
+    "readinessNotes": [
+      "Belum Perbaikan"
+    ],
     "createdAt": "2026-08-01T08:00:00Z",
     "updatedAt": "2026-11-03T01:00:00Z"
   },

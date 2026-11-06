@@ -430,7 +430,7 @@ export function getVehicleReadinessPending(stock?: Partial<VehicleStock> | null)
     stock.readinessNotes.forEach((n) => {
       const lower = n.toLowerCase();
       if (lower.includes('perbaikan') || lower.includes('servis')) list.push('Belum Perbaikan');
-      else if (lower.includes('cat')) list.push('Belum Cat');
+      else if (/\bcat\b|dicat|pengecatan/i.test(n)) list.push('Belum Cat');
       else if (lower.includes('salon') || lower.includes('detail')) list.push('Belum Salon');
       else if (lower.includes('foto')) list.push('Belum Foto Unit');
       else if (n.startsWith('Belum')) list.push(n);

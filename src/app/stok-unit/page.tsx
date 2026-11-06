@@ -130,6 +130,8 @@ export default function StokUnitPage() {
   } = useCrm();
 
   // Search, Filter, Sort States
+  type ReadinessFilter = 'all' | 'unrepaired' | 'unpainted' | 'undetailed' | 'unphotographed' | 'ready';
+  const [filterReadiness, setFilterReadiness] = useState<ReadinessFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBrand, setFilterBrand] = useState('Semua');
   const [filterStatus, setFilterStatus] = useState<string>('Semua');
@@ -220,6 +222,36 @@ export default function StokUnitPage() {
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Hitung jumlah unit per status kesiapan checklist showroom
+  const readinessCounts = useMemo(() => {
+    let unrepaired = 0;
+    let unpainted = 0;
+    let undetailed = 0;
+    let unphotographed = 0;
+    let ready = 0;
+
+    stocks.forEach((s) => {
+      const pending = getVehicleReadinessPending(s);
+      if (pending.length === 0) {
+        ready++;
+      } else {
+        if (pending.includes('Belum Perbaikan')) unrepaired++;
+        if (pending.includes('Belum Cat')) unpainted++;
+        if (pending.includes('Belum Salon')) undetailed++;
+        if (pending.includes('Belum Foto Unit')) unphotographed++;
+      }
+    });
+
+    return {
+      all: stocks.length,
+      unrepaired,
+      unpainted,
+      undetailed,
+      unphotographed,
+      ready,
+    };
+  }, [stocks]);
+
   // Dashboard Metrics Calculation
   const dashboardStats = useMemo(() => {
     const total = stocks.length;
@@ -258,6 +290,24 @@ export default function StokUnitPage() {
           if (!matchMerkType && !matchBrand && !matchModel && !matchPlate && !matchRegion && !matchColor && !matchOdo) {
             return false;
           }
+        }
+
+        // Filter Kesiapan Unit (Belum Perbaikan, Belum Cat, Belum Salon, Belum Foto, Siap Jual)
+        if (filterReadiness === 'unrepaired') {
+          const pending = getVehicleReadinessPending(item);
+          if (!pending.includes('Belum Perbaikan')) return false;
+        } else if (filterReadiness === 'unpainted') {
+          const pending = getVehicleReadinessPending(item);
+          if (!pending.includes('Belum Cat')) return false;
+        } else if (filterReadiness === 'undetailed') {
+          const pending = getVehicleReadinessPending(item);
+          if (!pending.includes('Belum Salon')) return false;
+        } else if (filterReadiness === 'unphotographed') {
+          const pending = getVehicleReadinessPending(item);
+          if (!pending.includes('Belum Foto Unit')) return false;
+        } else if (filterReadiness === 'ready') {
+          const pending = getVehicleReadinessPending(item);
+          if (pending.length > 0) return false;
         }
 
         // Brand filter
@@ -1096,37 +1146,124 @@ export default function StokUnitPage() {
             </button>
           </div>
 
-          {/* Quick Filter Pills (Brand + Promo Kredit) */}
-          <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto pb-1 sm:pb-0">
-            {/* Brand Pills */}
-            <div className="flex items-center bg-warm-100 p-1 rounded-xl gap-1 text-xs shrink-0">
-              {COMMON_BRANDS.map((brand) => (
-                <button
-                  key={brand}
-                  type="button"
-                  onClick={() => setFilterBrand(brand)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
-                    filterBrand === brand
-                      ? 'bg-gold-500 text-charcoal-950 font-bold shadow-2xs'
-                      : 'text-charcoal-600 hover:text-charcoal-900'
-                  }`}
-                >
-                  {brand}
-                </button>
-              ))}
-            </div>
-
-            {/* Filter Paket Kredit Only */}
+          {/* Quick Filter Tabs: Kesiapan Unit Showroom (Pengganti Brand Filter) */}
+          <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+            {/* 1. Semua Unit */}
             <button
-              onClick={() => setFilterCreditOnly(!filterCreditOnly)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                filterCreditOnly
-                  ? 'bg-gold-500 text-charcoal-950 border-gold-600 shadow-xs'
-                  : 'bg-warm-50 text-charcoal-700 border-warm-200 hover:border-gold-400'
+              type="button"
+              onClick={() => setFilterReadiness('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterReadiness === 'all'
+                  ? 'bg-gold-500 text-charcoal-950 border border-gold-600 shadow-xs'
+                  : 'bg-warm-100 text-charcoal-700 hover:bg-warm-200 hover:text-charcoal-900 border border-warm-200'
               }`}
             >
-              <BadgePercent className="w-3.5 h-3.5" />
-              <span>Promo Kredit ({stocks.filter((s) => s.creditDp || s.installment35x).length})</span>
+              <span>Semua Unit</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filterReadiness === 'all' ? 'bg-charcoal-950 text-gold-400' : 'bg-white text-charcoal-700 border border-warm-300'
+              }`}>
+                {readinessCounts.all}
+              </span>
+            </button>
+
+            {/* 2. Belum Perbaikan */}
+            <button
+              type="button"
+              onClick={() => setFilterReadiness('unrepaired')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterReadiness === 'unrepaired'
+                  ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
+                  : 'bg-white text-charcoal-800 hover:bg-amber-50 hover:border-amber-300 border border-warm-200'
+              }`}
+              title="Unit yang belum selesai perbaikan fisik atau servis showroom"
+            >
+              <Wrench className="w-3.5 h-3.5 text-amber-800" />
+              <span>Belum Perbaikan</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filterReadiness === 'unrepaired' ? 'bg-charcoal-950 text-amber-300' : 'bg-amber-100 text-amber-900 border border-amber-200'
+              }`}>
+                {readinessCounts.unrepaired}
+              </span>
+            </button>
+
+            {/* 3. Belum Cat */}
+            <button
+              type="button"
+              onClick={() => setFilterReadiness('unpainted')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterReadiness === 'unpainted'
+                  ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
+                  : 'bg-white text-charcoal-800 hover:bg-amber-50 hover:border-amber-300 border border-warm-200'
+              }`}
+              title="Unit yang masih butuh pengecatan bodi mobil"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-800" />
+              <span>Belum Cat</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filterReadiness === 'unpainted' ? 'bg-charcoal-950 text-amber-300' : 'bg-amber-100 text-amber-900 border border-amber-200'
+              }`}>
+                {readinessCounts.unpainted}
+              </span>
+            </button>
+
+            {/* 4. Belum Salon */}
+            <button
+              type="button"
+              onClick={() => setFilterReadiness('undetailed')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterReadiness === 'undetailed'
+                  ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
+                  : 'bg-white text-charcoal-800 hover:bg-amber-50 hover:border-amber-300 border border-warm-200'
+              }`}
+              title="Unit yang belum detailing / salon interior eksterior"
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-800" />
+              <span>Belum Salon</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filterReadiness === 'undetailed' ? 'bg-charcoal-950 text-amber-300' : 'bg-amber-100 text-amber-900 border border-amber-200'
+              }`}>
+                {readinessCounts.undetailed}
+              </span>
+            </button>
+
+            {/* 5. Belum Foto Unit */}
+            <button
+              type="button"
+              onClick={() => setFilterReadiness('unphotographed')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterReadiness === 'unphotographed'
+                  ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
+                  : 'bg-white text-charcoal-800 hover:bg-amber-50 hover:border-amber-300 border border-warm-200'
+              }`}
+              title="Unit yang belum difoto resmi untuk materi promosi showroom"
+            >
+              <Camera className="w-3.5 h-3.5 text-amber-800" />
+              <span>Belum Foto Unit</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filterReadiness === 'unphotographed' ? 'bg-charcoal-950 text-amber-300' : 'bg-amber-100 text-amber-900 border border-amber-200'
+              }`}>
+                {readinessCounts.unphotographed}
+              </span>
+            </button>
+
+            {/* 6. Siap Jual (Lengkap) */}
+            <button
+              type="button"
+              onClick={() => setFilterReadiness('ready')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterReadiness === 'ready'
+                  ? 'bg-emerald-600 text-white border border-emerald-700 shadow-xs'
+                  : 'bg-white text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300 border border-warm-200'
+              }`}
+              title="Unit yang sudah selesai 4 tahap kesiapan (Perbaikan, Cat, Salon, Foto)"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Siap Jual (Lengkap)</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filterReadiness === 'ready' ? 'bg-white text-emerald-900' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+              }`}>
+                {readinessCounts.ready}
+              </span>
             </button>
           </div>
         </div>
@@ -1149,6 +1286,33 @@ export default function StokUnitPage() {
               <option value="Booking">Dibooking Konsumen ({dashboardStats.booking})</option>
               <option value="Terjual">Sudah Terjual ({dashboardStats.terjual})</option>
             </select>
+
+            {/* Filter Merek Mobil */}
+            <select
+              value={filterBrand}
+              onChange={(e) => setFilterBrand(e.target.value)}
+              className="px-2.5 py-1.5 bg-warm-50 border border-warm-200 rounded-xl text-xs font-medium text-charcoal-900 focus:outline-none focus:border-gold-500"
+            >
+              <option value="Semua">Semua Merek</option>
+              {COMMON_BRANDS.filter((b) => b !== 'Semua').map((b) => (
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+
+            {/* Filter Promo Kredit */}
+            <button
+              type="button"
+              onClick={() => setFilterCreditOnly(!filterCreditOnly)}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+                filterCreditOnly
+                  ? 'bg-gold-500 text-charcoal-950 border-gold-600 shadow-2xs'
+                  : 'bg-warm-50 text-charcoal-700 border-warm-200 hover:border-gold-400'
+              }`}
+              title="Saring mobil dengan simulasi cicilan kredit"
+            >
+              <BadgePercent className="w-3.5 h-3.5" />
+              <span>Promo Kredit ({stocks.filter((s) => s.creditDp || s.installment35x).length})</span>
+            </button>
 
             {/* Tahun */}
             <div className="flex items-center gap-1 bg-warm-50 px-2 py-1 rounded-xl border border-warm-200">
@@ -1188,6 +1352,7 @@ export default function StokUnitPage() {
               filterYearMin ||
               filterYearMax ||
               filterPriceMax ||
+              filterReadiness !== 'all' ||
               searchQuery) && (
               <button
                 onClick={() => {
@@ -1199,6 +1364,7 @@ export default function StokUnitPage() {
                   setFilterYearMax('');
                   setFilterPriceMin('');
                   setFilterPriceMax('');
+                  setFilterReadiness('all');
                 }}
                 className="text-gold-700 hover:text-gold-800 font-bold underline px-1 text-xs cursor-pointer"
               >
