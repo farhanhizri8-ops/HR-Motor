@@ -169,7 +169,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const checkRoleAccess = (allowedRoles: string[]) => {
-    if (currentUser.role === 'Owner' || (currentUser.email && currentUser.email.toLowerCase().includes('farhanhizri8'))) return true;
+    if (currentUser.role === 'Owner' || (currentUser.email && currentUser.email.toLowerCase().includes('farhanhizri8') || currentUser.email.toLowerCase().includes('danimr7263'))) return true;
     if (allowedRoles.includes(currentUser.role)) return true;
     if (currentUser.jobdesks && currentUser.jobdesks.some((j) => allowedRoles.includes(j))) return true;
     const showroomJobdesks = [

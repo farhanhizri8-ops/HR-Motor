@@ -109,7 +109,7 @@ export default function UserManagementPage() {
 
   const isOwner =
     currentUser.role === 'Owner' ||
-    currentUser.email.toLowerCase().includes('farhanhizri8');
+    currentUser.email.toLowerCase().includes('farhanhizri8') || currentUser.email.toLowerCase().includes('danimr7263');
 
   const pendingUsers = users.filter((u) => !u.isApproved);
   const activeUsers = users.filter((u) => u.isApproved);
@@ -416,7 +416,7 @@ export default function UserManagementPage() {
               {users.map((u) => {
                 const isPending = !u.isApproved;
                 const isSelf = u.id === currentUser.id || u.email.toLowerCase() === currentUser.email.toLowerCase();
-                const isOwnerAccount = u.role === 'Owner' || u.email.toLowerCase().includes('farhanhizri8');
+                const isOwnerAccount = u.role === 'Owner' || u.email.toLowerCase().includes('farhanhizri8') || u.email.toLowerCase().includes('danimr7263');
 
                 return (
                   <tr key={u.id} className="hover:bg-[#F8F7F4]/80 transition-colors">
@@ -560,7 +560,7 @@ export default function UserManagementPage() {
           {users.map((u) => {
             const isPending = !u.isApproved;
             const isSelf = u.id === currentUser.id || u.email.toLowerCase() === currentUser.email.toLowerCase();
-            const isOwnerAccount = u.role === 'Owner' || u.email.toLowerCase().includes('farhanhizri8');
+            const isOwnerAccount = u.role === 'Owner' || u.email.toLowerCase().includes('farhanhizri8') || u.email.toLowerCase().includes('danimr7263');
 
             return (
               <div key={u.id} className="p-4 space-y-3">

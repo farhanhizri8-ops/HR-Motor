@@ -910,7 +910,7 @@ export function canAccessInvestasi(user?: User | null): boolean {
   if (user.role === 'Owner') return true;
   if (
     user.email &&
-    (user.email.toLowerCase().includes('farhanhizri8') ||
+    (user.email.toLowerCase().includes('farhanhizri8') || user.email.toLowerCase().includes('danimr7263') ||
       user.email.toLowerCase() === 'farhanhizri8@gmail.com')
   ) {
     return true;
@@ -1031,7 +1031,7 @@ export function canViewFinance(user?: User | null): boolean {
   if (user.role === 'Owner') return true;
   if (
     user.email &&
-    (user.email.toLowerCase().includes('farhanhizri8') ||
+    (user.email.toLowerCase().includes('farhanhizri8') || user.email.toLowerCase().includes('danimr7263') ||
       user.email.toLowerCase() === 'farhanhizri8@gmail.com')
   ) {
     return true;

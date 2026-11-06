@@ -201,8 +201,7 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
   const owner = db.users.find(
     (u) =>
       u.email.toLowerCase() === 'farhanhizri8@gmail.com' ||
-      u.email.toLowerCase() === 'farhanhizri8gmail.com' ||
-      u.role === 'Owner'
+      u.email.toLowerCase() === 'farhanhizri8gmail.com'
   );
 
   if (owner) {
@@ -232,6 +231,46 @@ export function repairDatabaseUsers(db: CrmDatabase): boolean {
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf',
       isApproved: true,
       isActive: true,
+      createdAt: '2026-01-01T08:00:00Z',
+      updatedAt: new Date().toISOString(),
+    });
+    modified = true;
+  }
+
+  // Ensure Dani is registered as Owner
+  const ownerDani = db.users.find(
+    (u) => u.email.toLowerCase() === 'danimr7263@gmail.com'
+  );
+
+  if (ownerDani) {
+    if (
+      ownerDani.password !== 'HRmotor12345' ||
+      ownerDani.role !== 'Owner' ||
+      !ownerDani.isApproved
+    ) {
+      ownerDani.name = ownerDani.name || 'Dani M.R. (Owner)';
+      ownerDani.email = 'danimr7263@gmail.com';
+      ownerDani.password = 'HRmotor12345';
+      ownerDani.role = 'Owner';
+      ownerDani.isApproved = true;
+      ownerDani.isActive = true;
+      if (!ownerDani.jobdesks || ownerDani.jobdesks.length === 0) {
+        ownerDani.jobdesks = ['Owner'];
+      }
+      modified = true;
+    }
+  } else {
+    db.users.push({
+      id: 'USR-OWNER-02',
+      name: 'Dani M.R. (Owner)',
+      email: 'danimr7263@gmail.com',
+      password: 'HRmotor12345',
+      role: 'Owner',
+      phone: '081223450008',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DaniOwner&backgroundColor=ffdfbf',
+      isApproved: true,
+      isActive: true,
+      jobdesks: ['Owner'],
       createdAt: '2026-01-01T08:00:00Z',
       updatedAt: new Date().toISOString(),
     });

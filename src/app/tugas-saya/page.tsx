@@ -67,7 +67,7 @@ export default function TugasSayaPage() {
     return [currentUser?.role || 'Owner'];
   }, [currentUser]);
 
-  const isOwner = currentUser?.role === 'Owner' || (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+  const isOwner = currentUser?.role === 'Owner' || (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8') || currentUser.email.toLowerCase().includes('danimr7263'));
 
   // Active Tab state: 'ALL' (tampilkan semua tugas jika punya >1 jobdesk), atau nama jobdesk tertentu
   const [activeTab, setActiveTab] = useState<string>('ALL');

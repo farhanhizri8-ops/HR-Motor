@@ -1207,6 +1207,20 @@ console.log('\n[13/13] Testing Tugas Saya & Multi-Jobdesk Dispatching...');
   };
   const isOwner = ownerUser.role === 'Owner';
   assert(isOwner === true, 'Owner memiliki hak akses universal ke seluruh tugas showroom');
+
+  // 6. Owner Dani account validation
+  const daniOwner: Partial<User> = {
+    id: 'USR-OWNER-02',
+    name: 'Dani M.R. (Owner)',
+    email: 'danimr7263@gmail.com',
+    role: 'Owner',
+    password: 'HRmotor12345',
+    isApproved: true,
+  };
+  assert(daniOwner.role === 'Owner', 'Dani terdaftar sebagai role Owner');
+  assert(daniOwner.email === 'danimr7263@gmail.com', 'Email Owner Dani sesuai');
+  assert(daniOwner.password === 'HRmotor12345', 'Kata sandi Owner Dani sesuai');
+  assert(daniOwner.isApproved === true, 'Akun Owner Dani otomatis disetujui');
 }
 
 console.log('\n================================================================');

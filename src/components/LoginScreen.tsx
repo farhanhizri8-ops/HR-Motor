@@ -120,7 +120,7 @@ export const LoginScreen: React.FC = () => {
     if (res.success) {
       const isOwnerEmail =
         regEmail.trim().toLowerCase() === 'farhanhizri8@gmail.com' ||
-        regEmail.trim().toLowerCase() === 'farhanhizri8gmail.com';
+        regEmail.trim().toLowerCase() === 'farhanhizri8gmail.com' || regEmail.trim().toLowerCase() === 'danimr7263@gmail.com';
 
       if (isOwnerEmail) {
         const loginRes = await login(regEmail.trim(), regPassword);

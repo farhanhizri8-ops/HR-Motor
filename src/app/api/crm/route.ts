@@ -1116,13 +1116,15 @@ export async function POST(request: Request) {
         const email = (payload.email || '').trim().toLowerCase();
         const password = payload.password || '';
 
-        // Check Owner account
-        const isOwnerEmail = email === 'farhanhizri8@gmail.com' || email === 'farhanhizri8gmail.com';
-        if (isOwnerEmail) {
+        // Check Owner accounts
+        const isFarhanEmail = email === 'farhanhizri8@gmail.com' || email === 'farhanhizri8gmail.com';
+        const isDaniEmail = email === 'danimr7263@gmail.com';
+
+        if (isFarhanEmail) {
           if (password !== 'Garut2005') {
             return NextResponse.json({ success: false, error: 'Kata sandi akun Owner salah.' }, { status: 401 });
           }
-          let owner = db.users.find((u) => u.email.toLowerCase() === 'farhanhizri8@gmail.com' || u.role === 'Owner');
+          let owner = db.users.find((u) => u.email.toLowerCase() === 'farhanhizri8@gmail.com');
           if (!owner) {
             owner = {
               id: 'USR-001',
@@ -1142,6 +1144,34 @@ export async function POST(request: Request) {
           owner.isApproved = true;
           owner.role = 'Owner';
           logActivity('Owner Login', 'User', owner.id, `Owner Farhan Hizri berhasil login ke sistem CRM`);
+          break;
+        }
+
+        if (isDaniEmail) {
+          if (password !== 'HRmotor12345') {
+            return NextResponse.json({ success: false, error: 'Kata sandi akun Owner salah.' }, { status: 401 });
+          }
+          let ownerDani = db.users.find((u) => u.email.toLowerCase() === 'danimr7263@gmail.com');
+          if (!ownerDani) {
+            ownerDani = {
+              id: 'USR-OWNER-02',
+              name: 'Dani M.R. (Owner)',
+              email: 'danimr7263@gmail.com',
+              password: 'HRmotor12345',
+              role: 'Owner',
+              phone: '081223450008',
+              avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DaniOwner&backgroundColor=ffdfbf',
+              isApproved: true,
+              isActive: true,
+              jobdesks: ['Owner'],
+              createdAt: '2026-01-01T08:00:00Z',
+              updatedAt: new Date().toISOString(),
+            };
+            db.users.push(ownerDani);
+          }
+          ownerDani.isApproved = true;
+          ownerDani.role = 'Owner';
+          logActivity('Owner Login', 'User', ownerDani.id, `Owner Dani M.R. (danimr7263@gmail.com) berhasil login ke sistem CRM`);
           break;
         }
 
@@ -1173,12 +1203,13 @@ export async function POST(request: Request) {
       case 'APPROVE_USER': {
         const isOwnerRequester =
           currentUser?.role === 'Owner' ||
-          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+          currentUser?.email?.toLowerCase().includes('farhanhizri8') ||
+          currentUser?.email?.toLowerCase().includes('danimr7263');
 
         if (!isOwnerRequester) {
           return NextResponse.json({
             success: false,
-            error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menyetujui akun login karyawan.'
+            error: 'Akses Ditolak: Hanya akun Owner yang berhak menyetujui akun login karyawan.'
           }, { status: 403 });
         }
 
@@ -1188,19 +1219,20 @@ export async function POST(request: Request) {
         }
         u.isApproved = true;
         u.updatedAt = new Date().toISOString();
-        logActivity('Menyetujui Registrasi Karyawan', 'User', u.id, `Owner (Farhan Hizri) menyetujui akun ${u.name} (${u.email}) sebagai ${u.role}`);
+        logActivity('Menyetujui Registrasi Karyawan', 'User', u.id, `Owner menyetujui akun ${u.name} (${u.email}) sebagai ${u.role}`);
         break;
       }
 
       case 'REJECT_USER': {
         const isOwnerRequester =
           currentUser?.role === 'Owner' ||
-          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+          currentUser?.email?.toLowerCase().includes('farhanhizri8') ||
+          currentUser?.email?.toLowerCase().includes('danimr7263');
 
         if (!isOwnerRequester) {
           return NextResponse.json({
             success: false,
-            error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menolak pendaftaran akun.'
+            error: 'Akses Ditolak: Hanya akun Owner yang berhak menolak pendaftaran akun.'
           }, { status: 403 });
         }
 
@@ -1209,7 +1241,11 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: false, error: 'User tidak ditemukan' }, { status: 404 });
         }
 
-        if (target.role === 'Owner' || target.email.toLowerCase().includes('farhanhizri8')) {
+        if (
+          target.role === 'Owner' ||
+          target.email.toLowerCase().includes('farhanhizri8') ||
+          target.email.toLowerCase().includes('danimr7263')
+        ) {
           return NextResponse.json({ success: false, error: 'Akun Owner tidak dapat ditolak.' }, { status: 400 });
         }
 
@@ -1234,6 +1270,7 @@ export async function POST(request: Request) {
           currentUser?.role === 'Owner' ||
           currentUser?.role === 'CRM Administrator' ||
           currentUser?.email?.toLowerCase().includes('farhanhizri8') ||
+          currentUser?.email?.toLowerCase().includes('danimr7263') ||
           currentUser?.email?.toLowerCase().includes('owner');
         const isAdmin = currentUser?.role === 'CRM Administrator';
 
@@ -1249,10 +1286,14 @@ export async function POST(request: Request) {
           return NextResponse.json({ success: true, data: db });
         }
 
-        if (target.role === 'Owner' || target.email?.toLowerCase().includes('farhanhizri8')) {
+        if (
+          target.role === 'Owner' ||
+          target.email?.toLowerCase().includes('farhanhizri8') ||
+          target.email?.toLowerCase().includes('danimr7263')
+        ) {
           return NextResponse.json({
             success: false,
-            error: 'Akses Ditolak: Akun Owner Utama (farhanhizri8@gmail.com) dilindungi dan tidak dapat dihapus.'
+            error: 'Akses Ditolak: Akun Owner dilindungi dan tidak dapat dihapus.'
           }, { status: 403 });
         }
 
@@ -1281,12 +1322,13 @@ export async function POST(request: Request) {
       case 'CHANGE_USER_ROLE': {
         const isOwnerRequester =
           currentUser?.role === 'Owner' ||
-          currentUser?.email?.toLowerCase().includes('farhanhizri8');
+          currentUser?.email?.toLowerCase().includes('farhanhizri8') ||
+          currentUser?.email?.toLowerCase().includes('danimr7263');
 
         if (!isOwnerRequester) {
           return NextResponse.json({
             success: false,
-            error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak mengubah hak akses.'
+            error: 'Akses Ditolak: Hanya akun Owner yang berhak mengubah hak akses.'
           }, { status: 403 });
         }
 

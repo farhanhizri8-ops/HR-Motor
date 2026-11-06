@@ -588,12 +588,13 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
       const data = await res.json();
       if (data.success) {
         const cleanEmail = email.trim().toLowerCase();
-        const isOwner = cleanEmail === 'farhanhizri8@gmail.com' || cleanEmail === 'farhanhizri8gmail.com';
+        const isFarhanOwner = cleanEmail === 'farhanhizri8@gmail.com' || cleanEmail === 'farhanhizri8gmail.com';
+        const isDaniOwner = cleanEmail === 'danimr7263@gmail.com';
 
         const currentUsers = data.data?.users || users;
         let loggedUser: User | undefined;
-        if (isOwner) {
-          loggedUser = currentUsers.find((u: User) => u.email.toLowerCase() === 'farhanhizri8@gmail.com' || u.role === 'Owner') || {
+        if (isFarhanOwner) {
+          loggedUser = currentUsers.find((u: User) => u.email.toLowerCase() === 'farhanhizri8@gmail.com') || {
             id: 'USR-001',
             name: 'Farhan Hizri',
             email: 'farhanhizri8@gmail.com',
@@ -602,6 +603,21 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
             password: 'Garut2005',
             isApproved: true,
             isActive: true,
+            jobdesks: ['Owner'],
+            createdAt: '2026-01-01T08:00:00Z',
+            updatedAt: new Date().toISOString(),
+          };
+        } else if (isDaniOwner) {
+          loggedUser = currentUsers.find((u: User) => u.email.toLowerCase() === 'danimr7263@gmail.com') || {
+            id: 'USR-OWNER-02',
+            name: 'Dani M.R. (Owner)',
+            email: 'danimr7263@gmail.com',
+            role: 'Owner',
+            phone: '081223450008',
+            password: 'HRmotor12345',
+            isApproved: true,
+            isActive: true,
+            jobdesks: ['Owner'],
             createdAt: '2026-01-01T08:00:00Z',
             updatedAt: new Date().toISOString(),
           };
@@ -674,17 +690,26 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const approveUser = async (id: string) => {
-    if (currentUser.role !== 'Owner' && !currentUser.email.toLowerCase().includes('farhanhizri8')) {
+    if (
+      currentUser.role !== 'Owner' &&
+      !currentUser.email.toLowerCase().includes('farhanhizri8') &&
+      !currentUser.email.toLowerCase().includes('danimr7263')
+    ) {
       return {
         success: false,
-        error: 'Akses Ditolak: Hanya akun Owner (farhanhizri8@gmail.com) yang berhak menyetujui akun login karyawan.'
+        error: 'Akses Ditolak: Hanya akun Owner yang berhak menyetujui akun login karyawan.'
       };
     }
     return executeApiMutation('APPROVE_USER', { id });
   };
 
   const rejectUser = async (id: string) => {
-    if (currentUser.role !== 'Owner' && !currentUser.email.toLowerCase().includes('farhanhizri8') && currentUser.role !== 'CRM Administrator') {
+    if (
+      currentUser.role !== 'Owner' &&
+      !currentUser.email.toLowerCase().includes('farhanhizri8') &&
+      !currentUser.email.toLowerCase().includes('danimr7263') &&
+      currentUser.role !== 'CRM Administrator'
+    ) {
       return {
         success: false,
         error: 'Akses Ditolak: Hanya akun Owner atau Administrator yang berhak menolak pendaftaran akun.'
@@ -696,7 +721,12 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteUser = async (id: string) => {
-    if (currentUser.role !== 'Owner' && currentUser.role !== 'CRM Administrator' && !currentUser.email.toLowerCase().includes('farhanhizri8')) {
+    if (
+      currentUser.role !== 'Owner' &&
+      currentUser.role !== 'CRM Administrator' &&
+      !currentUser.email.toLowerCase().includes('farhanhizri8') &&
+      !currentUser.email.toLowerCase().includes('danimr7263')
+    ) {
       return {
         success: false,
         error: 'Akses Ditolak: Hanya akun Owner atau Administrator yang berhak menghapus akun pengguna.'
