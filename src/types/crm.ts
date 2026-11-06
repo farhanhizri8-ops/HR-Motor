@@ -194,6 +194,7 @@ export interface Customer {
   creditApplicationId?: string;
   leasingPartner?: string;
   downPayment?: number;
+  financialUnitId?: string; // Linked ID to UnitFinancialRecord
 }
 
 export interface Lead {
@@ -744,6 +745,9 @@ export interface UnitFinancialRecord {
   repairCosts: RepairCostItem[]; // Rincian Biaya Perbaikan (Cat, Salon, Onderdil, dll)
   totalCost: number; // Total Modal HPP (Modal Beli + Total Perbaikan)
   buyerName?: string;
+  customerId?: string; // Linked ID to Customer
+  customerPhone?: string;
+  customerAddress?: string;
   targetPrice: number; // Harga Jual Showroom
   soldPrice?: number; // Harga Terjual
   salesPerson?: string;
@@ -780,6 +784,7 @@ export interface CashFlowRecord {
   type: 'in' | 'out'; // in = Uang Masuk (SPK), out = Pengeluaran (Bengkel/Operasional)
   amount: number;
   recordedBy: string;
+  recipientOrSource?: string;
   notes?: string;
   createdAt: string;
 }

@@ -26,6 +26,8 @@ import {
   INITIAL_CASH_FLOW,
   INITIAL_INVESTORS,
   INITIAL_PAYROLL_COMMISSIONS,
+  INITIAL_CORRELATED_CUSTOMERS,
+  INITIAL_CORRELATED_PURCHASES,
 } from '@/lib/financialSeedData';
 import {
   INITIAL_USERS,
@@ -77,11 +79,11 @@ const DATA_FILE = path.join(DATA_DIR, 'crm_store.json');
 export function getInitialDatabase(): CrmDatabase {
   return JSON.parse(JSON.stringify({
     users: INITIAL_USERS,
-    customers: INITIAL_CUSTOMERS,
+    customers: INITIAL_CORRELATED_CUSTOMERS,
     leads: INITIAL_LEADS,
     followUps: INITIAL_FOLLOW_UPS,
     communications: INITIAL_COMMUNICATIONS,
-    purchases: INITIAL_PURCHASES,
+    purchases: INITIAL_CORRELATED_PURCHASES,
     feedback: INITIAL_FEEDBACK,
     complaints: INITIAL_COMPLAINTS,
     referrals: INITIAL_REFERRALS,
@@ -135,10 +137,10 @@ export function readDatabase(): CrmDatabase {
       parsed.followUps = INITIAL_FOLLOW_UPS;
     }
 
-    if (!parsed.financialUnits || !Array.isArray(parsed.financialUnits) || parsed.financialUnits.length === 0) {
+    if (!parsed.financialUnits || !Array.isArray(parsed.financialUnits) || parsed.financialUnits.length < 100) {
       parsed.financialUnits = JSON.parse(JSON.stringify(INITIAL_FINANCIAL_UNITS));
     }
-    if (!parsed.cashFlow || !Array.isArray(parsed.cashFlow) || parsed.cashFlow.length === 0) {
+    if (!parsed.cashFlow || !Array.isArray(parsed.cashFlow) || parsed.cashFlow.length < 100) {
       parsed.cashFlow = JSON.parse(JSON.stringify(INITIAL_CASH_FLOW));
     }
     if (!parsed.investors || !Array.isArray(parsed.investors) || parsed.investors.length === 0) {
@@ -434,14 +436,14 @@ const OLD_DEMO_NAMES = new Set([
 
 export function repairDatabaseCustomers(db: CrmDatabase): boolean {
   if (!db || !Array.isArray(db.customers)) {
-    db.customers = INITIAL_CUSTOMERS;
+    db.customers = INITIAL_CORRELATED_CUSTOMERS;
     return true;
   }
   const hasOldTrash = db.customers.some((c) => OLD_DEMO_NAMES.has(c.fullName));
-  if (hasOldTrash || db.customers.length < 60) {
+  if (hasOldTrash || db.customers.length < 300) {
     const filtered = db.customers.filter((c) => !OLD_DEMO_NAMES.has(c.fullName));
     const map = new Map<string, Customer>();
-    INITIAL_CUSTOMERS.forEach((c) => map.set(c.id, c));
+    INITIAL_CORRELATED_CUSTOMERS.forEach((c) => map.set(c.id, c));
     filtered.forEach((c) => map.set(c.id, c));
     db.customers = Array.from(map.values());
     return true;
@@ -451,14 +453,14 @@ export function repairDatabaseCustomers(db: CrmDatabase): boolean {
 
 export function repairDatabasePurchases(db: CrmDatabase): boolean {
   if (!db || !Array.isArray(db.purchases)) {
-    db.purchases = INITIAL_PURCHASES;
+    db.purchases = INITIAL_CORRELATED_PURCHASES;
     return true;
   }
   const hasOldTrash = db.purchases.some((p) => OLD_DEMO_NAMES.has(p.customerName));
-  if (hasOldTrash || db.purchases.length < 60) {
+  if (hasOldTrash || db.purchases.length < 300) {
     const filtered = db.purchases.filter((p) => !OLD_DEMO_NAMES.has(p.customerName));
     const map = new Map<string, CustomerPurchase>();
-    INITIAL_PURCHASES.forEach((p) => map.set(p.id, p));
+    INITIAL_CORRELATED_PURCHASES.forEach((p) => map.set(p.id, p));
     filtered.forEach((p) => map.set(p.id, p));
     db.purchases = Array.from(map.values());
     return true;

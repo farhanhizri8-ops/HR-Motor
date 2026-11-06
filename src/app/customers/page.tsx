@@ -38,9 +38,10 @@ import {
   BadgePercent,
   History,
   Banknote,
+  Landmark,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory, CreditApplication, CreditStatus } from '@/types/crm';
+import { Customer, CustomerPurchase, LeadSourceType, VehicleCategory, CreditApplication, CreditStatus, canViewFinance } from '@/types/crm';
 
 interface KwitansiData {
   nomorKwitansi: string;
@@ -497,6 +498,7 @@ export default function CustomersPage() {
     users,
     currentUser,
     creditApplications,
+    financialUnits,
     createCashTransaction,
     createCreditApplication,
     approveCreditApplication,
@@ -2855,6 +2857,70 @@ export default function CustomersPage() {
                   <span className="text-charcoal-700 italic">{selectedCustomer.notes || 'Tidak ada catatan tambahan.'}</span>
                 </div>
               </div>
+
+              {/* Tautan Buku Besar Keuangan Showroom */}
+              {(() => {
+                const linkedFin = (financialUnits || []).find(
+                  (u) =>
+                    (selectedCustomer.financialUnitId && u.id === selectedCustomer.financialUnitId) ||
+                    (selectedCustomer.plateNumber && u.plateNumber && u.plateNumber.replace(/\s/g, '').toLowerCase() === selectedCustomer.plateNumber.replace(/\s/g, '').toLowerCase()) ||
+                    (u.buyerName && u.buyerName.toLowerCase().trim() === selectedCustomer.fullName.toLowerCase().trim()) ||
+                    (u.customerId && u.customerId === selectedCustomer.id)
+                );
+                if (!linkedFin) return null;
+                const totalRestorasi = linkedFin.totalCost - linkedFin.initialCost;
+                return (
+                  <div className="p-4 bg-gradient-to-br from-[#FDF8ED] to-[#FFFDF9] rounded-2xl border-2 border-gold-300 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-gold-200 text-gold-900 border border-gold-400 flex items-center justify-center font-bold shrink-0">
+                          <Landmark className="w-4 h-4 text-gold-900" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="text-xs font-black text-charcoal-900">
+                              Terhubung ke Buku Besar Finansial Showroom
+                            </h3>
+                            <span className="badge-gold text-[9px]">Stok #{linkedFin.stockNumber}</span>
+                          </div>
+                          <p className="text-[10px] text-charcoal-500">
+                            Unit: {linkedFin.brand} {linkedFin.model} ({linkedFin.year}) • Plat: {linkedFin.plateNumber}
+                          </p>
+                        </div>
+                      </div>
+                      {canViewFinance(currentUser) && (
+                        <Link
+                          href={`/keuangan?search=${encodeURIComponent(linkedFin.plateNumber || selectedCustomer.fullName)}`}
+                          className="btn-gold text-[10px] py-1 px-2.5 flex items-center gap-1 shadow-2xs self-start sm:self-auto shrink-0"
+                          title="Lihat rincian modal beli, biaya perbaikan bengkel, dan pembukuan resmi di Dashboard Keuangan"
+                        >
+                          <span>Buka di Keuangan</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-gold-200 text-xs">
+                      <div className="p-2.5 bg-white rounded-xl border border-warm-200 shadow-2xs">
+                        <span className="text-[10px] text-charcoal-500 block">Modal Beli (HPP)</span>
+                        <span className="font-bold text-charcoal-900">{formatRupiah(linkedFin.initialCost)}</span>
+                      </div>
+                      <div className="p-2.5 bg-white rounded-xl border border-warm-200 shadow-2xs">
+                        <span className="text-[10px] text-charcoal-500 block">Restorasi &amp; Bengkel</span>
+                        <span className="font-bold text-charcoal-900">{formatRupiah(totalRestorasi)}</span>
+                      </div>
+                      <div className="p-2.5 bg-white rounded-xl border border-warm-200 shadow-2xs">
+                        <span className="text-[10px] text-charcoal-500 block">Harga Terjual</span>
+                        <span className="font-black text-emerald-700">{formatRupiah(linkedFin.soldPrice || linkedFin.targetPrice)}</span>
+                      </div>
+                      <div className="p-2.5 bg-white rounded-xl border border-gold-300 shadow-2xs">
+                        <span className="text-[10px] text-gold-700 block font-semibold">Laba HR MOTOR</span>
+                        <span className="font-black text-gold-800">{formatRupiah(linkedFin.netProfit || linkedFin.grossProfit || 0)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Purchase History */}
               <div>

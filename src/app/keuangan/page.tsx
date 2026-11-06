@@ -35,6 +35,7 @@ import {
   Sparkles,
   ChevronDown,
   Info,
+  ExternalLink,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 import {
@@ -78,6 +79,10 @@ export default function FinancialDashboardPage() {
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Terjual' | 'Tersedia'>('all');
+  const [unitPageSize, setUnitPageSize] = useState<number>(50);
+  const [unitPage, setUnitPage] = useState<number>(1);
+  const [cashPageSize, setCashPageSize] = useState<number>(50);
+  const [cashPage, setCashPage] = useState<number>(1);
 
   // Notifications / Feedback
   const [actionMessage, setActionMessage] = useState('');
@@ -204,6 +209,20 @@ export default function FinancialDashboardPage() {
       return true;
     });
   }, [cashFlow, selectedYear, searchQuery]);
+
+  const paginatedUnits = useMemo(() => {
+    if (unitPageSize >= 9999) return filteredUnits;
+    const start = (unitPage - 1) * unitPageSize;
+    return filteredUnits.slice(start, start + unitPageSize);
+  }, [filteredUnits, unitPage, unitPageSize]);
+  const totalUnitPages = Math.ceil(filteredUnits.length / (unitPageSize >= 9999 ? filteredUnits.length || 1 : unitPageSize)) || 1;
+
+  const paginatedCashFlow = useMemo(() => {
+    if (cashPageSize >= 9999) return filteredCashFlow;
+    const start = (cashPage - 1) * cashPageSize;
+    return filteredCashFlow.slice(start, start + cashPageSize);
+  }, [filteredCashFlow, cashPage, cashPageSize]);
+  const totalCashPages = Math.ceil(filteredCashFlow.length / (cashPageSize >= 9999 ? filteredCashFlow.length || 1 : cashPageSize)) || 1;
 
   // Financial Metrics Summary Calculations
   const metrics = useMemo(() => {
@@ -833,7 +852,7 @@ export default function FinancialDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAE8E3]">
-                {filteredUnits.slice(0, 50).map((u) => {
+                {paginatedUnits.map((u) => {
                   const isSold = u.status === 'Terjual';
                   const totalRepair = (u.repairCosts || []).reduce((acc, r) => acc + (r.amount || 0), 0);
 
@@ -884,8 +903,20 @@ export default function FinancialDashboardPage() {
                       </td>
 
                       <td className="py-3 px-3 text-[11px]">
-                        <p className="font-bold text-charcoal-800 truncate max-w-[140px]">{u.buyerName || '-'}</p>
-                        <p className="text-[10px] text-charcoal-500">{u.salesPerson || '-'}</p>
+                        {u.buyerName ? (
+                          <Link
+                            href={`/customers?search=${encodeURIComponent(u.buyerName)}`}
+                            className="inline-flex items-center gap-1 font-bold text-gold-900 hover:text-gold-700 hover:underline truncate max-w-[150px] group"
+                            title={`Lihat profil konsumen ${u.buyerName} di Data Pelanggan CRM`}
+                          >
+                            <User className="w-3 h-3 text-gold-600 shrink-0" />
+                            <span className="truncate">{u.buyerName}</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 shrink-0" />
+                          </Link>
+                        ) : (
+                          <span className="text-charcoal-400 font-normal">-</span>
+                        )}
+                        <p className="text-[10px] text-charcoal-500 mt-0.5">{u.salesPerson || '-'}</p>
                       </td>
 
                       <td className="py-3 px-3 text-center">
@@ -940,7 +971,7 @@ export default function FinancialDashboardPage() {
 
           {/* Mobile Cards View */}
           <div className="block lg:hidden divide-y divide-[#EAE8E3]">
-            {filteredUnits.slice(0, 30).map((u) => {
+            {paginatedUnits.map((u) => {
               const isSold = u.status === 'Terjual';
               const totalRepair = (u.repairCosts || []).reduce((acc, r) => acc + (r.amount || 0), 0);
 
@@ -979,6 +1010,20 @@ export default function FinancialDashboardPage() {
                         {u.soldPrice ? formatRupiah(u.soldPrice) : '-'}
                       </span>
                     </div>
+                    {u.buyerName && (
+                      <div className="col-span-2 pt-1 border-t border-[#EAE8E3] flex justify-between items-center text-[11px]">
+                        <span className="text-charcoal-500">Konsumen:</span>
+                        <Link
+                          href={`/customers?search=${encodeURIComponent(u.buyerName)}`}
+                          className="font-bold text-gold-900 hover:underline inline-flex items-center gap-1"
+                          title="Buka profil pelanggan di CRM"
+                        >
+                          <User className="w-3 h-3 text-gold-600" />
+                          <span>{u.buyerName}</span>
+                          <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                        </Link>
+                      </div>
+                    )}
                     {isSold && (
                       <div className="col-span-2 pt-1 border-t border-[#EAE8E3] flex justify-between items-center">
                         <span className="text-charcoal-600 text-[10px]">Laba Bersih:</span>
@@ -1024,6 +1069,56 @@ export default function FinancialDashboardPage() {
               );
             })}
           </div>
+
+          {/* Pagination & Counter Bar */}
+          <div className="p-3 bg-[#FAF9F5] border-t border-[#EAE8E3] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="text-charcoal-600 font-medium text-[11px]">
+              Menampilkan <span className="font-bold text-charcoal-900">{paginatedUnits.length}</span> dari <span className="font-bold text-charcoal-900">{filteredUnits.length}</span> unit master ledger (Total Database: <span className="font-bold text-gold-900">{financialUnits.length} unit</span>)
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 text-[11px] text-charcoal-600">
+                <span>Tampilkan:</span>
+                <select
+                  value={unitPageSize}
+                  onChange={(e) => {
+                    setUnitPageSize(Number(e.target.value));
+                    setUnitPage(1);
+                  }}
+                  className="px-2 py-1 bg-white border border-[#EAE8E3] rounded-lg text-xs font-bold text-charcoal-800"
+                >
+                  <option value={25}>25 Unit</option>
+                  <option value={50}>50 Unit</option>
+                  <option value={100}>100 Unit</option>
+                  <option value={9999}>Semua ({filteredUnits.length})</option>
+                </select>
+              </div>
+
+              {totalUnitPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={unitPage <= 1}
+                    onClick={() => setUnitPage((p) => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#EAE8E3] text-charcoal-700 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs"
+                  >
+                    Sebelumnya
+                  </button>
+                  <span className="px-2 py-1 text-xs font-bold text-charcoal-800">
+                    Hal {unitPage} / {totalUnitPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={unitPage >= totalUnitPages}
+                    onClick={() => setUnitPage((p) => Math.min(totalUnitPages, p + 1))}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#EAE8E3] text-charcoal-700 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1063,7 +1158,7 @@ export default function FinancialDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#EAE8E3]">
-                {filteredCashFlow.slice(0, 50).map((c) => (
+                {paginatedCashFlow.map((c) => (
                   <tr key={c.id} className="hover:bg-[#FDFBF7] transition-colors">
                     <td className="py-3 px-4 font-mono text-[11px] text-charcoal-600">{c.date}</td>
                     <td className="py-3 px-4">
@@ -1081,7 +1176,26 @@ export default function FinancialDashboardPage() {
                         {c.category}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-charcoal-800 font-medium">{c.description}</td>
+                    <td className="py-3 px-4 text-charcoal-800 font-medium">
+                      <p>{c.description}</p>
+                      {c.recipientOrSource && (
+                        <div className="mt-0.5">
+                          {c.category === 'Uang SPK Masuk' ? (
+                            <Link
+                              href={`/customers?search=${encodeURIComponent(c.recipientOrSource)}`}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold text-gold-900 hover:underline"
+                              title="Buka data konsumen SPK di Data Pelanggan CRM"
+                            >
+                              <User className="w-2.5 h-2.5 text-gold-600" />
+                              <span>Konsumen: {c.recipientOrSource}</span>
+                              <ExternalLink className="w-2 h-2 opacity-60" />
+                            </Link>
+                          ) : (
+                            <span className="text-[10px] text-charcoal-500">{c.recipientOrSource}</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-right font-mono font-bold">
                       <span className={c.type === 'in' ? 'text-emerald-700' : 'text-rose-700'}>
                         {c.type === 'in' ? '+' : '-'} {formatRupiah(c.amount)}
@@ -1102,6 +1216,56 @@ export default function FinancialDashboardPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Cash Flow Pagination & Counter Bar */}
+          <div className="p-3 bg-[#FAF9F5] border-t border-[#EAE8E3] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div className="text-charcoal-600 font-medium text-[11px]">
+              Menampilkan <span className="font-bold text-charcoal-900">{paginatedCashFlow.length}</span> dari <span className="font-bold text-charcoal-900">{filteredCashFlow.length}</span> transaksi kas (Total Database: <span className="font-bold text-gold-900">{cashFlow.length} transaksi</span>)
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 text-[11px] text-charcoal-600">
+                <span>Tampilkan:</span>
+                <select
+                  value={cashPageSize}
+                  onChange={(e) => {
+                    setCashPageSize(Number(e.target.value));
+                    setCashPage(1);
+                  }}
+                  className="px-2 py-1 bg-white border border-[#EAE8E3] rounded-lg text-xs font-bold text-charcoal-800"
+                >
+                  <option value={25}>25 Transaksi</option>
+                  <option value={50}>50 Transaksi</option>
+                  <option value={100}>100 Transaksi</option>
+                  <option value={9999}>Semua ({filteredCashFlow.length})</option>
+                </select>
+              </div>
+
+              {totalCashPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={cashPage <= 1}
+                    onClick={() => setCashPage((p) => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#EAE8E3] text-charcoal-700 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs"
+                  >
+                    Sebelumnya
+                  </button>
+                  <span className="px-2 py-1 text-xs font-bold text-charcoal-800">
+                    Hal {cashPage} / {totalCashPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={cashPage >= totalCashPages}
+                    onClick={() => setCashPage((p) => Math.min(totalCashPages, p + 1))}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-[#EAE8E3] text-charcoal-700 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
