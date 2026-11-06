@@ -16,9 +16,16 @@ import {
   ArrowRight,
   UserCheck,
   KeyRound,
+  Check,
+  Radio,
+  Wrench,
+  Building2,
+  FileSpreadsheet,
+  Video,
+  Headphones,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { UserRole } from '@/types/crm';
+import { UserRole, ShowroomJobdesk, SHOWROOM_JOBDESKS } from '@/types/crm';
 
 export const LoginScreen: React.FC = () => {
   const { isAuthenticated, login, registerUser } = useCrm();
@@ -43,7 +50,18 @@ export const LoginScreen: React.FC = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regRole, setRegRole] = useState<UserRole>('Sales Representative');
+  const [regJobdesks, setRegJobdesks] = useState<ShowroomJobdesk[]>(['Host Live']);
+
+  const toggleJobdesk = (desk: ShowroomJobdesk) => {
+    setRegJobdesks((prev) => {
+      if (prev.includes(desk)) {
+        if (prev.length === 1) return prev; // Pertahankan minimal 1 jobdesk
+        return prev.filter((d) => d !== desk);
+      } else {
+        return [...prev, desk];
+      }
+    });
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,12 +103,17 @@ export const LoginScreen: React.FC = () => {
       setErrorMsg('Kata sandi wajib diisi.');
       return;
     }
+    if (regJobdesks.length === 0) {
+      setErrorMsg('Silakan pilih minimal 1 posisi / jobdesk showroom.');
+      return;
+    }
 
     const res = await registerUser({
       name: regName.trim(),
       email: regEmail.trim(),
       phone: regPhone.trim(),
-      role: regRole,
+      role: regJobdesks[0] as UserRole,
+      jobdesks: regJobdesks,
       password: regPassword,
     });
 
@@ -329,21 +352,64 @@ export const LoginScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Role */}
+                {/* Posisi / Jobdesk di Showroom (Multi-select) */}
                 <div>
-                  <label className="block text-[11px] font-bold text-charcoal-700 uppercase tracking-wider mb-1">
-                    Posisi / Peran di Showroom
-                  </label>
-                  <select
-                    value={regRole}
-                    onChange={(e) => setRegRole(e.target.value as UserRole)}
-                    className="w-full px-3 py-2 rounded-xl bg-warm-50 border border-warm-200 text-charcoal-900 text-xs focus:bg-white focus:outline-none focus:border-gold-500 font-medium"
-                  >
-                    <option value="Sales Representative">Sales Representative</option>
-                    <option value="CRM Administrator">Administrator Showroom</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="WhatsApp Administrator">WhatsApp Administrator</option>
-                  </select>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-bold text-charcoal-700 uppercase tracking-wider">
+                      Posisi / Jobdesk di Showroom
+                    </label>
+                    <span className="text-[10px] font-bold text-gold-800 bg-gold-50 px-2 py-0.5 rounded-full border border-gold-300">
+                      Bisa pilih &gt; 1 ({regJobdesks.length} terpilih)
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-charcoal-500 mb-2 leading-tight">
+                    Klik posisi untuk memilih satu atau beberapa jobdesk tugas Anda di HR MOTOR:
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {SHOWROOM_JOBDESKS.map((desk) => {
+                      const isSelected = regJobdesks.includes(desk.id);
+                      return (
+                        <button
+                          key={desk.id}
+                          type="button"
+                          onClick={() => toggleJobdesk(desk.id)}
+                          className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#FDF8ED] border-gold-500 ring-1 ring-gold-500/40 shadow-xs'
+                              : 'bg-warm-50/70 border-warm-200 hover:border-gold-300 hover:bg-white'
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                              isSelected
+                                ? 'bg-gold-600 text-white'
+                                : 'border border-warm-300 bg-white'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              {desk.id === 'Host Live' && <Radio className="w-3 h-3 text-rose-600 shrink-0" />}
+                              {desk.id === 'Teknisi Otomotif' && <Wrench className="w-3 h-3 text-amber-600 shrink-0" />}
+                              {desk.id === 'Staf Operasional Showroom' && <Building2 className="w-3 h-3 text-blue-600 shrink-0" />}
+                              {desk.id === 'Staf Administrasi Keuangan' && <FileSpreadsheet className="w-3 h-3 text-emerald-600 shrink-0" />}
+                              {desk.id === 'Konten Kreator' && <Video className="w-3 h-3 text-purple-600 shrink-0" />}
+                              {desk.id === 'Admin Layanan Pelanggan' && <Headphones className="w-3 h-3 text-teal-600 shrink-0" />}
+                              <p className="font-bold text-[11px] leading-tight text-charcoal-900 truncate">
+                                {desk.title}
+                              </p>
+                            </div>
+                            <p className="text-[9.5px] text-charcoal-500 leading-tight mt-1 line-clamp-2">
+                              {desk.description}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Password */}

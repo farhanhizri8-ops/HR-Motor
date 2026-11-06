@@ -1,15 +1,92 @@
+﻿export type ShowroomJobdesk =
+  | 'Host Live'
+  | 'Teknisi Otomotif'
+  | 'Staf Operasional Showroom'
+  | 'Staf Administrasi Keuangan'
+  | 'Konten Kreator'
+  | 'Admin Layanan Pelanggan';
+
 export type UserRole =
   | 'Owner'
   | 'CRM Administrator'
   | 'Sales Representative'
   | 'WhatsApp Administrator'
-  | 'Marketing';
+  | 'Marketing'
+  | ShowroomJobdesk;
+
+export interface ShowroomJobdeskOption {
+  id: ShowroomJobdesk;
+  title: string;
+  description: string;
+  iconName: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+}
+
+export const SHOWROOM_JOBDESKS: ShowroomJobdeskOption[] = [
+  {
+    id: 'Host Live',
+    title: 'Host Live',
+    description: 'Live streaming promosi unit & siaran langsung interaktif medsos',
+    iconName: 'Radio',
+    badgeBg: 'bg-rose-50',
+    badgeText: 'text-rose-700',
+    badgeBorder: 'border-rose-200',
+  },
+  {
+    id: 'Teknisi Otomotif',
+    title: 'Teknisi Otomotif',
+    description: 'Inspeksi mesin, detailing, perbaikan, & uji kelayakan unit',
+    iconName: 'Wrench',
+    badgeBg: 'bg-amber-50',
+    badgeText: 'text-amber-800',
+    badgeBorder: 'border-amber-200',
+  },
+  {
+    id: 'Staf Operasional Showroom',
+    title: 'Staf Operasional Showroom',
+    description: 'Tata kelola display mobil, mobilitas unit & kesiapan showroom',
+    iconName: 'Building2',
+    badgeBg: 'bg-blue-50',
+    badgeText: 'text-blue-700',
+    badgeBorder: 'border-blue-200',
+  },
+  {
+    id: 'Staf Administrasi Keuangan',
+    title: 'Staf Administrasi Keuangan',
+    description: 'Pemberkasan leasing, kuitansi, mutasi kas & administrasi BPKB/STNK',
+    iconName: 'FileSpreadsheet',
+    badgeBg: 'bg-emerald-50',
+    badgeText: 'text-emerald-700',
+    badgeBorder: 'border-emerald-200',
+  },
+  {
+    id: 'Konten Kreator',
+    title: 'Konten Kreator',
+    description: 'Produksi video reels/TikTok, foto komersial & materi medsos',
+    iconName: 'Video',
+    badgeBg: 'bg-purple-50',
+    badgeText: 'text-purple-700',
+    badgeBorder: 'border-purple-200',
+  },
+  {
+    id: 'Admin Layanan Pelanggan',
+    title: 'Admin Layanan Pelanggan',
+    description: 'Respons cepat chat prospek, jadwal test drive & follow-up pelanggan',
+    iconName: 'Headphones',
+    badgeBg: 'bg-teal-50',
+    badgeText: 'text-teal-700',
+    badgeBorder: 'border-teal-200',
+  },
+];
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  jobdesks?: (ShowroomJobdesk | string)[];
   phone: string;
   avatar?: string;
   password?: string;

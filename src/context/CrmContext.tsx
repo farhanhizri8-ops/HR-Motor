@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import {
@@ -154,8 +154,8 @@ interface CrmContextType {
   approveUser: (id: string) => Promise<{ success: boolean; error?: string }>;
   rejectUser: (id: string) => Promise<{ success: boolean; error?: string }>;
   deleteUser: (id: string) => Promise<{ success: boolean; error?: string }>;
-  changeUserRole: (id: string, role: User['role']) => Promise<{ success: boolean; error?: string }>;
-  registerUser: (data: { name: string; email: string; role: User['role']; phone?: string; password?: string }) => Promise<{ success: boolean; error?: string }>;
+  changeUserRole: (id: string, role: User['role'], jobdesks?: string[]) => Promise<{ success: boolean; error?: string }>;
+  registerUser: (data: { name: string; email: string; role: User['role']; jobdesks?: string[]; phone?: string; password?: string }) => Promise<{ success: boolean; error?: string }>;
   
   resetToDemo: () => Promise<void>;
   markNotificationAsRead: (id: string) => void;
@@ -649,11 +649,11 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('DELETE_USER', { id });
   };
 
-  const changeUserRole = async (id: string, role: User['role']) => {
-    return executeApiMutation('CHANGE_USER_ROLE', { id, role });
+  const changeUserRole = async (id: string, role: User['role'], jobdesks?: string[]) => {
+    return executeApiMutation('CHANGE_USER_ROLE', { id, role, jobdesks });
   };
 
-  const registerUser = async (data: { name: string; email: string; role: User['role']; phone?: string; password?: string }) => {
+  const registerUser = async (data: { name: string; email: string; role: User['role']; jobdesks?: string[]; phone?: string; password?: string }) => {
     return executeApiMutation('REGISTER_USER', data);
   };
 

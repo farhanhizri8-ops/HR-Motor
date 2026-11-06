@@ -300,7 +300,14 @@ export default function SettingsDealerPage() {
             />
             <div>
               <p className="text-xs font-bold text-charcoal-900 leading-tight">{currentUser.name}</p>
-              <span className="text-[10px] text-gold-700 font-semibold uppercase">{currentUser.role}</span>
+              <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                <span className="text-[10px] text-gold-700 font-semibold uppercase">{currentUser.role}</span>
+                {currentUser.jobdesks && currentUser.jobdesks.length > 1 && (
+                  <span className="text-[9px] text-gold-800 bg-gold-50 px-1.5 py-0.2 rounded border border-gold-200 font-bold">
+                    +{currentUser.jobdesks.length - 1} jobdesk
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -675,12 +682,26 @@ export default function SettingsDealerPage() {
 
               <div>
                 <label className="block text-xs font-bold text-charcoal-800 mb-1">
-                  Peran &amp; Hak Akses Showroom
+                  Peran &amp; Jobdesk Showroom
                 </label>
-                <div className="flex items-center gap-2 p-2.5 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl">
-                  <Shield className="w-4 h-4 text-gold-600 shrink-0" />
-                  <span className="text-xs font-black text-charcoal-900">{currentUser.role}</span>
-                  <span className="text-[10px] text-charcoal-500 ml-auto">Wewenang Penuh Showroom</span>
+                <div className="p-3 bg-[#FAF9F5] border border-[#EAE8E3] rounded-xl space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-gold-600 shrink-0" />
+                    <span className="text-xs font-black text-charcoal-900">{currentUser.role}</span>
+                    <span className="text-[10px] text-charcoal-500 ml-auto">
+                      {currentUser.role === 'Owner' ? 'Wewenang Penuh Showroom' : 'Akun Resmi Karyawan'}
+                    </span>
+                  </div>
+                  {currentUser.jobdesks && currentUser.jobdesks.length > 0 && (
+                    <div className="pt-2 border-t border-[#EAE8E3]/60 flex flex-wrap gap-1.5 items-center">
+                      <span className="text-[10px] font-bold text-charcoal-500">Tugas / Jobdesk:</span>
+                      {currentUser.jobdesks.map((d) => (
+                        <span key={d} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-gold-100 text-gold-900 border border-gold-300">
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

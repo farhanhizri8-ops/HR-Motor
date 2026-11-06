@@ -1288,6 +1288,11 @@ export async function POST(request: Request) {
         }
         const oldRole = u.role;
         u.role = payload.role;
+        if (payload.jobdesks && Array.isArray(payload.jobdesks)) {
+          u.jobdesks = payload.jobdesks;
+        } else if (!u.jobdesks || u.jobdesks.length === 0) {
+          u.jobdesks = [payload.role];
+        }
         u.updatedAt = new Date().toISOString();
         logActivity('Mengubah Hak Akses User', 'User', u.id, `Mengubah peran ${u.name} dari ${oldRole} menjadi ${payload.role}`);
         break;
@@ -1304,6 +1309,7 @@ export async function POST(request: Request) {
           if (payload.email) u.email = payload.email;
           if (payload.avatar) u.avatar = payload.avatar;
           if (payload.password) u.password = payload.password;
+          if (payload.jobdesks && Array.isArray(payload.jobdesks)) u.jobdesks = payload.jobdesks;
           u.updatedAt = new Date().toISOString();
           logActivity('Perbarui Profil Pengguna', 'User', u.id, `Pengguna ${u.name} memperbarui informasi profil akun.`);
         }
@@ -1325,12 +1331,17 @@ export async function POST(request: Request) {
 
         const isOwnerEmail = cleanEmail === 'farhanhizri8@gmail.com' || cleanEmail === 'farhanhizri8gmail.com';
         const newUserId = `USR-${String(Date.now()).slice(-4)}`;
+        const assignedJobdesks = Array.isArray(payload.jobdesks) && payload.jobdesks.length > 0
+          ? payload.jobdesks
+          : (payload.role ? [payload.role] : ['Staf Operasional Showroom']);
+        const primaryRole = isOwnerEmail ? 'Owner' : (payload.role || assignedJobdesks[0] || 'Staf Operasional Showroom');
         const newUser = {
           id: newUserId,
           name: (payload.name || '').trim(),
           email: cleanEmail,
           password: payload.password || 'Garut2005',
-          role: payload.role || 'Sales Representative',
+          role: primaryRole,
+          jobdesks: assignedJobdesks,
           phone: payload.phone || '',
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}&backgroundColor=d1d4f9`,
           isApproved: isOwnerEmail, // Pengguna baru WAJIB menunggu persetujuan (approval) Owner sebelum bisa login!
@@ -1341,11 +1352,12 @@ export async function POST(request: Request) {
         db.users.push(newUser);
 
         // Add notification for Owner
+        const jobdeskSummary = assignedJobdesks.join(', ');
         db.notifications.unshift({
           id: `NOTIF-${Date.now()}`,
           userId: 'USR-001',
           title: 'Pengajuan Akun Karyawan Baru',
-          message: `${newUser.name} (${newUser.email}) mengajukan pendaftaran akun (${newUser.role}). Menunggu persetujuan Owner.`,
+          message: `${newUser.name} (${newUser.email}) mengajukan pendaftaran akun dengan jobdesk: ${jobdeskSummary}. Menunggu persetujuan Owner.`,
           type: 'approval',
           isRead: false,
           link: '/users',

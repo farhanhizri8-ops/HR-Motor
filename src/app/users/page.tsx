@@ -16,9 +16,39 @@ import {
   User,
   Key,
   Trash2,
+  Edit3,
+  Check,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
-import { UserRole } from '@/types/crm';
+import { UserRole, ShowroomJobdesk, SHOWROOM_JOBDESKS, User as UserType } from '@/types/crm';
+
+const getUserJobdesks = (u: UserType): string[] => {
+  if (u.jobdesks && Array.isArray(u.jobdesks) && u.jobdesks.length > 0) {
+    return u.jobdesks;
+  }
+  return [u.role];
+};
+
+const getJobdeskBadgeStyle = (desk: string) => {
+  switch (desk) {
+    case 'Host Live':
+      return 'bg-rose-50 text-rose-700 border-rose-200';
+    case 'Teknisi Otomotif':
+      return 'bg-amber-50 text-amber-800 border-amber-200';
+    case 'Staf Operasional Showroom':
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'Staf Administrasi Keuangan':
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case 'Konten Kreator':
+      return 'bg-purple-50 text-purple-700 border-purple-200';
+    case 'Admin Layanan Pelanggan':
+      return 'bg-teal-50 text-teal-700 border-teal-200';
+    case 'Owner':
+      return 'bg-gold-50 text-gold-800 border-gold-300 font-black';
+    default:
+      return 'bg-warm-100 text-charcoal-700 border-warm-200';
+  }
+};
 
 export default function UserManagementPage() {
   const {
@@ -33,12 +63,42 @@ export default function UserManagementPage() {
   } = useCrm();
 
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    role: UserRole;
+    jobdesks: ShowroomJobdesk[];
+  }>({
     name: '',
     email: '',
     phone: '',
-    role: 'Sales Representative' as UserRole,
+    role: 'Staf Operasional Showroom',
+    jobdesks: ['Staf Operasional Showroom'],
   });
+  const [editingUserJobdesks, setEditingUserJobdesks] = useState<{
+    id: string;
+    name: string;
+    jobdesks: string[];
+  } | null>(null);
+
+  const toggleFormJobdesk = (desk: ShowroomJobdesk) => {
+    setFormData((prev) => {
+      const exists = prev.jobdesks.includes(desk);
+      let updated: ShowroomJobdesk[];
+      if (exists) {
+        if (prev.jobdesks.length === 1) return prev;
+        updated = prev.jobdesks.filter((d) => d !== desk);
+      } else {
+        updated = [...prev.jobdesks, desk];
+      }
+      return {
+        ...prev,
+        jobdesks: updated,
+        role: updated[0] as UserRole,
+      };
+    });
+  };
   const [formError, setFormError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -118,14 +178,26 @@ export default function UserManagementPage() {
     e.preventDefault();
     setFormError('');
 
-    const res = await registerUser(formData);
+    if (formData.jobdesks.length === 0) {
+      setFormError('Silakan pilih minimal 1 posisi / jobdesk showroom.');
+      return;
+    }
+
+    const res = await registerUser({
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      role: formData.jobdesks[0] as UserRole,
+      jobdesks: formData.jobdesks,
+    });
     if (res.success) {
       setIsRegisterModalOpen(false);
       setFormData({
         name: '',
         email: '',
         phone: '',
-        role: 'Sales Representative',
+        role: 'Staf Operasional Showroom',
+        jobdesks: ['Staf Operasional Showroom'],
       });
       alert('Pendaftaran akun karyawan berhasil diajukan! Akun ini menunggu persetujuan (approval) dari Owner sebelum dapat login.');
     } else {
@@ -376,31 +448,41 @@ export default function UserManagementPage() {
                     {/* Phone */}
                     <td className="py-3.5 px-4 text-charcoal-600 font-mono">{u.phone || '-'}</td>
 
-                    {/* Role */}
+                    {/* Role / Jobdesks */}
                     <td className="py-3.5 px-4">
-                      {isOwner && !isOwnerAccount ? (
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleChangeRole(u.id, e.target.value as UserRole, u.name)}
-                          className="text-xs py-1.5 px-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none font-semibold text-charcoal-900 focus:border-gold-500"
-                        >
-                          <option value="CRM Administrator">CRM Administrator</option>
-                          <option value="Sales Representative">Sales Representative</option>
-                          <option value="WhatsApp Administrator">WhatsApp Administrator</option>
-                          <option value="Marketing">Marketing</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            u.role === 'Owner'
-                              ? 'bg-gold-50 text-gold-800 border border-gold-300 font-black'
-                              : u.role === 'CRM Administrator'
-                              ? 'bg-[#FDF8ED] text-gold-900 border border-gold-400 font-bold'
-                              : 'bg-warm-100 text-charcoal-700 border border-warm-200'
-                          }`}
-                        >
-                          {u.role}
+                      {isOwnerAccount ? (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-gold-50 text-gold-800 border border-gold-300">
+                          Owner
                         </span>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div className="flex flex-wrap gap-1 max-w-[260px]">
+                            {getUserJobdesks(u).map((desk) => (
+                              <span
+                                key={desk}
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getJobdeskBadgeStyle(desk)}`}
+                              >
+                                {desk}
+                              </span>
+                            ))}
+                          </div>
+                          {isOwner && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditingUserJobdesks({
+                                  id: u.id,
+                                  name: u.name,
+                                  jobdesks: getUserJobdesks(u),
+                                })
+                              }
+                              className="text-[10px] font-bold text-gold-700 hover:text-gold-900 inline-flex items-center gap-1 hover:underline cursor-pointer"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              <span>Atur Jobdesk</span>
+                            </button>
+                          )}
+                        </div>
                       )}
                     </td>
 
@@ -511,21 +593,41 @@ export default function UserManagementPage() {
                   <span className="font-mono text-charcoal-800 font-medium">{u.phone || '-'}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs bg-[#F8F7F4] p-2.5 rounded-xl border border-[#EAE8E3]">
-                  <span className="text-charcoal-500">Peran Jabatan:</span>
-                  {isOwner && !isOwnerAccount ? (
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleChangeRole(u.id, e.target.value as UserRole, u.name)}
-                      className="text-xs py-1 px-2 bg-white border border-[#EAE8E3] rounded-lg outline-none font-semibold text-charcoal-900 focus:border-gold-500"
-                    >
-                      <option value="CRM Administrator">CRM Administrator</option>
-                      <option value="Sales Representative">Sales Representative</option>
-                      <option value="WhatsApp Administrator">WhatsApp Administrator</option>
-                      <option value="Marketing">Marketing</option>
-                    </select>
+                <div className="space-y-1.5 bg-[#F8F7F4] p-2.5 rounded-xl border border-[#EAE8E3]">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-charcoal-500 font-medium">Jobdesk Showroom:</span>
+                    {isOwner && !isOwnerAccount && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditingUserJobdesks({
+                            id: u.id,
+                            name: u.name,
+                            jobdesks: getUserJobdesks(u),
+                          })
+                        }
+                        className="text-[10px] font-bold text-gold-700 flex items-center gap-1 hover:underline cursor-pointer"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Ubah Jobdesk</span>
+                      </button>
+                    )}
+                  </div>
+                  {isOwnerAccount ? (
+                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-gold-50 text-gold-800 border border-gold-300">
+                      Owner
+                    </span>
                   ) : (
-                    <span className="font-bold text-charcoal-900">{u.role}</span>
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {getUserJobdesks(u).map((desk) => (
+                        <span
+                          key={desk}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getJobdeskBadgeStyle(desk)}`}
+                        >
+                          {desk}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
 
@@ -759,17 +861,50 @@ export default function UserManagementPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-charcoal-800 mb-1">Peran yang Diajukan</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  className="w-full text-xs px-3.5 py-2.5 bg-[#F8F7F4] border border-[#EAE8E3] rounded-xl outline-none focus:border-gold-500 font-semibold text-charcoal-900"
-                >
-                  <option value="Sales Representative">Sales Representative</option>
-                  <option value="WhatsApp Administrator">WhatsApp Administrator</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="CRM Administrator">CRM Administrator</option>
-                </select>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-charcoal-800 text-xs">
+                    Pilihan Jobdesk / Posisi Showroom <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] font-bold text-gold-800 bg-gold-50 px-2 py-0.5 rounded-full border border-gold-300">
+                    Bisa pilih &gt; 1 ({formData.jobdesks.length} terpilih)
+                  </span>
+                </div>
+                <p className="text-[11px] text-charcoal-500 mb-2">
+                  Tandai tugas yang dipegang oleh karyawan ini di showroom:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {SHOWROOM_JOBDESKS.map((desk) => {
+                    const isSelected = formData.jobdesks.includes(desk.id);
+                    return (
+                      <button
+                        key={desk.id}
+                        type="button"
+                        onClick={() => toggleFormJobdesk(desk.id)}
+                        className={`flex items-start gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#FDF8ED] border-gold-500 ring-1 ring-gold-500/30'
+                            : 'bg-white border-[#EAE8E3] hover:border-gold-300'
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
+                            isSelected ? 'bg-gold-600 text-white' : 'border border-warm-300 bg-warm-50'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-[11px] text-charcoal-900 leading-tight">
+                            {desk.title}
+                          </p>
+                          <p className="text-[9.5px] text-charcoal-500 leading-tight mt-0.5 line-clamp-1">
+                            {desk.description}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="p-3.5 bg-[#FAF9F5] rounded-xl border border-gold-500/30 text-charcoal-700 space-y-1">
@@ -795,6 +930,109 @@ export default function UserManagementPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Kelola Jobdesk Karyawan */}
+      {editingUserJobdesks && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-950/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-warm-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 sm:p-5 border-b border-[#EAE8E3] flex items-center justify-between bg-[#F8F7F4]">
+              <div>
+                <h3 className="font-bold text-sm text-charcoal-900">Kelola Jobdesk Karyawan</h3>
+                <p className="text-xs text-charcoal-600 font-semibold mt-0.5">{editingUserJobdesks.name}</p>
+              </div>
+              <button
+                onClick={() => setEditingUserJobdesks(null)}
+                className="p-1 rounded-lg hover:bg-warm-200 text-charcoal-400 hover:text-charcoal-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-3 overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-charcoal-600 font-medium">
+                  Pilih tugas yang dijalankan oleh karyawan ini (bisa lebih dari satu):
+                </p>
+                <span className="text-[10px] font-bold text-gold-800 bg-gold-50 px-2 py-0.5 rounded-full border border-gold-300">
+                  {editingUserJobdesks.jobdesks.length} Terpilih
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {SHOWROOM_JOBDESKS.map((desk) => {
+                  const isChecked = editingUserJobdesks.jobdesks.includes(desk.id);
+                  return (
+                    <button
+                      key={desk.id}
+                      type="button"
+                      onClick={() => {
+                        setEditingUserJobdesks((prev) => {
+                          if (!prev) return null;
+                          const exists = prev.jobdesks.includes(desk.id);
+                          if (exists && prev.jobdesks.length === 1) return prev;
+                          const updated = exists
+                            ? prev.jobdesks.filter((d) => d !== desk.id)
+                            : [...prev.jobdesks, desk.id];
+                          return { ...prev, jobdesks: updated };
+                        });
+                      }}
+                      className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                        isChecked
+                          ? 'bg-[#FDF8ED] border-gold-500 ring-1 ring-gold-500/30'
+                          : 'bg-warm-50/60 border-warm-200 hover:border-gold-300 hover:bg-white'
+                      }`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded-md flex items-center justify-center shrink-0 mt-0.5 ${
+                          isChecked ? 'bg-gold-600 text-white' : 'border border-warm-300 bg-white'
+                        }`}
+                      >
+                        {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-xs text-charcoal-900 leading-tight">
+                          {desk.title}
+                        </p>
+                        <p className="text-[10px] text-charcoal-500 leading-tight mt-0.5">
+                          {desk.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-[#EAE8E3] bg-[#F8F7F4] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingUserJobdesks(null)}
+                className="btn-outline-warm text-xs"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!editingUserJobdesks || editingUserJobdesks.jobdesks.length === 0) return;
+                  const primaryRole = editingUserJobdesks.jobdesks[0] as UserRole;
+                  const res = await changeUserRole(editingUserJobdesks.id, primaryRole, editingUserJobdesks.jobdesks);
+                  if (res.success) {
+                    setActionMessage(`Jobdesk ${editingUserJobdesks.name} berhasil diperbarui.`);
+                    setTimeout(() => setActionMessage(''), 4000);
+                    setEditingUserJobdesks(null);
+                  } else {
+                    alert(res.error || 'Gagal memperbarui jobdesk.');
+                  }
+                }}
+                className="btn-gold text-xs"
+              >
+                Simpan Jobdesk
+              </button>
+            </div>
           </div>
         </div>
       )}

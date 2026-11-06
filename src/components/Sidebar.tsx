@@ -142,11 +142,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const checkRoleAccess = (allowedRoles: string[]) => {
+    if (allowedRoles.includes(currentUser.role)) return true;
+    if (currentUser.role === 'Owner') return true;
+    const showroomJobdesks = [
+      'Host Live',
+      'Teknisi Otomotif',
+      'Staf Operasional Showroom',
+      'Staf Administrasi Keuangan',
+      'Konten Kreator',
+      'Admin Layanan Pelanggan',
+    ];
+    if (
+      showroomJobdesks.includes(currentUser.role) ||
+      (currentUser.jobdesks && currentUser.jobdesks.some((j) => showroomJobdesks.includes(j)))
+    ) {
+      if (allowedRoles.includes('Sales Representative') || allowedRoles.includes('Marketing')) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const filteredNav = navigationItems
     .map((item) => {
       if (item.children) {
         const visibleChildren = item.children.filter((child) =>
-          child.roles.includes(currentUser.role)
+          checkRoleAccess(child.roles)
         );
         if (visibleChildren.length === 0) return null;
         return {
@@ -154,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           children: visibleChildren,
         };
       }
-      return item.roles.includes(currentUser.role) ? item : null;
+      return checkRoleAccess(item.roles) ? item : null;
     })
     .filter((item): item is NavItem => item !== null);
 
@@ -400,6 +422,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-gold-500" />
                   <p className="text-[10px] text-gold-700 font-semibold truncate uppercase tracking-wider">
                     {getRoleDisplayName(currentUser.role)}
+                    {currentUser.jobdesks && currentUser.jobdesks.length > 1 && ` (+${currentUser.jobdesks.length - 1})`}
                   </p>
                 </div>
               </div>
