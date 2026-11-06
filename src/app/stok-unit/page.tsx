@@ -132,6 +132,17 @@ export default function StokUnitPage() {
   // Search, Filter, Sort States
   type ReadinessFilter = 'all' | 'unrepaired' | 'unpainted' | 'undetailed' | 'unphotographed' | 'ready';
   const [filterReadiness, setFilterReadiness] = useState<ReadinessFilter>('all');
+
+  // Helper pilih filter kesiapan unit showroom (langsung sinkron menyaring tabel)
+  const handleSelectReadinessFilter = (readiness: ReadinessFilter) => {
+    setFilterReadiness(readiness);
+    if (readiness !== 'all') {
+      // Pastikan status tidak memblokir unit yang sedang dipersiapkan
+      if (filterStatus !== 'Semua') {
+        setFilterStatus('Semua');
+      }
+    }
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBrand, setFilterBrand] = useState('Semua');
   const [filterStatus, setFilterStatus] = useState<string>('Semua');
@@ -363,6 +374,7 @@ export default function StokUnitPage() {
     filterYearMax,
     filterPriceMin,
     filterPriceMax,
+    filterReadiness,
     sortBy,
   ]);
 
@@ -1151,7 +1163,7 @@ export default function StokUnitPage() {
             {/* 1. Semua Unit */}
             <button
               type="button"
-              onClick={() => setFilterReadiness('all')}
+              onClick={() => handleSelectReadinessFilter('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterReadiness === 'all'
                   ? 'bg-gold-500 text-charcoal-950 border border-gold-600 shadow-xs'
@@ -1169,7 +1181,7 @@ export default function StokUnitPage() {
             {/* 2. Belum Perbaikan */}
             <button
               type="button"
-              onClick={() => setFilterReadiness('unrepaired')}
+              onClick={() => handleSelectReadinessFilter('unrepaired')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterReadiness === 'unrepaired'
                   ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
@@ -1189,7 +1201,7 @@ export default function StokUnitPage() {
             {/* 3. Belum Cat */}
             <button
               type="button"
-              onClick={() => setFilterReadiness('unpainted')}
+              onClick={() => handleSelectReadinessFilter('unpainted')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterReadiness === 'unpainted'
                   ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
@@ -1209,7 +1221,7 @@ export default function StokUnitPage() {
             {/* 4. Belum Salon */}
             <button
               type="button"
-              onClick={() => setFilterReadiness('undetailed')}
+              onClick={() => handleSelectReadinessFilter('undetailed')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterReadiness === 'undetailed'
                   ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
@@ -1229,7 +1241,7 @@ export default function StokUnitPage() {
             {/* 5. Belum Foto Unit */}
             <button
               type="button"
-              onClick={() => setFilterReadiness('unphotographed')}
+              onClick={() => handleSelectReadinessFilter('unphotographed')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterReadiness === 'unphotographed'
                   ? 'bg-amber-500 text-charcoal-950 border border-amber-600 shadow-xs ring-2 ring-amber-400/40'
@@ -1249,7 +1261,7 @@ export default function StokUnitPage() {
             {/* 6. Siap Jual (Lengkap) */}
             <button
               type="button"
-              onClick={() => setFilterReadiness('ready')}
+              onClick={() => handleSelectReadinessFilter('ready')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filterReadiness === 'ready'
                   ? 'bg-emerald-600 text-white border border-emerald-700 shadow-xs'
@@ -1364,7 +1376,7 @@ export default function StokUnitPage() {
                   setFilterYearMax('');
                   setFilterPriceMin('');
                   setFilterPriceMax('');
-                  setFilterReadiness('all');
+                  handleSelectReadinessFilter('all');
                 }}
                 className="text-gold-700 hover:text-gold-800 font-bold underline px-1 text-xs cursor-pointer"
               >
@@ -1393,6 +1405,32 @@ export default function StokUnitPage() {
         </div>
       </div>
 
+      {/* Banner Penanda Filter Kesiapan Unit Aktif */}
+      {filterReadiness !== 'all' && (
+        <div className="p-3.5 bg-gradient-to-r from-[#FDF8ED] to-white border-2 border-gold-400 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-luxury animate-in fade-in">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-3 h-3 rounded-full bg-gold-500 animate-pulse shrink-0" />
+            <p className="font-bold text-charcoal-900 truncate text-xs sm:text-sm">
+              Menampilkan {filteredStocks.length} unit yang{' '}
+              <span className="text-gold-950 font-black underline decoration-gold-500 decoration-2">
+                {filterReadiness === 'unrepaired' && 'Belum Perbaikan'}
+                {filterReadiness === 'unpainted' && 'Belum Cat'}
+                {filterReadiness === 'undetailed' && 'Belum Salon'}
+                {filterReadiness === 'unphotographed' && 'Belum Foto Unit'}
+                {filterReadiness === 'ready' && 'Siap Jual (Lengkap)'}
+              </span>
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleSelectReadinessFilter('all')}
+            className="px-3 py-1.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-charcoal-950 font-bold text-xs transition-all cursor-pointer shadow-xs shrink-0"
+          >
+            Tampilkan Semua ({stocks.length})
+          </button>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* TABEL STOK KENDARAAN (DESKTOP TABEL + MOBILE CARD VIEW PAS LAYAR)         */}
       {/* ========================================================================= */}
@@ -1419,8 +1457,24 @@ export default function StokUnitPage() {
                   <tr>
                     <td colSpan={10} className="py-12 text-center text-charcoal-400">
                       <Car className="w-10 h-10 mx-auto text-charcoal-300 mb-2 stroke-[1.5]" />
-                      <p className="text-sm font-semibold text-charcoal-700">Tidak ada unit kendaraan yang sesuai kriteria</p>
-                      <p className="text-xs text-charcoal-400 mt-1">Coba ubah kata kunci pencarian atau sesuaikan filter showroom.</p>
+                      <p className="text-sm font-bold text-charcoal-800">
+                        {filterReadiness === 'unrepaired' && 'Tidak ada unit kendaraan yang Belum Perbaikan'}
+                        {filterReadiness === 'unpainted' && 'Tidak ada unit kendaraan yang Belum Cat'}
+                        {filterReadiness === 'undetailed' && 'Tidak ada unit kendaraan yang Belum Salon'}
+                        {filterReadiness === 'unphotographed' && 'Tidak ada unit kendaraan yang Belum Foto Unit'}
+                        {filterReadiness === 'ready' && 'Belum ada unit yang 100% Siap Jual'}
+                        {filterReadiness === 'all' && 'Tidak ada unit kendaraan yang sesuai kriteria'}
+                      </p>
+                      <p className="text-xs text-charcoal-500 mt-1">
+                        Semua unit pada kategori ini telah selesai atau klik tombol di bawah untuk melihat seluruh inventaris showroom.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectReadinessFilter('all')}
+                        className="mt-3 px-3.5 py-1.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-charcoal-950 font-bold text-xs shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                      >
+                        Tampilkan Semua Armada ({stocks.length} Unit)
+                      </button>
                     </td>
                   </tr>
                 ) : (

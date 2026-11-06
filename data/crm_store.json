@@ -619,7 +619,17 @@
       "plateNumber": "Z 1422 DA",
       "createdAt": "2026-08-01T08:00:00Z",
       "updatedAt": "2026-11-03T01:00:00Z",
-      "plateRegion": "Garut"
+      "plateRegion": "Garut",
+      "isRepaired": false,
+      "isPainted": false,
+      "isDetailed": false,
+      "isPhotographed": false,
+      "readinessNotes": [
+        "Belum Perbaikan",
+        "Belum Cat",
+        "Belum Salon",
+        "Belum Foto Unit"
+      ]
     },
     {
       "id": "STK-2026-002",
@@ -720,11 +730,15 @@
         "ADIRA"
       ],
       "readinessNotes": [
-        "INDICATOR COLOUR"
+        "Belum Cat"
       ],
       "createdAt": "2026-08-01T08:00:00Z",
       "updatedAt": "2026-11-03T01:00:00Z",
-      "plateRegion": "Garut"
+      "plateRegion": "Garut",
+      "isRepaired": true,
+      "isPainted": false,
+      "isDetailed": true,
+      "isPhotographed": true
     },
     {
       "id": "STK-2026-005",
@@ -755,7 +769,14 @@
       "plateNumber": "Z 1319 DZ",
       "createdAt": "2026-08-01T08:00:00Z",
       "updatedAt": "2026-11-03T01:00:00Z",
-      "plateRegion": "Garut"
+      "plateRegion": "Garut",
+      "isRepaired": false,
+      "isPainted": true,
+      "isDetailed": true,
+      "isPhotographed": true,
+      "readinessNotes": [
+        "Belum Perbaikan"
+      ]
     },
     {
       "id": "STK-2026-006",
@@ -1186,11 +1207,15 @@
       "plateNumber": "Z 1475 DE",
       "readinessNotes": [
         "SOLDOUT",
-        "❌ FOTO"
+        "Belum Foto Unit"
       ],
       "createdAt": "2026-08-01T08:00:00Z",
       "updatedAt": "2026-11-03T01:00:00Z",
-      "plateRegion": "Garut"
+      "plateRegion": "Garut",
+      "isRepaired": true,
+      "isPainted": true,
+      "isDetailed": true,
+      "isPhotographed": false
     },
     {
       "id": "STK-2026-018",
@@ -1361,7 +1386,7 @@
       "plateNumber": "Z 1209 EG",
       "readinessNotes": [
         "BOOKING",
-        "❌ DETAILING"
+        "Belum Salon"
       ],
       "createdAt": "2026-08-01T08:00:00Z",
       "updatedAt": "2026-11-03T01:00:00Z",
@@ -1370,7 +1395,11 @@
       "bookingDp": 45000000,
       "bookingDate": "2026-11-01",
       "bookingApplicationId": "CRD-2026-001",
-      "plateRegion": "Garut"
+      "plateRegion": "Garut",
+      "isRepaired": true,
+      "isPainted": true,
+      "isDetailed": false,
+      "isPhotographed": true
     },
     {
       "id": "STK-2026-023",

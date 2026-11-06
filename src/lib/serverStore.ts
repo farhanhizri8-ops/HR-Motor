@@ -153,12 +153,12 @@ export function readDatabase(): CrmDatabase {
     repairDatabaseFollowUps(parsed);
     repairDatabaseUsers(parsed);
     repairDatabaseRepairClaims(parsed);
-    repairDatabaseStocks(parsed);
+    const stocksRepaired = repairDatabaseStocks(parsed);
     repairDatabaseCustomers(parsed);
     repairDatabasePurchases(parsed);
     repairDatabaseCreditApplications(parsed);
     const leadsRepaired = repairDatabaseLeads(parsed);
-    if (leadsRepaired) {
+    if (leadsRepaired || stocksRepaired) {
       try {
         fs.writeFileSync(DATA_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
       } catch (e) {}
@@ -320,6 +320,54 @@ export function repairDatabaseStocks(db: CrmDatabase): boolean {
       s.bookingDate = '2026-11-01';
       s.bookingApplicationId = 'CRD-2026-001';
       modified = true;
+    }
+
+    // Inisialisasi status checklist kesiapan unit showroom
+    if (s.id === 'STK-2026-005') {
+      if (s.isRepaired === undefined || !s.readinessNotes?.includes('Belum Perbaikan')) {
+        s.isRepaired = false;
+        s.isPainted = true;
+        s.isDetailed = true;
+        s.isPhotographed = true;
+        s.readinessNotes = ['Belum Perbaikan'];
+        modified = true;
+      }
+    } else if (s.id === 'STK-2026-004') {
+      if (s.isPainted === undefined || !s.readinessNotes?.includes('Belum Cat')) {
+        s.isRepaired = true;
+        s.isPainted = false;
+        s.isDetailed = true;
+        s.isPhotographed = true;
+        s.readinessNotes = ['Belum Cat'];
+        modified = true;
+      }
+    } else if (s.id === 'STK-2026-022') {
+      if (s.isDetailed === undefined || !s.readinessNotes?.includes('Belum Salon')) {
+        s.isRepaired = true;
+        s.isPainted = true;
+        s.isDetailed = false;
+        s.isPhotographed = true;
+        s.readinessNotes = ['BOOKING', 'Belum Salon'];
+        modified = true;
+      }
+    } else if (s.id === 'STK-2026-017') {
+      if (s.isPhotographed === undefined || !s.readinessNotes?.includes('Belum Foto Unit')) {
+        s.isRepaired = true;
+        s.isPainted = true;
+        s.isDetailed = true;
+        s.isPhotographed = false;
+        s.readinessNotes = ['SOLDOUT', 'Belum Foto Unit'];
+        modified = true;
+      }
+    } else if (s.id === 'STK-2026-001') {
+      if (s.isRepaired === undefined) {
+        s.isRepaired = false;
+        s.isPainted = false;
+        s.isDetailed = false;
+        s.isPhotographed = false;
+        s.readinessNotes = ['Belum Perbaikan', 'Belum Cat', 'Belum Salon', 'Belum Foto Unit'];
+        modified = true;
+      }
     }
   });
   return modified;
