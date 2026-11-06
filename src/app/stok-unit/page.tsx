@@ -21,7 +21,6 @@ import {
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  MessageCircle,
   X,
   Layers,
   ShoppingBag,
@@ -36,7 +35,6 @@ import {
   ShieldCheck,
   Check,
   Calculator,
-  Share2,
   BadgePercent,
   Clock,
   Camera,
@@ -129,7 +127,6 @@ export default function StokUnitPage() {
     deleteStock,
     formatRupiah,
     formatDate,
-    formatWhatsAppLink,
   } = useCrm();
 
   // Search, Filter, Sort States
@@ -1500,8 +1497,6 @@ export default function StokUnitPage() {
                 const isBooking = stock.status === 'Booking';
                 const isTerjual = stock.status === 'Terjual';
 
-                const shareText = `*HR MOTOR Garut - Info Unit Ready*\n🚗 *${stock.brand} ${stock.model}* (${stock.year})\n• Transmisi: ${stock.transmission}\n• Warna: ${stock.color}\n• Odo: ${stock.odometerDisplay || stock.mileage.toLocaleString('id-ID')} km\n• Plat: ${stock.licensePlate || 'Siap Balik Nama'} (${stock.plateRegion || detectPlateRegion(stock.licensePlate)})\n• *Harga Cash: ${formatRupiah(stock.price)}*\n${stock.creditDp ? `• DP Mulai: ${formatRupiah(stock.creditDp)}\n` : ''}${stock.installment35x ? `• Cicilan 35x: ${stock.installment35x}\n` : ''}${stock.installment47x ? `• Cicilan 47x: ${stock.installment47x}\n` : ''}\nMinat cek unit langsung di showroom HR MOTOR Garut? Hubungi kami segera!`;
-                const waShareHref = formatWhatsAppLink('', shareText);
 
                 return (
                   <div
@@ -1630,34 +1625,24 @@ export default function StokUnitPage() {
                       className="flex items-center gap-2 pt-1 border-t border-[#EAE8E3]"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <a
-                        href={waShareHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                        title="Bagikan rincian unit ke WhatsApp konsumen"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Kirim WA</span>
-                      </a>
-
                       <button
                         type="button"
                         onClick={() => handleOpenDetail(stock)}
-                        className="py-2 px-3 rounded-xl bg-gold-100 hover:bg-gold-200 text-gold-950 border border-gold-300 font-bold text-xs flex items-center justify-center gap-1 shadow-2xs transition-colors"
+                        className="flex-1 py-2 px-3 rounded-xl bg-[#FDF8ED] hover:bg-gold-100 text-gold-950 border border-gold-300 font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
                         title="Lihat Detail Lengkap Unit"
                       >
-                        <Eye className="w-3.5 h-3.5 text-gold-800" />
-                        <span>Detail</span>
+                        <Eye className="w-3.5 h-3.5 text-gold-700" />
+                        <span>Detail Unit</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => handleOpenEdit(stock)}
-                        className="p-2 rounded-xl bg-white hover:bg-warm-100 text-charcoal-700 border border-[#EAE8E3] shadow-2xs transition-colors"
+                        className="py-2 px-3 rounded-xl bg-white hover:bg-warm-100 text-charcoal-700 border border-[#EAE8E3] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
                         title="Edit Unit"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
                       </button>
 
                       <button
