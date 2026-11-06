@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Sparkles,
   LogOut,
+  Landmark,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -106,6 +107,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       roles: ['Owner', 'CRM Administrator', 'WhatsApp Administrator', 'Sales Representative', 'Marketing'],
     },
     {
+      name: 'Keuangan & Pembukuan',
+      href: '/keuangan',
+      icon: Landmark,
+      roles: ['Owner', 'Staf Administrasi Keuangan'],
+    },
+    {
       name: 'Manajemen Pengguna',
       href: '/users',
       icon: UserCheck,
@@ -143,8 +150,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const checkRoleAccess = (allowedRoles: string[]) => {
+    if (currentUser.role === 'Owner' || (currentUser.email && currentUser.email.toLowerCase().includes('farhanhizri8'))) return true;
     if (allowedRoles.includes(currentUser.role)) return true;
-    if (currentUser.role === 'Owner') return true;
+    if (currentUser.jobdesks && currentUser.jobdesks.some((j) => allowedRoles.includes(j))) return true;
     const showroomJobdesks = [
       'Host Live',
       'Teknisi Otomotif',

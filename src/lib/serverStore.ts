@@ -16,7 +16,17 @@ import {
   VehicleStock,
   CreditApplication,
   normalizePipelineStage,
+  UnitFinancialRecord,
+  CashFlowRecord,
+  Investor,
+  PayrollCommissionRecord,
 } from '@/types/crm';
+import {
+  INITIAL_FINANCIAL_UNITS,
+  INITIAL_CASH_FLOW,
+  INITIAL_INVESTORS,
+  INITIAL_PAYROLL_COMMISSIONS,
+} from '@/lib/financialSeedData';
 import {
   INITIAL_USERS,
   INITIAL_CUSTOMERS,
@@ -54,6 +64,10 @@ export interface CrmDatabase {
   activityLogs: ActivityLog[];
   templates: typeof MESSAGE_TEMPLATES;
   creditApplications?: CreditApplication[];
+  financialUnits?: UnitFinancialRecord[];
+  cashFlow?: CashFlowRecord[];
+  investors?: Investor[];
+  payrollCommissions?: PayrollCommissionRecord[];
   lastUpdated: string;
 }
 
@@ -77,6 +91,10 @@ export function getInitialDatabase(): CrmDatabase {
     activityLogs: INITIAL_ACTIVITY_LOGS,
     templates: MESSAGE_TEMPLATES,
     creditApplications: INITIAL_CREDIT_APPLICATIONS,
+    financialUnits: INITIAL_FINANCIAL_UNITS,
+    cashFlow: INITIAL_CASH_FLOW,
+    investors: INITIAL_INVESTORS,
+    payrollCommissions: INITIAL_PAYROLL_COMMISSIONS,
     lastUpdated: new Date().toISOString(),
   }));
 }
@@ -115,6 +133,19 @@ export function readDatabase(): CrmDatabase {
     // Ensure followUps is present
     if (!parsed.followUps || !Array.isArray(parsed.followUps) || parsed.followUps.length === 0) {
       parsed.followUps = INITIAL_FOLLOW_UPS;
+    }
+
+    if (!parsed.financialUnits || !Array.isArray(parsed.financialUnits) || parsed.financialUnits.length === 0) {
+      parsed.financialUnits = JSON.parse(JSON.stringify(INITIAL_FINANCIAL_UNITS));
+    }
+    if (!parsed.cashFlow || !Array.isArray(parsed.cashFlow) || parsed.cashFlow.length === 0) {
+      parsed.cashFlow = JSON.parse(JSON.stringify(INITIAL_CASH_FLOW));
+    }
+    if (!parsed.investors || !Array.isArray(parsed.investors) || parsed.investors.length === 0) {
+      parsed.investors = JSON.parse(JSON.stringify(INITIAL_INVESTORS));
+    }
+    if (!parsed.payrollCommissions || !Array.isArray(parsed.payrollCommissions) || parsed.payrollCommissions.length === 0) {
+      parsed.payrollCommissions = JSON.parse(JSON.stringify(INITIAL_PAYROLL_COMMISSIONS));
     }
 
     repairDatabaseFollowUps(parsed);

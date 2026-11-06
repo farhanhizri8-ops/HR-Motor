@@ -19,6 +19,10 @@ import {
   RepairClaim,
   VehicleStock,
   CreditApplication,
+  UnitFinancialRecord,
+  CashFlowRecord,
+  Investor,
+  PayrollCommissionRecord,
 } from '@/types/crm';
 
 function cleanPhone(p?: string): string {
@@ -1365,6 +1369,233 @@ export async function POST(request: Request) {
         });
 
         logActivity('Pengajuan Akun Baru', 'User', newUser.id, `${newUser.name} mendaftar sebagai ${newUser.role} (Menunggu persetujuan Owner)`);
+        break;
+      }
+
+      // ============================================================================
+      // MUTASI KEUANGAN SHOWROOM HR MOTOR (KHUSUS STAF ADMINISTRASI KEUANGAN & OWNER)
+      // ============================================================================
+
+      case 'ADD_FINANCIAL_UNIT': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak menambah transaksi buku besar unit.' }, { status: 403 });
+        }
+        if (!db.financialUnits) db.financialUnits = [];
+        const newRecord: UnitFinancialRecord = {
+          id: `FIN-U-${Date.now().toString().slice(-4)}`,
+          stockNumber: payload.stockNumber || `HRM-${db.financialUnits.length + 1}`,
+          dateBuy: payload.dateBuy || new Date().toISOString().split('T')[0],
+          dateSell: payload.dateSell,
+          brand: payload.brand || 'TOYOTA',
+          model: payload.model || '',
+          year: Number(payload.year) || new Date().getFullYear(),
+          color: payload.color || 'Hitam',
+          plateNumber: (payload.plateNumber || '').toUpperCase().trim(),
+          taxDate: payload.taxDate,
+          initialCost: Number(payload.initialCost) || 0,
+          repairCosts: Array.isArray(payload.repairCosts) ? payload.repairCosts : [],
+          totalCost: Number(payload.totalCost) || Number(payload.initialCost) || 0,
+          buyerName: payload.buyerName,
+          targetPrice: Number(payload.targetPrice) || 0,
+          soldPrice: payload.soldPrice ? Number(payload.soldPrice) : undefined,
+          salesPerson: payload.salesPerson,
+          grossProfit: payload.grossProfit,
+          profitSharing: payload.profitSharing,
+          netProfit: payload.netProfit,
+          status: payload.status || (payload.soldPrice ? 'Terjual' : 'Tersedia'),
+          paymentType: payload.paymentType || 'CASH',
+          leasingName: payload.leasingName,
+          notes: payload.notes,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        db.financialUnits.unshift(newRecord);
+        logActivity('Input Transaksi Unit Keuangan', 'Keuangan', newRecord.id, `Staf Keuangan mencatat unit ${newRecord.brand} ${newRecord.model} (${newRecord.plateNumber})`);
+        break;
+      }
+
+      case 'UPDATE_FINANCIAL_UNIT': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak mengubah data buku besar unit.' }, { status: 403 });
+        }
+        if (!db.financialUnits) db.financialUnits = [];
+        const idx = db.financialUnits.findIndex(u => u.id === payload.id);
+        if (idx !== -1) {
+          db.financialUnits[idx] = {
+            ...db.financialUnits[idx],
+            ...payload,
+            updatedAt: new Date().toISOString(),
+          };
+          logActivity('Perbarui Buku Besar Unit', 'Keuangan', payload.id, `Staf Keuangan memperbarui data unit ${db.financialUnits[idx].brand} ${db.financialUnits[idx].model}`);
+        }
+        break;
+      }
+
+      case 'DELETE_FINANCIAL_UNIT': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak menghapus data transaksi.' }, { status: 403 });
+        }
+        if (db.financialUnits) {
+          db.financialUnits = db.financialUnits.filter(u => u.id !== payload.id);
+          logActivity('Hapus Data Unit Keuangan', 'Keuangan', payload.id, `Staf Keuangan menghapus record transaksi unit ${payload.id}`);
+        }
+        break;
+      }
+
+      case 'ADD_CASH_FLOW': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak mencatat kas operasional/SPK.' }, { status: 403 });
+        }
+        if (!db.cashFlow) db.cashFlow = [];
+        const newCF: CashFlowRecord = {
+          id: `CF-${Date.now().toString().slice(-4)}`,
+          date: payload.date || new Date().toISOString().split('T')[0],
+          vehicleInfo: payload.vehicleInfo,
+          plateNumber: payload.plateNumber ? payload.plateNumber.toUpperCase().trim() : undefined,
+          category: payload.category || 'Perbaikan Unit',
+          description: payload.description || '',
+          type: payload.type || 'out',
+          amount: Number(payload.amount) || 0,
+          recordedBy: currentUser?.name || 'Staf Administrasi Keuangan',
+          notes: payload.notes,
+          createdAt: new Date().toISOString(),
+        };
+        db.cashFlow.unshift(newCF);
+        logActivity('Pencatatan Kas Showroom', 'Kas', newCF.id, `Staf Keuangan mencatat ${newCF.type === 'in' ? 'pemasukan' : 'pengeluaran'} kas: ${newCF.description} (Rp ${newCF.amount.toLocaleString('id-ID')})`);
+        break;
+      }
+
+      case 'DELETE_CASH_FLOW': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak menghapus data kas.' }, { status: 403 });
+        }
+        if (db.cashFlow) {
+          db.cashFlow = db.cashFlow.filter(c => c.id !== payload.id);
+          logActivity('Hapus Catatan Kas', 'Kas', payload.id, `Staf Keuangan menghapus transaksi kas ${payload.id}`);
+        }
+        break;
+      }
+
+      case 'ADD_INVESTOR_RECORD': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak menambah investor.' }, { status: 403 });
+        }
+        if (!db.investors) db.investors = [];
+        const newInv: Investor = {
+          id: `INV-${Date.now().toString().slice(-4)}`,
+          name: payload.name || '',
+          phone: payload.phone,
+          email: payload.email,
+          totalInvestasi: Number(payload.totalInvestasi) || 0,
+          totalPinjaman: Number(payload.totalPinjaman) || 0,
+          totalBayar: Number(payload.totalBayar) || 0,
+          totalAlokasiUnit: Number(payload.totalAlokasiUnit) || 0,
+          sisaSaldo: Number(payload.sisaSaldo) || (Number(payload.totalInvestasi) - Number(payload.totalAlokasiUnit)),
+          allocatedUnits: Array.isArray(payload.allocatedUnits) ? payload.allocatedUnits : [],
+          status: payload.status || 'Aktif',
+          notes: payload.notes,
+          avatarSeed: payload.name ? payload.name.replace(/\s+/g, '') : 'Investor',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        db.investors.push(newInv);
+        logActivity('Tambah Data Investor', 'Investor', newInv.id, `Staf Keuangan mendaftarkan investor ${newInv.name}`);
+        break;
+      }
+
+      case 'UPDATE_INVESTOR_RECORD': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak mengubah data investor.' }, { status: 403 });
+        }
+        if (!db.investors) db.investors = [];
+        const idx = db.investors.findIndex(i => i.id === payload.id);
+        if (idx !== -1) {
+          db.investors[idx] = {
+            ...db.investors[idx],
+            ...payload,
+            updatedAt: new Date().toISOString(),
+          };
+          logActivity('Perbarui Data Investor', 'Investor', payload.id, `Staf Keuangan memperbarui data investor ${db.investors[idx].name}`);
+        }
+        break;
+      }
+
+      case 'ADD_PAYROLL_RECORD': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak mencatat gaji & komisi.' }, { status: 403 });
+        }
+        if (!db.payrollCommissions) db.payrollCommissions = [];
+        const newPay: PayrollCommissionRecord = {
+          id: `PAY-${Date.now().toString().slice(-4)}`,
+          month: payload.month || 'Mei 2026',
+          employeeName: payload.employeeName || '',
+          jobdesk: payload.jobdesk || 'Host Live',
+          description: payload.description || '',
+          amount: Number(payload.amount) || 0,
+          unitReference: payload.unitReference,
+          type: payload.type || 'Host Live',
+          status: payload.status || 'Sudah Dibayar',
+          paidDate: payload.paidDate || new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString(),
+        };
+        db.payrollCommissions.unshift(newPay);
+        logActivity('Pencatatan Gaji/Komisi', 'Gaji', newPay.id, `Staf Keuangan mencatat ${newPay.type} untuk ${newPay.employeeName} (Rp ${newPay.amount.toLocaleString('id-ID')})`);
+        break;
+      }
+
+      case 'DELETE_PAYROLL_RECORD': {
+        const isAuth =
+          currentUser?.role === 'Owner' ||
+          currentUser?.role === 'Staf Administrasi Keuangan' ||
+          (currentUser?.jobdesks && currentUser.jobdesks.includes('Staf Administrasi Keuangan')) ||
+          (currentUser?.email && currentUser.email.toLowerCase().includes('farhanhizri8'));
+        if (!isAuth) {
+          return NextResponse.json({ success: false, error: 'Akses Ditolak: Hanya Staf Administrasi Keuangan yang berhak menghapus data gaji.' }, { status: 403 });
+        }
+        if (db.payrollCommissions) {
+          db.payrollCommissions = db.payrollCommissions.filter(p => p.id !== payload.id);
+          logActivity('Hapus Data Gaji/Komisi', 'Gaji', payload.id, `Staf Keuangan menghapus record gaji/komisi ${payload.id}`);
+        }
         break;
       }
 

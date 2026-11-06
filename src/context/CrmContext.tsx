@@ -20,7 +20,17 @@ import {
   VehicleStock,
   CreditApplication,
   ProspectFollowUpStatus,
+  UnitFinancialRecord,
+  CashFlowRecord,
+  Investor,
+  PayrollCommissionRecord,
 } from '@/types/crm';
+import {
+  INITIAL_FINANCIAL_UNITS,
+  INITIAL_CASH_FLOW,
+  INITIAL_INVESTORS,
+  INITIAL_PAYROLL_COMMISSIONS,
+} from '@/lib/financialSeedData';
 import {
   INITIAL_USERS,
   INITIAL_CUSTOMERS,
@@ -157,6 +167,25 @@ interface CrmContextType {
   changeUserRole: (id: string, role: User['role'], jobdesks?: string[]) => Promise<{ success: boolean; error?: string }>;
   registerUser: (data: { name: string; email: string; role: User['role']; jobdesks?: string[]; phone?: string; password?: string }) => Promise<{ success: boolean; error?: string }>;
   
+  // Keuangan Showroom (Master Ledger, Kas, Investor, Gaji)
+  financialUnits: UnitFinancialRecord[];
+  cashFlow: CashFlowRecord[];
+  investors: Investor[];
+  payrollCommissions: PayrollCommissionRecord[];
+
+  addFinancialUnit: (data: Partial<UnitFinancialRecord>) => Promise<{ success: boolean; error?: string }>;
+  updateFinancialUnit: (data: Partial<UnitFinancialRecord> & { id: string }) => Promise<{ success: boolean; error?: string }>;
+  deleteFinancialUnit: (id: string) => Promise<{ success: boolean; error?: string }>;
+
+  addCashFlow: (data: Partial<CashFlowRecord>) => Promise<{ success: boolean; error?: string }>;
+  deleteCashFlow: (id: string) => Promise<{ success: boolean; error?: string }>;
+
+  addInvestorRecord: (data: Partial<Investor>) => Promise<{ success: boolean; error?: string }>;
+  updateInvestorRecord: (data: Partial<Investor> & { id: string }) => Promise<{ success: boolean; error?: string }>;
+
+  addPayrollRecord: (data: Partial<PayrollCommissionRecord>) => Promise<{ success: boolean; error?: string }>;
+  deletePayrollRecord: (id: string) => Promise<{ success: boolean; error?: string }>;
+
   resetToDemo: () => Promise<void>;
   markNotificationAsRead: (id: string) => void;
 
@@ -208,6 +237,10 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   const [repairClaims, setRepairClaims] = useState<RepairClaim[]>(INITIAL_REPAIR_CLAIMS);
   const [stocks, setStocks] = useState<VehicleStock[]>(INITIAL_STOCKS);
   const [creditApplications, setCreditApplications] = useState<CreditApplication[]>(INITIAL_CREDIT_APPLICATIONS);
+  const [financialUnits, setFinancialUnits] = useState<UnitFinancialRecord[]>(INITIAL_FINANCIAL_UNITS);
+  const [cashFlow, setCashFlow] = useState<CashFlowRecord[]>(INITIAL_CASH_FLOW);
+  const [investors, setInvestors] = useState<Investor[]>(INITIAL_INVESTORS);
+  const [payrollCommissions, setPayrollCommissions] = useState<PayrollCommissionRecord[]>(INITIAL_PAYROLL_COMMISSIONS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(INITIAL_ACTIVITY_LOGS);
   const [templates] = useState<MessageTemplate[]>(MESSAGE_TEMPLATES);
@@ -321,6 +354,10 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
             if (d.creditApplications) setCreditApplications(d.creditApplications);
             if (d.notifications) setNotifications(d.notifications);
             if (d.activityLogs) setActivityLogs(d.activityLogs);
+            if (d.financialUnits) setFinancialUnits(d.financialUnits);
+            if (d.cashFlow) setCashFlow(d.cashFlow);
+            if (d.investors) setInvestors(d.investors);
+            if (d.payrollCommissions) setPayrollCommissions(d.payrollCommissions);
           }
         }
       } catch (e) {
@@ -382,6 +419,10 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         if (d.creditApplications) setCreditApplications(d.creditApplications);
         if (d.notifications) setNotifications(d.notifications);
         if (d.activityLogs) setActivityLogs(d.activityLogs);
+        if (d.financialUnits) setFinancialUnits(d.financialUnits);
+        if (d.cashFlow) setCashFlow(d.cashFlow);
+        if (d.investors) setInvestors(d.investors);
+        if (d.payrollCommissions) setPayrollCommissions(d.payrollCommissions);
         return { success: true };
       } else {
         return { success: false, error: data.error || 'Terjadi kesalahan sistem' };
@@ -657,6 +698,42 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('REGISTER_USER', data);
   };
 
+  const addFinancialUnit = async (data: Partial<UnitFinancialRecord>) => {
+    return executeApiMutation('ADD_FINANCIAL_UNIT', data);
+  };
+
+  const updateFinancialUnit = async (data: Partial<UnitFinancialRecord> & { id: string }) => {
+    return executeApiMutation('UPDATE_FINANCIAL_UNIT', data);
+  };
+
+  const deleteFinancialUnit = async (id: string) => {
+    return executeApiMutation('DELETE_FINANCIAL_UNIT', { id });
+  };
+
+  const addCashFlow = async (data: Partial<CashFlowRecord>) => {
+    return executeApiMutation('ADD_CASH_FLOW', data);
+  };
+
+  const deleteCashFlow = async (id: string) => {
+    return executeApiMutation('DELETE_CASH_FLOW', { id });
+  };
+
+  const addInvestorRecord = async (data: Partial<Investor>) => {
+    return executeApiMutation('ADD_INVESTOR_RECORD', data);
+  };
+
+  const updateInvestorRecord = async (data: Partial<Investor> & { id: string }) => {
+    return executeApiMutation('UPDATE_INVESTOR_RECORD', data);
+  };
+
+  const addPayrollRecord = async (data: Partial<PayrollCommissionRecord>) => {
+    return executeApiMutation('ADD_PAYROLL_RECORD', data);
+  };
+
+  const deletePayrollRecord = async (id: string) => {
+    return executeApiMutation('DELETE_PAYROLL_RECORD', { id });
+  };
+
   const updateProfile = async (data: { name?: string; email?: string; phone?: string; avatar?: string; password?: string }) => {
     setCurrentUser((prev) => {
       const updated = {
@@ -854,6 +931,22 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         deleteUser,
         changeUserRole,
         registerUser,
+
+        financialUnits,
+        cashFlow,
+        investors,
+        payrollCommissions,
+
+        addFinancialUnit,
+        updateFinancialUnit,
+        deleteFinancialUnit,
+        addCashFlow,
+        deleteCashFlow,
+        addInvestorRecord,
+        updateInvestorRecord,
+        addPayrollRecord,
+        deletePayrollRecord,
+
         resetToDemo,
         markNotificationAsRead,
         formatRupiah,

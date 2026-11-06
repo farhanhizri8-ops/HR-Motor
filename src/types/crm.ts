@@ -1,4 +1,4 @@
-﻿export type ShowroomJobdesk =
+export type ShowroomJobdesk =
   | 'Host Live'
   | 'Teknisi Otomotif'
   | 'Staf Operasional Showroom'
@@ -562,7 +562,7 @@ export interface ActivityLog {
   userName: string;
   userRole: UserRole;
   action: string;
-  entityType: 'Pelanggan' | 'Prospek' | 'Follow-up' | 'Komunikasi' | 'Deal' | 'Komplain' | 'User' | 'Stok Unit';
+  entityType: 'Pelanggan' | 'Prospek' | 'Follow-up' | 'Komunikasi' | 'Deal' | 'Komplain' | 'User' | 'Stok Unit' | 'Keuangan' | 'Kas' | 'Investor' | 'Gaji';
   entityId: string;
   details: string;
   createdAt: string;
@@ -622,4 +622,214 @@ export interface RepairClaim {
   resolvedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+
+// ============================================================================
+// MANAJEMEN LAPORAN INVESTASI & BAGI HASIL SHOWROOM HR MOTOR
+// (HANYA DAPAT DIAKSES & DIEDIT OLEH OWNER & STAF ADMINISTRASI KEUANGAN)
+// ============================================================================
+
+export interface InvestorAllocatedUnit {
+  carName: string;
+  nominal: number;
+  keterangan?: string;
+  date?: string;
+}
+
+export interface Investor {
+  id: string; // e.g. INV-001
+  name: string;
+  phone?: string;
+  email?: string;
+  totalInvestasi: number; // Total modal disetor
+  totalPinjaman: number; // Total pinjaman ditarik
+  totalBayar: number; // Total pinjaman dikembalikan
+  totalAlokasiUnit: number; // Total dana terpasang di unit mobil
+  sisaSaldo: number; // Sisa dana belum teralokasi
+  allocatedUnits?: InvestorAllocatedUnit[];
+  status: 'Aktif' | 'Selesai' | 'Standby';
+  notes?: string;
+  avatarSeed?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type InvestmentTransactionType =
+  | 'Investasi Masuk'
+  | 'Pinjaman Investor'
+  | 'Pembayaran/Pengembalian'
+  | 'Bagi Hasil';
+
+export interface InvestmentTransaction {
+  id: string; // e.g. TX-INV-001
+  investorId: string;
+  investorName: string;
+  type: InvestmentTransactionType;
+  nominal: number;
+  tanggal: string;
+  keterangan: string;
+  unitInfo?: string;
+  createdAt: string;
+}
+
+export interface UnitProfitSharing {
+  id: string; // e.g. BGH-001
+  carName: string;
+  plateNumber?: string;
+  investorName: string;
+  investorId?: string;
+  modalBeli: number;
+  biayaRestorasi: number;
+  rincianRestorasi?: { item: string; nominal: number }[];
+  totalModal: number;
+  hargaJual: number;
+  biayaOperasionalJual: number; // Mediator, Tempat/Admin dll
+  keuntunganBersih: number;
+  skemaBagiHasil: string; // e.g. "50% Investor : 50% HR MOTOR"
+  persenInvestor: number; // e.g. 50 atau 78
+  persenHrMotor: number; // e.g. 50 atau 22
+  bagianInvestor: number;
+  bagianHrMotor: number;
+  status: 'Selesai Dibagikan' | 'Dalam Proses' | 'Draft';
+  tanggalSelesai: string;
+  catatan?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function canAccessInvestasi(user?: User | null): boolean {
+  if (!user) return false;
+  if (user.role === 'Owner') return true;
+  if (
+    user.email &&
+    (user.email.toLowerCase().includes('farhanhizri8') ||
+      user.email.toLowerCase() === 'farhanhizri8@gmail.com')
+  ) {
+    return true;
+  }
+  if (user.role === 'Staf Administrasi Keuangan') return true;
+  if (
+    Array.isArray(user.jobdesks) &&
+    user.jobdesks.includes('Staf Administrasi Keuangan')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+
+// ============================================================================
+// BUKU BESAR KEUANGAN UNIT (MASTER LEDGER & HPP SHOWROOM)
+// ============================================================================
+
+export interface RepairCostItem {
+  id?: string;
+  item: string;
+  amount: number;
+}
+
+export interface UnitFinancialRecord {
+  id: string; // e.g. FIN-U-001
+  stockNumber: string;
+  dateBuy: string;
+  dateSell?: string;
+  brand: string;
+  model: string;
+  year: number;
+  color: string;
+  plateNumber: string;
+  taxDate?: string;
+  initialCost: number; // Modal Beli
+  repairCosts: RepairCostItem[]; // Rincian Biaya Perbaikan (Cat, Salon, Onderdil, dll)
+  totalCost: number; // Total Modal HPP (Modal Beli + Total Perbaikan)
+  buyerName?: string;
+  targetPrice: number; // Harga Jual Showroom
+  soldPrice?: number; // Harga Terjual
+  salesPerson?: string;
+  grossProfit?: number; // Harga Terjual - Total Modal
+  profitSharing?: number; // Bagi Hasil Investor
+  netProfit?: number; // Laba Bersih Showroom
+  status: 'Terjual' | 'Tersedia' | 'Booking';
+  paymentType?: 'CASH' | 'KREDIT' | 'TRADE-IN';
+  leasingName?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================================
+// ARUS KAS & PENGELUARAN BENGKEL / SHOWROOM (PETTY CASH & SPK)
+// ============================================================================
+
+export type CashFlowCategory =
+  | 'Perbaikan Unit'
+  | 'Operasional Showroom'
+  | 'Pajak & Surat'
+  | 'BOP & Uang Makan'
+  | 'Uang SPK Masuk'
+  | 'Lain-lain';
+
+export interface CashFlowRecord {
+  id: string; // e.g. CF-001
+  date: string;
+  vehicleInfo?: string;
+  plateNumber?: string;
+  category: CashFlowCategory;
+  description: string;
+  type: 'in' | 'out'; // in = Uang Masuk (SPK), out = Pengeluaran (Bengkel/Operasional)
+  amount: number;
+  recordedBy: string;
+  notes?: string;
+  createdAt: string;
+}
+
+// ============================================================================
+// REKAP GAJI, KOMISI & KASBON KARYAWAN SHOWROOM
+// ============================================================================
+
+export interface PayrollCommissionRecord {
+  id: string; // e.g. PAY-001
+  month: string; // e.g. 'Mei 2026'
+  employeeName: string;
+  jobdesk: string; // Host Live, Konten Kreator, Admin, Sales, dll
+  description: string;
+  amount: number;
+  unitReference?: string;
+  type: 'Host Live' | 'Konten/Foto' | 'Admin' | 'Sales' | 'Pinjaman/Kasbon' | 'Gaji Pokok';
+  status: 'Sudah Dibayar' | 'Pending';
+  paidDate?: string;
+  createdAt: string;
+}
+
+// ============================================================================
+// HAK AKSES & KEAMANAN KEUANGAN
+// (HANYA OWNER & STAF ADMINISTRASI KEUANGAN YANG BERHAK MELIHAT LAPORAN)
+// (HANYA STAF ADMINISTRASI KEUANGAN YANG BERHAK MENGEDIT/INPUT DATA)
+// ============================================================================
+
+export function isFinanceAdmin(user?: User | null): boolean {
+  if (!user) return false;
+  if (user.role === 'Staf Administrasi Keuangan') return true;
+  if (Array.isArray(user.jobdesks) && user.jobdesks.includes('Staf Administrasi Keuangan')) return true;
+  return false;
+}
+
+export function canViewFinance(user?: User | null): boolean {
+  if (!user) return false;
+  if (user.role === 'Owner') return true;
+  if (
+    user.email &&
+    (user.email.toLowerCase().includes('farhanhizri8') ||
+      user.email.toLowerCase() === 'farhanhizri8@gmail.com')
+  ) {
+    return true;
+  }
+  return isFinanceAdmin(user);
+}
+
+export function canEditFinance(user?: User | null): boolean {
+  if (!user) return false;
+  // Pengedit data keuangan adalah Staf Administrasi Keuangan (dan Owner)
+  return isFinanceAdmin(user) || user.role === 'Owner';
 }

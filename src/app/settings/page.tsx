@@ -39,8 +39,10 @@ import {
   History,
   TrendingUp,
   ChevronRight,
+  Landmark,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
+import { canViewFinance } from '@/types/crm';
 
 const AVATAR_PRESETS = [
   { id: '1', label: 'Farhan (Owner)', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf' },
@@ -371,6 +373,28 @@ export default function SettingsDealerPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {/* Keuangan Showroom (Khusus Owner & Staf Keuangan) */}
+          {canViewFinance(currentUser) && (
+            <Link
+              href="/keuangan"
+              className="p-3 rounded-xl bg-gradient-to-br from-[#FDF8ED] to-white border-2 border-gold-400 hover:border-gold-500 hover:shadow-xs transition-all flex flex-col justify-between group active:scale-95 col-span-2 sm:col-span-1"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-gold-200 text-gold-900 border border-gold-400 flex items-center justify-center font-bold">
+                  <Landmark className="w-4 h-4 text-gold-900" />
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-gold-700 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+              <div className="mt-2">
+                <div className="flex items-center gap-1">
+                  <h3 className="text-xs font-black text-charcoal-900 group-hover:text-gold-900">Dashboard Keuangan</h3>
+                  <span className="text-[9px] font-bold text-gold-800 bg-gold-200/80 px-1.5 py-0.2 rounded">Rahasia</span>
+                </div>
+                <p className="text-[10px] text-charcoal-500 truncate">HPP unit, kas harian &amp; investor</p>
+              </div>
+            </Link>
+          )}
+
           {/* Data Pelanggan */}
           <Link
             href="/customers"
