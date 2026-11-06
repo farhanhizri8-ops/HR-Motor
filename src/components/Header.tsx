@@ -248,7 +248,7 @@ export const Header: React.FC<HeaderProps> = ({
             <img
               src={currentUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'}
               alt={currentUser.name}
-              className="w-5 h-5 rounded-full object-cover border border-gold-400 shrink-0"
+              className="w-5 h-5 rounded-full object-cover aspect-square border border-gold-400 shrink-0"
             />
             <span className="hidden lg:inline font-bold truncate max-w-[90px]">{currentUser.name}</span>
             <span className="hidden sm:inline text-[10px] text-gold-700 bg-gold-100 border border-gold-200 px-1.5 py-0.5 rounded font-bold uppercase truncate max-w-[110px]">
@@ -282,7 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <img
                       src={u.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'}
                       alt={u.name}
-                      className="w-6 h-6 rounded-full object-cover border border-gold-400"
+                      className="w-6 h-6 rounded-full object-cover aspect-square border border-gold-400 shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="truncate text-xs font-semibold">{u.name}</p>

@@ -96,30 +96,20 @@ export default function SettingsDealerPage() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_SIZE = 256;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_SIZE) {
-            height = Math.round((height * MAX_SIZE) / width);
-            width = MAX_SIZE;
-          }
-        } else {
-          if (height > MAX_SIZE) {
-            width = Math.round((width * MAX_SIZE) / height);
-            height = MAX_SIZE;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
+        const TARGET_SIZE = 256;
+        canvas.width = TARGET_SIZE;
+        canvas.height = TARGET_SIZE;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          // Center-crop proporsional 1:1 persegi rapi agar foto tidak gepeng / lonjong
+          const minDim = Math.min(img.width, img.height);
+          const cropX = (img.width - minDim) / 2;
+          const cropY = (img.height - minDim) / 2;
+
+          ctx.drawImage(img, cropX, cropY, minDim, minDim, 0, 0, TARGET_SIZE, TARGET_SIZE);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
           setProfileAvatar(compressedDataUrl);
-          showNotification('Foto berhasil diunggah! Klik "Simpan Perubahan Profil" untuk menyimpan.');
+          showNotification('Foto berhasil diunggah & dipotong rapi persegi 1:1! Klik "Simpan Perubahan Profil" untuk menyimpan.');
         } else {
           setProfileAvatar(rawDataUrl);
           showNotification('Foto berhasil diunggah! Klik "Simpan Perubahan Profil" untuk menyimpan.');
@@ -306,7 +296,7 @@ export default function SettingsDealerPage() {
             <img
               src={currentUser.avatar || AVATAR_PRESETS[0].url}
               alt={currentUser.name}
-              className="w-8 h-8 rounded-full object-cover border border-gold-400"
+              className="w-8 h-8 rounded-full object-cover aspect-square border border-gold-400 shrink-0"
             />
             <div>
               <p className="text-xs font-bold text-charcoal-900 leading-tight">{currentUser.name}</p>
@@ -540,44 +530,54 @@ export default function SettingsDealerPage() {
             </div>
 
             {/* Avatar Selector */}
-            <div>
-              <label className="block text-xs font-bold text-charcoal-800 mb-2">
-                Foto Profil Pengguna (Avatar)
-              </label>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="p-4 bg-[#FAF9F5] rounded-2xl border border-[#EAE8E3] space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-charcoal-800">
+                  Foto Profil Pengguna (Avatar)
+                </label>
+                <span className="text-[10px] text-charcoal-500 font-medium">Format Persegi 1:1 Otomatis Rapi</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                {/* Pratinjau Foto Profil (Presisi 1:1 Persegi Rapi) */}
                 <div
-                  className="relative cursor-pointer group"
+                  className="relative cursor-pointer group shrink-0"
                   onClick={() => fileInputRef.current?.click()}
                   title="Klik untuk unggah foto baru dari HP atau Laptop"
                 >
-                  <img
-                    src={profileAvatar}
-                    alt="Foto Profil"
-                    className="w-20 h-20 rounded-2xl object-cover border-2 border-gold-400 shadow-md group-hover:border-gold-500 transition-all"
-                  />
-                  <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-gold-500 text-charcoal-950 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-gold-400 shadow-md group-hover:border-gold-500 transition-all bg-white flex items-center justify-center aspect-square">
+                    <img
+                      src={profileAvatar}
+                      alt="Foto Profil"
+                      className="w-full h-full object-cover aspect-square"
+                    />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gold-500 text-charcoal-950 flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
                     <Camera className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <div className="flex-1 space-y-2">
-                  <span className="text-[11px] text-charcoal-500 block">Pilih avatar preset showroom resmi atau unggah foto:</span>
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex-1 space-y-2.5 text-center sm:text-left">
+                  <span className="text-[11px] text-charcoal-600 font-medium block">
+                    Pilih avatar preset showroom resmi atau unggah foto dari HP/Laptop:
+                  </span>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                     {AVATAR_PRESETS.map((preset) => (
                       <button
                         key={preset.id}
                         type="button"
                         onClick={() => setProfileAvatar(preset.url)}
-                        className={`w-9 h-9 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                        className={`w-9 h-9 rounded-xl overflow-hidden border-2 transition-all cursor-pointer aspect-square shrink-0 ${
                           profileAvatar === preset.url
                             ? 'border-gold-500 ring-2 ring-gold-400/40 scale-105 shadow-xs'
                             : 'border-transparent hover:border-gold-300 opacity-70 hover:opacity-100'
                         }`}
                         title={preset.label}
                       >
-                        <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
+                        <img src={preset.url} alt={preset.label} className="w-full h-full object-cover aspect-square" />
                       </button>
                     ))}
+
                     <button
                       type="button"
                       onClick={() => {
@@ -587,7 +587,7 @@ export default function SettingsDealerPage() {
                         const newAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomSeed}&backgroundColor=${randomBg}`;
                         setProfileAvatar(newAvatar);
                       }}
-                      className="px-2.5 py-1.5 rounded-lg bg-gold-100 hover:bg-gold-200 border border-gold-300 text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                      className="px-2.5 py-1.5 rounded-xl bg-gold-100 hover:bg-gold-200 border border-gold-300 text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
                       title="Buat karakter kartun animasi acak unik"
                     >
                       🎲 + Acak Kartun
@@ -607,13 +607,16 @@ export default function SettingsDealerPage() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-2.5 py-1.5 rounded-lg border border-gold-400 bg-white hover:bg-[#FDF8ED] text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                      className="px-3 py-1.5 rounded-xl border border-gold-400 bg-white hover:bg-[#FDF8ED] text-[10px] font-bold text-gold-900 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
                       title="Unggah foto langsung dari kamera HP atau file laptop"
                     >
                       <Upload className="w-3.5 h-3.5 text-gold-700" />
                       <span>Unggah Foto</span>
                     </button>
                   </div>
+                  <p className="text-[10px] text-charcoal-400">
+                    * Foto dari HP atau laptop otomatis dipotong persegi 1:1 di tengah agar selalu rapi, proporsional, dan tidak gepeng/lonjong.
+                  </p>
                 </div>
               </div>
             </div>

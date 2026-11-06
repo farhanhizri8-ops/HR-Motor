@@ -389,7 +389,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <img
               src={currentUser.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=FarhanOwner&backgroundColor=ffdfbf'}
               alt={currentUser.name}
-              className="w-9 h-9 rounded-full object-cover border-2 border-gold-400 shadow-xs shrink-0"
+              className="w-9 h-9 rounded-full object-cover aspect-square border-2 border-gold-400 shadow-xs shrink-0"
             />
             <div className={`flex-1 min-w-0 flex items-center justify-between gap-1 ${collapsed ? 'lg:hidden' : 'flex'}`}>
               <div className="min-w-0">

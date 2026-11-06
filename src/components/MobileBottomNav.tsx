@@ -298,7 +298,7 @@ export const MobileBottomNav: React.FC = () => {
                 {/* Icon Container with Badge */}
                 <div className="relative flex items-center justify-center mb-0.5">
                   <div
-                    className={`w-9 h-7 rounded-full flex items-center justify-center transition-all ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all aspect-square shrink-0 ${
                       active
                         ? 'bg-gold-100/90 text-gold-900 shadow-2xs scale-105'
                         : 'text-charcoal-500 group-hover:text-charcoal-800'
@@ -309,8 +309,8 @@ export const MobileBottomNav: React.FC = () => {
                       <img
                         src={tab.customAvatar}
                         alt="Profil"
-                        className={`w-5.5 h-5.5 rounded-full object-cover border ${
-                          active ? 'border-gold-500 ring-1 ring-gold-400' : 'border-[#DDD9CF]'
+                        className={`w-6 h-6 rounded-full object-cover aspect-square shrink-0 border ${
+                          active ? 'border-gold-500 ring-1.5 ring-gold-400/60' : 'border-[#DDD9CF]'
                         }`}
                       />
                     ) : (
