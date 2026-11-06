@@ -37,6 +37,7 @@ import {
   Upload,
   UserCheck,
   History,
+  TrendingUp,
   ChevronRight,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
@@ -421,6 +422,23 @@ export default function SettingsDealerPage() {
             <div className="mt-2">
               <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Garansi &amp; Servis</h3>
               <p className="text-[10px] text-charcoal-500 truncate">Klaim &lt; 1 bulan &amp; bengkel</p>
+            </div>
+          </Link>
+
+          {/* Laporan & Analisis Showroom */}
+          <Link
+            href="/reports"
+            className="p-3 rounded-xl bg-[#FAF9F5] border border-[#EAE8E3] hover:border-gold-400 hover:bg-[#FDF8ED] transition-all flex flex-col justify-between group active:scale-95"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-gold-100 text-gold-900 border border-gold-300 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-gold-800" />
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-gold-700" />
+            </div>
+            <div className="mt-2">
+              <h3 className="text-xs font-bold text-charcoal-900 group-hover:text-gold-900">Laporan &amp; Analisis</h3>
+              <p className="text-[10px] text-charcoal-500 truncate">Tren penjualan &amp; kinerja showroom</p>
             </div>
           </Link>
 
