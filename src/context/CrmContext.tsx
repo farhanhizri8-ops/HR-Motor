@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import {
@@ -24,6 +24,10 @@ import {
   CashFlowRecord,
   Investor,
   PayrollCommissionRecord,
+  ContentStockItem,
+  CleaningChecklistItem,
+  INITIAL_CLEANING_CHECKLIST,
+  INITIAL_CONTENT_STOCKS,
 } from '@/types/crm';
 import {
   INITIAL_FINANCIAL_UNITS,
@@ -186,6 +190,15 @@ interface CrmContextType {
   addPayrollRecord: (data: Partial<PayrollCommissionRecord>) => Promise<{ success: boolean; error?: string }>;
   deletePayrollRecord: (id: string) => Promise<{ success: boolean; error?: string }>;
 
+  // Tugas Saya (Manajemen Konten & Monitoring Kebersihan)
+  contentStocks: ContentStockItem[];
+  cleaningChecklist: CleaningChecklistItem[];
+  addContentStock: (data: Partial<ContentStockItem>) => Promise<{ success: boolean; error?: string }>;
+  updateContentStock: (data: Partial<ContentStockItem> & { id: string }) => Promise<{ success: boolean; error?: string }>;
+  deleteContentStock: (id: string) => Promise<{ success: boolean; error?: string }>;
+  toggleCleaningChecklist: (id: string, isClean: boolean, cleanedBy?: string, notes?: string) => Promise<{ success: boolean; error?: string }>;
+  resetDailyCleaningChecklist: () => Promise<{ success: boolean; error?: string }>;
+
   resetToDemo: () => Promise<void>;
   markNotificationAsRead: (id: string) => void;
 
@@ -241,6 +254,8 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
   const [cashFlow, setCashFlow] = useState<CashFlowRecord[]>(INITIAL_CASH_FLOW);
   const [investors, setInvestors] = useState<Investor[]>(INITIAL_INVESTORS);
   const [payrollCommissions, setPayrollCommissions] = useState<PayrollCommissionRecord[]>(INITIAL_PAYROLL_COMMISSIONS);
+  const [contentStocks, setContentStocks] = useState<ContentStockItem[]>(INITIAL_CONTENT_STOCKS);
+  const [cleaningChecklist, setCleaningChecklist] = useState<CleaningChecklistItem[]>(INITIAL_CLEANING_CHECKLIST);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>(INITIAL_ACTIVITY_LOGS);
   const [templates] = useState<MessageTemplate[]>(MESSAGE_TEMPLATES);
@@ -358,6 +373,8 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
             if (d.cashFlow) setCashFlow(d.cashFlow);
             if (d.investors) setInvestors(d.investors);
             if (d.payrollCommissions) setPayrollCommissions(d.payrollCommissions);
+            if (d.contentStocks) setContentStocks(d.contentStocks);
+            if (d.cleaningChecklist) setCleaningChecklist(d.cleaningChecklist);
           }
         }
       } catch (e) {
@@ -734,6 +751,26 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
     return executeApiMutation('DELETE_PAYROLL_RECORD', { id });
   };
 
+  const addContentStock = async (data: Partial<ContentStockItem>) => {
+    return executeApiMutation('ADD_CONTENT_STOCK', data);
+  };
+
+  const updateContentStock = async (data: Partial<ContentStockItem> & { id: string }) => {
+    return executeApiMutation('UPDATE_CONTENT_STOCK', data);
+  };
+
+  const deleteContentStock = async (id: string) => {
+    return executeApiMutation('DELETE_CONTENT_STOCK', { id });
+  };
+
+  const toggleCleaningChecklist = async (id: string, isClean: boolean, cleanedBy?: string, notes?: string) => {
+    return executeApiMutation('TOGGLE_CLEANING_CHECKLIST', { id, isClean, cleanedBy, notes });
+  };
+
+  const resetDailyCleaningChecklist = async () => {
+    return executeApiMutation('RESET_CLEANING_CHECKLIST', {});
+  };
+
   const updateProfile = async (data: { name?: string; email?: string; phone?: string; avatar?: string; password?: string }) => {
     setCurrentUser((prev) => {
       const updated = {
@@ -946,6 +983,14 @@ export const CrmProvider = ({ children }: { children: ReactNode }) => {
         updateInvestorRecord,
         addPayrollRecord,
         deletePayrollRecord,
+
+        contentStocks,
+        cleaningChecklist,
+        addContentStock,
+        updateContentStock,
+        deleteContentStock,
+        toggleCleaningChecklist,
+        resetDailyCleaningChecklist,
 
         resetToDemo,
         markNotificationAsRead,

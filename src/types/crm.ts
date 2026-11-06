@@ -80,6 +80,173 @@ export const SHOWROOM_JOBDESKS: ShowroomJobdeskOption[] = [
     badgeBorder: 'border-teal-200',
   },
 ];
+// ============================================================================
+// TUGAS SAYA & MONITORING JOBDESK SHOWROOM
+// ============================================================================
+
+export type ContentPlatform = 'TikTok' | 'Instagram Reels' | 'YouTube Shorts' | 'Facebook Video';
+export type ContentStatus = 'Draf' | 'Siap Tayang' | 'Sudah Tayang';
+export type ContentCategory = 'Review Unit' | 'Tips Otomotif' | 'Spill Harga / DP' | 'Cinematic Unit' | 'Aktivitas Showroom';
+
+export interface ContentStockItem {
+  id: string;
+  title: string;
+  platform: ContentPlatform;
+  category: ContentCategory;
+  vehicleModel?: string;
+  status: ContentStatus;
+  targetPublishDate?: string;
+  notes?: string;
+  videoUrl?: string;
+  creatorName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CleaningChecklistItem {
+  id: string;
+  areaName: string;
+  description: string;
+  isClean: boolean;
+  cleanedBy?: string;
+  cleanedAt?: string;
+  notes?: string;
+}
+
+export const INITIAL_CLEANING_CHECKLIST: CleaningChecklistItem[] = [
+  {
+    id: 'CLN-001',
+    areaName: 'Lantai Utama & Area Display Depan',
+    description: 'Sapu, pel, dan pastikan lantai pameran mobil bersih mengkilap tanpa noda oli atau debu',
+    isClean: true,
+    cleanedBy: 'Staf Operasional',
+    cleanedAt: '2026-11-06T08:00:00Z',
+    notes: 'Sudah dipel dengan cairan pembersih wangi',
+  },
+  {
+    id: 'CLN-002',
+    areaName: 'Pengelapan Debu & Kaca Mobil Display',
+    description: 'Lap kaca luar/dalam seluruh mobil showroom dan dusting debu body dengan kemoceng microfiber',
+    isClean: false,
+    notes: 'Mobil baris depan selesai, baris belakang perlu dusting ulang',
+  },
+  {
+    id: 'CLN-003',
+    areaName: 'Ruang Tunggu Konsumen & Meja Negosiasi',
+    description: 'Bersihkan meja kaca tamu, tata rapi brosur simulasi cicilan, sofa empuk & pastikan AC dingin',
+    isClean: true,
+    cleanedBy: 'Staf Operasional',
+    cleanedAt: '2026-11-06T08:15:00Z',
+    notes: 'Brosur paket DP murah sudah ditaruh di meja',
+  },
+  {
+    id: 'CLN-004',
+    areaName: 'Kerapihan Meja Kasir & Administrasi',
+    description: 'Rapikan berkas map BPKB/STNK, kertas kwitansi transaksi & alat tulis showroom',
+    isClean: true,
+    cleanedBy: 'Staf Operasional',
+    cleanedAt: '2026-11-06T08:30:00Z',
+  },
+  {
+    id: 'CLN-005',
+    areaName: 'Area Parkir Luar, Paving & Halaman Depan',
+    description: 'Sapu daun kering di halaman depan, bersihkan jalur test drive & rapikan plang HR MOTOR',
+    isClean: false,
+    notes: 'Perlu disapu setelah jam makan siang',
+  },
+  {
+    id: 'CLN-006',
+    areaName: 'Toilet Tamu, Wastafel & Tempat Sampah',
+    description: 'Pastikan sabun cuci tangan, tisu terisi penuh, lantai kering & kosongkan tempat sampah',
+    isClean: true,
+    cleanedBy: 'Staf Operasional',
+    cleanedAt: '2026-11-06T08:45:00Z',
+  },
+  {
+    id: 'CLN-007',
+    areaName: 'Pengecekan Kunci & Aki Unit Display',
+    description: 'Pastikan semua kaca mobil tertutup rapat, pintu terkunci saat tutup & aki tidak tekor',
+    isClean: false,
+    notes: 'Cek voltase aki Terios & Sigra',
+  },
+  {
+    id: 'CLN-008',
+    areaName: 'Lampu Sorot Showroom & Keamanan Gerbang',
+    description: 'Cek lampu spotlight mobil display menyala terang & gembok pintu gerbang showroom',
+    isClean: true,
+    cleanedBy: 'Staf Operasional',
+    cleanedAt: '2026-11-06T09:00:00Z',
+  },
+];
+
+export const INITIAL_CONTENT_STOCKS: ContentStockItem[] = [
+  {
+    id: 'CNT-001',
+    title: 'Review Honda Brio RS Kuning Facelift - Mobil Lincah Garut',
+    platform: 'TikTok',
+    category: 'Review Unit',
+    vehicleModel: 'Honda Brio RS 1.2 M/T',
+    status: 'Siap Tayang',
+    targetPublishDate: '2026-11-06',
+    notes: 'Hook: "Cari mobil anak muda budget 100 jutaan di Garut? Brio RS ini solusinya!"',
+    creatorName: 'Konten Kreator HR MOTOR',
+    createdAt: '2026-11-04T10:00:00Z',
+    updatedAt: '2026-11-05T14:00:00Z',
+  },
+  {
+    id: 'CNT-002',
+    title: 'Spill Harga & Simulasi Angsuran Daihatsu Sigra 2024 DP Ringan',
+    platform: 'Instagram Reels',
+    category: 'Spill Harga / DP',
+    vehicleModel: 'Daihatsu Sigra 1.2 R',
+    status: 'Sudah Tayang',
+    targetPublishDate: '2026-11-05',
+    videoUrl: 'https://instagram.com/reels/hrmotor',
+    notes: 'Tayang jam 19:00 WIB, performa 2.4k views',
+    creatorName: 'Konten Kreator HR MOTOR',
+    createdAt: '2026-11-03T11:00:00Z',
+    updatedAt: '2026-11-05T20:00:00Z',
+  },
+  {
+    id: 'CNT-003',
+    title: 'Cinematic Visual Mitsubishi Xpander Cross Hitam Mewah Gagah',
+    platform: 'TikTok',
+    category: 'Cinematic Unit',
+    vehicleModel: 'Mitsubishi Xpander Cross 1.5L',
+    status: 'Draf',
+    targetPublishDate: '2026-11-07',
+    notes: 'Proses colour grading & pemilihan audio tren',
+    creatorName: 'Konten Kreator HR MOTOR',
+    createdAt: '2026-11-05T16:00:00Z',
+    updatedAt: '2026-11-05T16:00:00Z',
+  },
+  {
+    id: 'CNT-004',
+    title: 'Tips Cek Mobil Bekas Bebas Tabrak & Banjir Langsung dari Showroom',
+    platform: 'YouTube Shorts',
+    category: 'Tips Otomotif',
+    status: 'Siap Tayang',
+    targetPublishDate: '2026-11-08',
+    notes: 'Edukasi garansi resmi 100% HR Motor Garut',
+    creatorName: 'Konten Kreator HR MOTOR',
+    createdAt: '2026-11-04T13:00:00Z',
+    updatedAt: '2026-11-06T09:00:00Z',
+  },
+  {
+    id: 'CNT-005',
+    title: 'Keseruan Live Streaming Showroom & Test Drive Konsumen Deal',
+    platform: 'Instagram Reels',
+    category: 'Aktivitas Showroom',
+    vehicleModel: 'Toyota Rush TRD Sportivo',
+    status: 'Draf',
+    targetPublishDate: '2026-11-09',
+    notes: 'Rekaman serah terima kunci konsumen Garut',
+    creatorName: 'Konten Kreator HR MOTOR',
+    createdAt: '2026-11-06T08:30:00Z',
+    updatedAt: '2026-11-06T08:30:00Z',
+  },
+];
+
 
 export interface User {
   id: string;

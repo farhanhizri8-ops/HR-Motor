@@ -20,6 +20,10 @@ import {
   CashFlowRecord,
   Investor,
   PayrollCommissionRecord,
+  ContentStockItem,
+  CleaningChecklistItem,
+  INITIAL_CLEANING_CHECKLIST,
+  INITIAL_CONTENT_STOCKS,
 } from '@/types/crm';
 import {
   INITIAL_FINANCIAL_UNITS,
@@ -70,6 +74,8 @@ export interface CrmDatabase {
   cashFlow?: CashFlowRecord[];
   investors?: Investor[];
   payrollCommissions?: PayrollCommissionRecord[];
+  contentStocks?: ContentStockItem[];
+  cleaningChecklist?: CleaningChecklistItem[];
   lastUpdated: string;
 }
 
@@ -97,6 +103,8 @@ export function getInitialDatabase(): CrmDatabase {
     cashFlow: INITIAL_CASH_FLOW,
     investors: INITIAL_INVESTORS,
     payrollCommissions: INITIAL_PAYROLL_COMMISSIONS,
+    contentStocks: INITIAL_CONTENT_STOCKS,
+    cleaningChecklist: INITIAL_CLEANING_CHECKLIST,
     lastUpdated: new Date().toISOString(),
   }));
 }
@@ -148,6 +156,12 @@ export function readDatabase(): CrmDatabase {
     }
     if (!parsed.payrollCommissions || !Array.isArray(parsed.payrollCommissions) || parsed.payrollCommissions.length === 0) {
       parsed.payrollCommissions = JSON.parse(JSON.stringify(INITIAL_PAYROLL_COMMISSIONS));
+    }
+    if (!parsed.contentStocks || !Array.isArray(parsed.contentStocks) || parsed.contentStocks.length === 0) {
+      parsed.contentStocks = JSON.parse(JSON.stringify(INITIAL_CONTENT_STOCKS));
+    }
+    if (!parsed.cleaningChecklist || !Array.isArray(parsed.cleaningChecklist) || parsed.cleaningChecklist.length === 0) {
+      parsed.cleaningChecklist = JSON.parse(JSON.stringify(INITIAL_CLEANING_CHECKLIST));
     }
 
     repairDatabaseFollowUps(parsed);

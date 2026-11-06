@@ -22,6 +22,7 @@ import {
   Sparkles,
   LogOut,
   Landmark,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
@@ -68,6 +69,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       href: '/',
       icon: LayoutDashboard,
       roles: ['Owner', 'CRM Administrator', 'Sales Representative', 'WhatsApp Administrator', 'Marketing'],
+    },
+    {
+      name: 'Tugas Saya',
+      href: '/tugas-saya',
+      icon: ClipboardCheck,
+      roles: [
+        'Owner',
+        'CRM Administrator',
+        'Sales Representative',
+        'WhatsApp Administrator',
+        'Marketing',
+        'Host Live',
+        'Teknisi Otomotif',
+        'Staf Operasional Showroom',
+        'Staf Administrasi Keuangan',
+        'Konten Kreator',
+        'Admin Layanan Pelanggan',
+      ],
     },
     {
       name: 'CRM',

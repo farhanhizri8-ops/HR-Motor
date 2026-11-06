@@ -13,13 +13,14 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useCrm } from '@/context/CrmContext';
 
 export const MobileBottomNav: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { stocks, leads, currentUser } = useCrm();
+  const { stocks, leads, currentUser, cleaningChecklist, contentStocks, followUps } = useCrm();
   const [crmMenuOpen, setCrmMenuOpen] = useState(false);
 
   const cleanPath = (pathname || '').replace(/\/$/, '') || '/';
@@ -27,6 +28,35 @@ export const MobileBottomNav: React.FC = () => {
   // Badge counts
   const readyStockCount = (stocks || []).filter((s) => s.status === 'Tersedia').length;
   const activeLeadsCount = (leads || []).length;
+
+  // Hitung jumlah tugas pending sesuai peran / jobdesk pengguna saat ini
+  const userJobdesks =
+    currentUser?.jobdesks && currentUser.jobdesks.length > 0
+      ? currentUser.jobdesks
+      : [currentUser?.role || ''];
+
+  let myTasksCount = 0;
+  if (userJobdesks.includes('Teknisi Otomotif')) {
+    myTasksCount += (stocks || []).filter((s) => !s.isRepaired).length;
+  }
+  if (userJobdesks.includes('Staf Operasional Showroom')) {
+    myTasksCount += (cleaningChecklist || []).filter((c) => !c.isClean).length;
+  }
+  if (userJobdesks.includes('Konten Kreator')) {
+    myTasksCount += (contentStocks || []).filter((c) => c.status !== 'Sudah Tayang').length;
+  }
+  if (
+    userJobdesks.includes('Admin Layanan Pelanggan') ||
+    userJobdesks.includes('WhatsApp Administrator')
+  ) {
+    myTasksCount += (followUps || []).filter((f) => f.status === 'Terjadwal').length;
+  }
+  // Khusus Owner, jika tidak ada jobdesk spesifik, tampilkan total unit belum servis & kebersihan
+  if (currentUser?.role === 'Owner' && myTasksCount === 0) {
+    const unRepaired = (stocks || []).filter((s) => !s.isRepaired).length;
+    const unclean = (cleaningChecklist || []).filter((c) => !c.isClean).length;
+    myTasksCount = unRepaired + unclean;
+  }
 
   const isCrmActive =
     cleanPath.startsWith('/customers') ||
@@ -50,6 +80,15 @@ export const MobileBottomNav: React.FC = () => {
       badge: readyStockCount > 0 ? readyStockCount : undefined,
       badgeColor: 'bg-gold-500 text-charcoal-950',
       isActive: cleanPath.startsWith('/stok-unit'),
+    },
+    {
+      id: 'tugas-saya',
+      name: 'Tugas Saya',
+      href: '/tugas-saya',
+      icon: ClipboardCheck,
+      badge: myTasksCount > 0 ? myTasksCount : undefined,
+      badgeColor: 'bg-emerald-600 text-white',
+      isActive: cleanPath.startsWith('/tugas-saya'),
     },
     {
       id: 'crm',

@@ -23,6 +23,10 @@ import {
   CashFlowRecord,
   Investor,
   PayrollCommissionRecord,
+  ContentStockItem,
+  CleaningChecklistItem,
+  INITIAL_CLEANING_CHECKLIST,
+  INITIAL_CONTENT_STOCKS,
 } from '@/types/crm';
 
 function cleanPhone(p?: string): string {
@@ -1596,6 +1600,92 @@ export async function POST(request: Request) {
           db.payrollCommissions = db.payrollCommissions.filter(p => p.id !== payload.id);
           logActivity('Hapus Data Gaji/Komisi', 'Gaji', payload.id, `Staf Keuangan menghapus record gaji/komisi ${payload.id}`);
         }
+        break;
+      }
+
+      // ======================================================================
+      // TUGAS SAYA: MANAJEMEN KONTEN KREATOR
+      // ======================================================================
+      case 'ADD_CONTENT_STOCK': {
+        const contentStocks = db.contentStocks || (db.contentStocks = JSON.parse(JSON.stringify(INITIAL_CONTENT_STOCKS)));
+        const count = contentStocks.length + 1;
+        const newContent: ContentStockItem = {
+          id: `CNT-${Date.now().toString().slice(-4)}-${count}`,
+          title: payload.title || 'Konten Baru HR MOTOR',
+          platform: payload.platform || 'TikTok',
+          category: payload.category || 'Review Unit',
+          vehicleModel: payload.vehicleModel || undefined,
+          status: payload.status || 'Draf',
+          targetPublishDate: payload.targetPublishDate || new Date().toISOString().split('T')[0],
+          notes: payload.notes || '',
+          videoUrl: payload.videoUrl || undefined,
+          creatorName: userName || 'Konten Kreator',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        contentStocks.unshift(newContent);
+        logActivity('Tambah Stok Konten', 'Stok Unit', newContent.id, `Konten Kreator menambahkan stok konten: "${newContent.title}" (${newContent.platform})`);
+        break;
+      }
+
+      case 'UPDATE_CONTENT_STOCK': {
+        const contentStocks = db.contentStocks || (db.contentStocks = JSON.parse(JSON.stringify(INITIAL_CONTENT_STOCKS)));
+        const index = contentStocks.findIndex((c: ContentStockItem) => c.id === payload.id);
+        if (index === -1) {
+          return NextResponse.json({ success: false, error: 'Konten tidak ditemukan' }, { status: 404 });
+        }
+        contentStocks[index] = {
+          ...contentStocks[index],
+          ...payload,
+          updatedAt: new Date().toISOString(),
+        };
+        logActivity('Perbarui Stok Konten', 'Stok Unit', payload.id, `Memperbarui status/data konten "${contentStocks[index].title}"`);
+        break;
+      }
+
+      case 'DELETE_CONTENT_STOCK': {
+        if (db.contentStocks) {
+          db.contentStocks = db.contentStocks.filter((c: ContentStockItem) => c.id !== payload.id);
+          logActivity('Hapus Stok Konten', 'Stok Unit', payload.id, `Menghapus stok konten ${payload.id}`);
+        }
+        break;
+      }
+
+      // ======================================================================
+      // TUGAS SAYA: MONITORING KEBERSIHAN OPERASIONAL SHOWROOM
+      // ======================================================================
+      case 'TOGGLE_CLEANING_CHECKLIST': {
+        const cleaningChecklist = db.cleaningChecklist || (db.cleaningChecklist = JSON.parse(JSON.stringify(INITIAL_CLEANING_CHECKLIST)));
+        const index = cleaningChecklist.findIndex((item: CleaningChecklistItem) => item.id === payload.id);
+        if (index !== -1) {
+          const prev = cleaningChecklist[index];
+          const nextClean = typeof payload.isClean === 'boolean' ? payload.isClean : !prev.isClean;
+          cleaningChecklist[index] = {
+            ...prev,
+            isClean: nextClean,
+            cleanedBy: nextClean ? (payload.cleanedBy || userName) : undefined,
+            cleanedAt: nextClean ? new Date().toISOString() : undefined,
+            notes: payload.notes !== undefined ? payload.notes : prev.notes,
+          };
+          logActivity(
+            'Monitoring Kebersihan Showroom',
+            'Stok Unit',
+            payload.id,
+            `Area "${prev.areaName}" ditandai: ${nextClean ? '✓ BERSIH' : '⏳ BELUM BERSIH'}`
+          );
+        }
+        break;
+      }
+
+      case 'RESET_CLEANING_CHECKLIST': {
+        const cleaningChecklist = db.cleaningChecklist || (db.cleaningChecklist = JSON.parse(JSON.stringify(INITIAL_CLEANING_CHECKLIST)));
+        db.cleaningChecklist = cleaningChecklist.map((item: CleaningChecklistItem) => ({
+          ...item,
+          isClean: false,
+          cleanedBy: undefined,
+          cleanedAt: undefined,
+        }));
+        logActivity('Reset Monitoring Kebersihan', 'Stok Unit', 'ALL', 'Memulai checklist monitoring kebersihan showroom baru hari ini');
         break;
       }
 

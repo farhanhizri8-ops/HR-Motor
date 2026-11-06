@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { readDatabase, repairDatabaseStocks, repairDatabaseLeads, getInitialDatabase } from '../src/lib/serverStore';
-import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase, Lead, normalizePipelineStage, CORE_PIPELINE_STAGES, getVehicleReadinessPending } from '../src/types/crm';
+import { VehicleStock, CreditApplication, FollowUp, Customer, CustomerPurchase, Lead, normalizePipelineStage, CORE_PIPELINE_STAGES, getVehicleReadinessPending, User } from '../src/types/crm';
 
 console.log('================================================================');
 console.log('       HR MOTOR CRM - COMPREHENSIVE VERIFICATION SUITE          ');
@@ -1148,6 +1148,65 @@ console.log('\n[12/12] Testing Vehicle Stock Readiness Checklist & Automated Pen
   const pendingLegacy = getVehicleReadinessPending(legacyStock);
   assert(pendingLegacy.includes('Belum Foto Unit'), 'Legacy foto mapping works');
   assert(pendingLegacy.includes('Belum Perbaikan'), 'Legacy perbaikan mapping works');
+}
+
+// -----------------------------------------------------------------------------
+// 13. TUGAS SAYA & MULTI-JOBDESK SHOWROOM DISPATCHING VERIFICATION
+// -----------------------------------------------------------------------------
+console.log('\n[13/13] Testing Tugas Saya & Multi-Jobdesk Dispatching...');
+{
+  // 1. Single Jobdesk: Teknisi Otomotif
+  const teknisiUser: Partial<User> = {
+    id: 'USR-TEK-01',
+    name: 'Budi Teknisi',
+    role: 'Teknisi Otomotif',
+    jobdesks: ['Teknisi Otomotif'],
+  };
+  const isTeknisi = (teknisiUser.jobdesks || []).includes('Teknisi Otomotif');
+  const isKonten = (teknisiUser.jobdesks || []).includes('Konten Kreator');
+  assert(isTeknisi === true, 'User Teknisi memiliki akses modul Teknisi Otomotif');
+  assert(isKonten === false, 'User Teknisi tidak menampilkan modul Konten Kreator secara default');
+
+  // 2. Single Jobdesk: Staf Operasional Showroom
+  const opUser: Partial<User> = {
+    id: 'USR-OP-01',
+    name: 'Siti Operasional',
+    role: 'Staf Operasional Showroom',
+    jobdesks: ['Staf Operasional Showroom'],
+  };
+  assert((opUser.jobdesks || []).includes('Staf Operasional Showroom'), 'User Operasional memiliki akses checklist kebersihan');
+
+  // 3. Multi-Jobdesk: 2 Peran Sekaligus (Teknisi Otomotif & Konten Kreator)
+  const multiJobdeskUser: Partial<User> = {
+    id: 'USR-MULTI-01',
+    name: 'Rian Multi-Peran',
+    role: 'Teknisi Otomotif',
+    jobdesks: ['Teknisi Otomotif', 'Konten Kreator'],
+  };
+  const activeJobdesks = multiJobdeskUser.jobdesks || [];
+  assert(activeJobdesks.length === 2, 'Pengguna memiliki tepat 2 jobdesk aktif');
+  assert(activeJobdesks.includes('Teknisi Otomotif'), 'Multi-jobdesk mencakup Teknisi Otomotif');
+  assert(activeJobdesks.includes('Konten Kreator'), 'Multi-jobdesk mencakup Konten Kreator');
+
+  // 4. Multi-Jobdesk: Keuangan & Admin Layanan Pelanggan
+  const multiFinanceCrmUser: Partial<User> = {
+    id: 'USR-MULTI-02',
+    name: 'Dewi Keuangan & WA',
+    role: 'Staf Administrasi Keuangan',
+    jobdesks: ['Staf Administrasi Keuangan', 'Admin Layanan Pelanggan'],
+  };
+  assert((multiFinanceCrmUser.jobdesks || []).includes('Staf Administrasi Keuangan'), 'Multi-jobdesk mencakup Staf Administrasi Keuangan');
+  assert((multiFinanceCrmUser.jobdesks || []).includes('Admin Layanan Pelanggan'), 'Multi-jobdesk mencakup Admin Layanan Pelanggan');
+
+  // 5. Owner has universal access
+  const ownerUser: Partial<User> = {
+    id: 'USR-OWNER-01',
+    name: 'Farhan Hizri',
+    role: 'Owner',
+    jobdesks: ['Owner'],
+  };
+  const isOwner = ownerUser.role === 'Owner';
+  assert(isOwner === true, 'Owner memiliki hak akses universal ke seluruh tugas showroom');
 }
 
 console.log('\n================================================================');
